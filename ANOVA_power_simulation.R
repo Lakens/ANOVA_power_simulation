@@ -11,7 +11,7 @@ require(reshape2)
 
 #String used to specify the design
 # e.g., "2" for 1 factor, "2*2*2" for three factors
-string <- "3" #String used to specify the design
+string <- "3*3" #String used to specify the design
 factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
 if(factors == 1){frml1 <- as.formula("y ~ a + Error(subject/a)")}
 if(factors == 1){frml2 <- as.formula("~a")}
@@ -27,7 +27,7 @@ p_adjust <- "none"
 #for 1x2: c(1, 2) so 2 means
 #for 2x2: c(1, 2, 3, 4) so 4 means
 #for 2x2x2: c(1, 2, 3, 4, 5, 6, 7, 8) so 8 means
-mu = c(6, 2, 6) # population means - should match up with the design
+mu = c(6, 2, 6, 2, 1, 4, 3, 4, 3) # population means - should match up with the design
 sd=1 #population standard deviations
 r=0.5 # correlation between repeated measures
 n<-20 #number of subjects
@@ -38,9 +38,30 @@ sigmatrix <- matrix(r, length(mu),length(mu)) #create a matrix filled with value
 diag(sigmatrix) <- sd # replace the diagonal with the sd
 
 
-# 2*(2^factors-1)+2^factors*(2^factors-1) #determines how much we will calculate - p and eta, for each main effect and interaction, and then add all simple effects
-sim_data <- as.data.frame(matrix(ncol = 2*(2^factors-1)+2^factors*(2^factors-1), nrow = nsims))
-names(sim_data) = c("anova_p1", "anova_p2", "anova_p3", "es_1", "es_2", "es_3", "pc_p1", "pc_p2", "pc_p3", "pc_p4", "pc_p5", "pc_p6", "pc_es1", "pc_es2", "pc_es3", "pc_es4", "pc_es5", "pc_es6")
+# 2*(2^factors-1)+2^factors*(2^factors-1) #determines how much we will calculate - p and eta, for each main effect and interaction, and then add all simple pairwise comparisons
+#planned contrasts possible: 
+
+#pairs comparisons within groups
+# prod(as.numeric(strsplit(string, "\\D+")[[1]]))
+#paired ocmparisons within groups
+# sum(factorial(as.numeric(strsplit(string, "\\D+")[[1]]))/(factorial(as.numeric(strsplit(string, "\\D+")[[1]])-1)*(factorial(as.numeric(strsplit(string, "\\D+")[[1]])-(as.numeric(strsplit(string, "\\D+")[[1]])-1)))))
+# Add them together
+possible_pc <- prod(as.numeric(strsplit(string, "\\D+")[[1]]))+sum(factorial(as.numeric(strsplit(string, "\\D+")[[1]]))/(factorial(as.numeric(strsplit(string, "\\D+")[[1]])-1)*(factorial(as.numeric(strsplit(string, "\\D+")[[1]])-(as.numeric(strsplit(string, "\\D+")[[1]])-1)))))
+
+sim_data <- as.data.frame(matrix(ncol = 2*(2^factors-1)+2*possible_pc, nrow = nsims))
+#Dynamically create names for thedata we will store
+names(sim_data) = c(paste("anova_",letters[[16]], 
+                          1:(2^factors-1), 
+                          sep=""), 
+                    paste("es_", 
+                          1:(2^factors-1), 
+                          sep=""), 
+                    paste("pc",letters[[16]], 
+                          1:(2^factors*(2^factors-1)), 
+                          sep=""), 
+                    paste("d_", 
+                          1:(2^factors*(2^factors-1)), 
+                          sep=""))
 
 pb <- winProgressBar(title = "progress bar", min = 0, max = nsims, width = 300)
 
@@ -57,71 +78,36 @@ for(i in 1:nsims){ #for each simulated experiment
             value.name = "y")
   
   for(j in 1:factors){
-    df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 1:as.numeric(strsplit(string, "\\D+")[[1]])[j], sep="")), each = n*(2^(factors-1)*2)/(2^j), times = (2^j/2)))))
+    # Let's break this down - it's a bit tricky. First, we want to create a list of a1 a2 b1 b2 that will indicate the factors. 
+    # We are looping this over the number of factors.
+    # This: as.numeric(strsplit(string, "\\D+")[[1]]) - takes the string used to specify the design and turn it in a list. 
+    # we take the letters from the alfabet: paste(letters[[j]] and add numbers 1 to however many factors there as: 1:as.numeric(strsplit(string, "\\D+")[[1]])[j], sep="")
+    # We this get e.g. ,a1 a2 - we repeat these each: n*(2^(factors-1)*2)/(2^j) and them times:  (2^j/2) to get a list for each factor
+    # We then bind these together with the existing dataframe.
+    df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
+                                                       1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
+                                                       sep="")), 
+                                         each = n*(as.numeric(strsplit(string, "\\D+")[[1]])[j]^(factors-1)*as.numeric(strsplit(string, "\\D+")[[1]])[j])/(as.numeric(strsplit(string, "\\D+")[[1]])[j]^j), 
+                                         times = (as.numeric(strsplit(string, "\\D+")[[1]])[j]^j/as.numeric(strsplit(string, "\\D+")[[1]])[j]))
+    )))
   }
   names(df)[4:(3+factors)] <- letters[1:factors]
-  # #not used
-  # mod <- aov(y ~ X1 * X2 + Error(subject / (X1*X2)), qr=FALSE, data = a) 
-  # 
-  # 
-  # require(psych)
-  # describe(a$y)
-  # 
-  # require(ggplot2)
-  # plot_means<-ggplot(a, aes(X1, y, fill=X2)) +
-  #   geom_bar(position=position_dodge(), 
-  #            stat="summary", 
-  #            fun.y="mean")
-  # plot_means
-  # 
-  #Normal ANOVA using AFEX
-  within.aov<-aov_car(frml1, 
+  # We perform the ANOVA using AFEX
+  within.aov<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                       data=df,
                       anova_table = list(es = "pes", p_adjust_method = p_adjust)) #This reports PES not GES
-  # within.aov
-  
-  # #Automatically applies Holm-Bonferroni correction
-  # within.aov<-aov_car(y ~ X1*X2 + Error(subject/X1*X2), 
-  #                     data=a,
-  #                     anova_table = list(es = "pes", p_adjust_method = "holm")) #This reports PES not GES
-  # within.aov
-  # 
-  # 
-  # within.aov<-aov_car(y ~ X1*X2 + Error(subject/X1*X2), 
-  #                     data=a)
-  # within.aov
-  
-  #Another way to plot the means
-  # emmip(within.aov, X2~X1, CIs = TRUE)
-  
-  # 2. obtain reference grid object (default is uses univariate model):
-  # r1 <- emmeans(within.aov, ~X1 + X2)
-  # r1
-
-    #pairwise comparisons
+  # pairwise comparisons
   pc <- pairs(emmeans(within.aov, frml2), adjust = p_adjust) #no adjustments
-  #pc <- pairs(r1, adjust = "holm") #holm adjustments
-  
-  # #p-values for ANOVA table
-  # within.aov$anova_table[[6]]
-  # #partial eta squared
-  # within.aov$anova_table[[5]]
-  # #p-values for paired comparisons
-  # as.data.frame(summary(pc))$p.value
-  # #Cohen's dz
-  # as.data.frame(summary(pc))$t.ratio/sqrt(n)
-  
-  #Combine all data to be stored in a single row.
+  # store p-values and effect sizes for calculations and plots.
   sim_data[i,] <- c(within.aov$anova_table[[6]], #p-value for ANOVA
-                    within.aov$anova_table[[5]], #partial eta squared
-                    as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
-                    as.data.frame(summary(pc))$t.ratio/sqrt(n) #Cohen's dz
-  )
+                  within.aov$anova_table[[5]], #partial eta squared
+                  as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
+                  as.data.frame(summary(pc))$t.ratio/sqrt(n)) #Cohen's dz
 }
 
-close(pb)
+close(pb) #close the progress bar
 
-# melt the data into a ggplot friendly 'long' format
+# melt the data into a long format for plots in ggplot2
 require(reshape2)
 p <- sim_data[1:3]
 
