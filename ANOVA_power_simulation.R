@@ -11,7 +11,7 @@ require(reshape2)
 
 #String used to specify the design
 # e.g., "2" for 1 factor, "2*2*2" for three factors
-string <- "3*3" #String used to specify the design
+string <- "2*3*5" #String used to specify the design
 factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
 if(factors == 1){frml1 <- as.formula("y ~ a + Error(subject/a)")}
 if(factors == 1){frml2 <- as.formula("~a")}
@@ -19,6 +19,8 @@ if(factors == 2){frml1 <- as.formula("y ~ a*b + Error(subject/a*b)")}
 if(factors == 2){frml2 <- as.formula("~a+b")}
 if(factors == 3){frml1 <- as.formula("y ~ a*b*c + Error(subject/a*b*c)")}
 if(factors == 3){frml2 <- as.formula("~a+b+c")}
+if(factors == 4){frml1 <- as.formula("y ~ a*b*c*d + Error(subject/a*b*c*d)")}
+if(factors == 4){frml2 <- as.formula("~a+b+c+d")}
 
 #indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
 p_adjust <- "none" 
@@ -27,10 +29,10 @@ p_adjust <- "none"
 #for 1x2: c(1, 2) so 2 means
 #for 2x2: c(1, 2, 3, 4) so 4 means
 #for 2x2x2: c(1, 2, 3, 4, 5, 6, 7, 8) so 8 means
-mu = c(6, 2, 6, 2, 1, 4, 3, 4, 3) # population means - should match up with the design
+mu = rep(1,30) # population means - should match up with the design
 sd=1 #population standard deviations
 r=0.5 # correlation between repeated measures
-n<-20 #number of subjects
+n<-10 #number of subjects
 nsims = 100 # how many simulation replicates?
 
 #create matrix
@@ -41,26 +43,23 @@ diag(sigmatrix) <- sd # replace the diagonal with the sd
 # 2*(2^factors-1)+2^factors*(2^factors-1) #determines how much we will calculate - p and eta, for each main effect and interaction, and then add all simple pairwise comparisons
 #planned contrasts possible: 
 
-#pairs comparisons within groups
-# prod(as.numeric(strsplit(string, "\\D+")[[1]]))
-#paired ocmparisons within groups
-# sum(factorial(as.numeric(strsplit(string, "\\D+")[[1]]))/(factorial(as.numeric(strsplit(string, "\\D+")[[1]])-1)*(factorial(as.numeric(strsplit(string, "\\D+")[[1]])-(as.numeric(strsplit(string, "\\D+")[[1]])-1)))))
-# Add them together
-possible_pc <- prod(as.numeric(strsplit(string, "\\D+")[[1]]))+sum(factorial(as.numeric(strsplit(string, "\\D+")[[1]]))/(factorial(as.numeric(strsplit(string, "\\D+")[[1]])-1)*(factorial(as.numeric(strsplit(string, "\\D+")[[1]])-(as.numeric(strsplit(string, "\\D+")[[1]])-1)))))
+#pairs comparisons between groups
+possible_pc <- (((prod(as.numeric(strsplit(string, "\\D+")[[1]])))^2)-prod(as.numeric(strsplit(string, "\\D+")[[1]])))/2
 
-sim_data <- as.data.frame(matrix(ncol = 2*(2^factors-1)+2*possible_pc, nrow = nsims))
+ 
+sim_data <- as.data.frame(matrix(ncol = 2*(2^(factors-1))+2*possible_pc, nrow = nsims))
 #Dynamically create names for thedata we will store
 names(sim_data) = c(paste("anova_",letters[[16]], 
-                          1:(2^factors-1), 
+                          1:(2^(factors-1)), 
                           sep=""), 
                     paste("es_", 
-                          1:(2^factors-1), 
+                          1:(2^(factors-1)), 
                           sep=""), 
                     paste("pc",letters[[16]], 
-                          1:(2^factors*(2^factors-1)), 
+                          1:possible_pc, 
                           sep=""), 
                     paste("d_", 
-                          1:(2^factors*(2^factors-1)), 
+                          1:possible_pc, 
                           sep=""))
 
 pb <- winProgressBar(title = "progress bar", min = 0, max = nsims, width = 300)
@@ -87,9 +86,9 @@ for(i in 1:nsims){ #for each simulated experiment
     df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
                                                        1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
                                                        sep="")), 
-                                         each = n*(as.numeric(strsplit(string, "\\D+")[[1]])[j]^(factors-1)*as.numeric(strsplit(string, "\\D+")[[1]])[j])/(as.numeric(strsplit(string, "\\D+")[[1]])[j]^j), 
-                                         times = (as.numeric(strsplit(string, "\\D+")[[1]])[j]^j/as.numeric(strsplit(string, "\\D+")[[1]])[j]))
-    )))
+                                         each = n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
+                                         times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+    ))))
   }
   names(df)[4:(3+factors)] <- letters[1:factors]
   # We perform the ANOVA using AFEX
