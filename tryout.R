@@ -11,11 +11,14 @@ require(gridExtra)
 require(reshape2)
 
 
-mu = c(1, 0, 0, 0, 0, 0) # population means
+mu = c(1, 0, 0, 0, 0, 0, 0, 0) # population means
 sd=1 #population standard deviations
 r=0.0 # correlation between repeated measures
-n<-2 #number of subjects
+n<-1 #number of subjects
 p_adjust <- "none"
+
+string <- "4*2"
+factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
 
 #create matrix
 sigmatrix <- matrix(r, length(mu),length(mu)) #create a matrix filled with value of correlation, nrow and ncol set to length in mu
@@ -32,8 +35,7 @@ a <- melt(a,
           value.name = "y")
 # a$X1 <- as.factor(c(rep("A1", nrow(a)/2), 
 #                     rep("A2", nrow(a)/2)))
-string <- "3*2"
-factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
+
 
 df <- as.data.frame(rmvnorm(n=n,
                             mean=mu,
@@ -46,7 +48,7 @@ df <- melt(df,
 
 
 # prod(as.numeric(strsplit(string, "\\D+")[[1]]))/(as.numeric(strsplit(string, "\\D+")[[1]])[j])
-j=2
+
 for(j in 1:factors){
   # Let's break this down - it's a bit tricky. First, we want to create a list of a1 a2 b1 b2 that will indicate the factors. 
   # We are looping this over the number of factors.
@@ -57,12 +59,14 @@ for(j in 1:factors){
   df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
                                                      1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
                                                      sep="")), 
-                                       each = n * (prod(as.numeric(strsplit(string, "\\D+")[[1]]))/2^(j-1))/(as.numeric(strsplit(string, "\\D+")[[1]])[1]),
-                                       times = (as.numeric(strsplit(string, "\\D+")[[1]])[1])^(j-1))
-  )))
+                                       each = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
+                                       times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+  ))))
 }
 
-
+prod(as.numeric(strsplit(string, "\\D+")[[1]][1:2]))
+  
+  
 # First factor: each = prod*n/(factor level), times = 2^(j-1)
 # SEcond factor: each = prod*n/(factor level), times = 2
 
@@ -80,4 +84,26 @@ pc <- pairs(emmeans(within.aov, frml2), adjust = p_adjust) #no adjustments
 
 
 
+rep(as.list(paste(letters[[j]], 
+                  1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
+                  sep="")), 
+    each = n * (prod(as.numeric(strsplit(string, "\\D+")[[1]]))/(as.numeric(strsplit(string, "\\D+")[[1]])[1])^(j-1))/(as.numeric(strsplit(string, "\\D+")[[1]])[1]),
+    times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:length(as.numeric(strsplit(string, "\\D+")[[1]]))]))
 
+
+j=1
+string <- "2*3"
+rep(as.list(paste(letters[[j]], 
+                  1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
+                  sep="")), 
+    each = 3,
+    times = 1)
+
+j=1
+string <- "4*2*3"
+prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]) #each
+
+prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:length(as.numeric(strsplit(string, "\\D+")[[1]]))]) #times
+
+
+length(as.numeric(strsplit(string, "\\D+")[[1]]))
