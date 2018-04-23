@@ -8,10 +8,11 @@ library(psych)
 library(tidyr)
 require(gridExtra)
 require(reshape2)
+require(sjstats)
 
 #String used to specify the design
 # e.g., "2" for 1 factor, "2*2*2" for three factors
-string <- "2*3*5" #String used to specify the design
+string <- "2*2*2" #String used to specify the design
 factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
 if(factors == 1){frml1 <- as.formula("y ~ a + Error(subject/a)")}
 if(factors == 1){frml2 <- as.formula("~a")}
@@ -29,10 +30,10 @@ p_adjust <- "none"
 #for 1x2: c(1, 2) so 2 means
 #for 2x2: c(1, 2, 3, 4) so 4 means
 #for 2x2x2: c(1, 2, 3, 4, 5, 6, 7, 8) so 8 means
-mu = rep(1,30) # population means - should match up with the design
+mu = c(1, 2, 2, 2, 1, 2, 2, 1) # population means - should match up with the design
 sd=1 #population standard deviations
 r=0.5 # correlation between repeated measures
-n<-10 #number of subjects
+n<-50 #number of subjects
 nsims = 100 # how many simulation replicates?
 
 #create matrix
@@ -47,20 +48,7 @@ diag(sigmatrix) <- sd # replace the diagonal with the sd
 possible_pc <- (((prod(as.numeric(strsplit(string, "\\D+")[[1]])))^2)-prod(as.numeric(strsplit(string, "\\D+")[[1]])))/2
 
  
-sim_data <- as.data.frame(matrix(ncol = 2*(2^(factors-1))+2*possible_pc, nrow = nsims))
-#Dynamically create names for thedata we will store
-names(sim_data) = c(paste("anova_",letters[[16]], 
-                          1:(2^(factors-1)), 
-                          sep=""), 
-                    paste("es_", 
-                          1:(2^(factors-1)), 
-                          sep=""), 
-                    paste("pc",letters[[16]], 
-                          1:possible_pc, 
-                          sep=""), 
-                    paste("d_", 
-                          1:possible_pc, 
-                          sep=""))
+sim_data <- as.data.frame(matrix(ncol = 2*(2^factors-1)+2*possible_pc, nrow = nsims))
 
 pb <- winProgressBar(title = "progress bar", min = 0, max = nsims, width = 300)
 
@@ -106,37 +94,65 @@ for(i in 1:nsims){ #for each simulated experiment
 
 close(pb) #close the progress bar
 
+
+x<-within.aov[["lm"]][["terms"]][[2]]
+pc@grid[["contrast"]]
+
+#Dynamically create names for thedata we will store
+names(sim_data) = c(paste("anova_p_",
+                          within.aov$Anova$terms[-1], 
+                          sep=""), 
+                    paste("anova_es_", 
+                          within.aov$Anova$terms[-1], 
+                          sep=""), 
+                    paste("paired_comparison_p_", 
+                          pc@grid[["contrast"]], 
+                          sep=""), 
+                    paste("d_", 
+                          pc@grid[["contrast"]], 
+                          sep=""))
+
 # melt the data into a long format for plots in ggplot2
 require(reshape2)
-p <- sim_data[1:3]
+power_anova = apply(as.matrix(sim_data[1:(2^factors-1)]), 2, 
+              function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2))
+power_anova
 
-power = apply(as.matrix(p), 2, 
-              function(x) round(mean(ifelse(x < .05, 1, 0) * 100),0))
-power
-
-plotData <- melt(p, value.name = 'p')
+plotData <- melt(sim_data[1:(2^factors-1)], value.name = 'p')
 
 # plot each of the p-value distributions 
 options(scipen = 999) # 'turn off' scientific notation
-plt2 = ggplot(plotData, aes(x = p)) +
+plt1 = ggplot(plotData, aes(x = p)) +
   scale_x_continuous(breaks=seq(0, 1, by = .1),
                      labels=seq(0, 1, by = .1)) +
-  geom_histogram(colour = "darkblue", fill = "white", breaks=seq(0, 1, by = .01)) +
+  geom_histogram(colour = "darkgrey", fill = "white", breaks=seq(0, 1, by = .01)) +
   geom_vline(xintercept = 0.05, colour='red') +
   facet_grid(variable ~ .) +
   labs(x = expression(p)) +
   theme(axis.text.x = element_text(color='black', size=7))
-plt2
+plt1
+
+#effect sizes for each test in the ANOVA (partial eta-squared)
+colMeans(sim_data[(2^factors):(2*(2^factors-1))])
+#estimated power for each test in the ANOVA
+apply(as.matrix(sim_data[1:(2^factors-1)]), 2, 
+      function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2))
+
+
+
+
 
 
 
 # melt the data into a ggplot friendly 'long' format
 require(reshape2)
-p <- sim_data[7:12]
+p <- sim_data[2*(2^factors-1)+1:2*(2^factors-1)+2*possible_pc]
 
-power = apply(as.matrix(p), 2, 
-              function(x) round(mean(ifelse(x < .05, 1, 0) * 100),0))
+power = apply(as.matrix(sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+2*possible_pc)]), 2, 
+              function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2))
 power
+
+sim_data[2*(2^factors-1)+1:2*(2^factors-1)+2*possible_pc]
 
 plotData <- melt(p, value.name = 'p')
 
@@ -158,3 +174,24 @@ describe(sim_data)
 
 es <- sim_data[13:18]
 describe(es)
+
+
+omega_sq(within.aov)
+
+
+
+within.aov<-aov(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+                data=df) #This reports PES not GES
+
+# load sample data
+data(efc)
+
+# fit linear model
+fit <- aov(
+  c12hour ~ as.factor(e42dep) + as.factor(c172code) + c160age,
+  data = efc
+)
+
+eta_sq(fit)
+omega_sq(fit)
+eta_sq(fit, partial = TRUE)
