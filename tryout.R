@@ -73,10 +73,26 @@ sigma=matrix(c(sd,r,r,r,r,r,r,r,
                r,r,r,r,r,r,sd,r,
                r,r,r,r,r,r,r,sd), 8,8)
 
-sss <- matrix(NA, length(mu),length(mu))
-diag(sss) <- sd
-sss[1:2,1:2] <- matrix(design, 2,2)
+sss <- matrix(r, length(mu),length(mu))
 
+k=2
+for(k in 1:factors){
+  sss[k:(as.numeric(strsplit(string, "\\D+")[[1]])[[k]]),
+    k:(as.numeric(strsplit(string, "\\D+")[[1]])[[k]])] <- matrix(design[k], 
+                                                          (as.numeric(strsplit(string, "\\D+")[[1]])[[k]]), 
+                                                          (as.numeric(strsplit(string, "\\D+")[[1]])[[k]]))
+}
+
+diag(sss) <- sd
+
+
+matrix(design[k], (as.numeric(strsplit(string, "\\D+")[[1]])[[k]]), (as.numeric(strsplit(string, "\\D+")[[1]])[[k]]))
+
+matrix(0,2,2)
+
+x<-(as.list(strsplit(string, "\\D+")[[1]])[[k]])
+str(x)
+as.list(strsplit(string, "\\D+")[[1]])[k]
 
 
 
