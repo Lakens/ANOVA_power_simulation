@@ -11,7 +11,7 @@ require(reshape2)
 
 #String used to specify the design
 # e.g., "2" for 1 factor, "2*2*2" for three factors
-string <- "3b*3w" #String used to specify the design
+string <- "2w*2b" #String used to specify the design
 factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
 
 design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
@@ -40,7 +40,7 @@ p_adjust <- "none"
 #for 2x2x2: c(1, 2, 3, 4, 5, 6, 7, 8) so 8 means
 #order = a1b1,a1b2,a1b3,a2b1,a2b2,a2b3
 
-mu = c(1, 2, 3, 4, 5, 6, 7, 8, 9) # population means - should match up with the design
+mu = c(1, 2, 3, 4, 5, 6, 7, 8) # population means - should match up with the design
 sd=1 #population standard deviations
 r=0.5 # correlation between repeated measures
 n<-5 #number of subjects
@@ -49,15 +49,9 @@ nsims = 100 # how many simulation replicates?
 #create matrix
 sigmatrix <- matrix(r, length(mu),length(mu)) #create a matrix filled with value of correlation, nrow and ncol set to length in mu
 diag(sigmatrix) <- sd # replace the diagonal with the sd
-
 df <- as.data.frame(rmvnorm(n=n,
                             mean=mu,
                             sigma=sigmatrix))
-str(df)
-colMeans(df)
-
-cor(df)
-
 df$subject<-as.factor(c(1:n))
 df <- melt(df, 
            id.vars = "subject", 
@@ -99,16 +93,6 @@ sigma=matrix(c(sd,r,r,r,r,r,r,r,
 
 sss <- matrix(r, length(mu),length(mu))
 
-mean(as.numeric(strsplit(design, "\\D+")[[1]]))
-
-if(mean(design)==0){
-  sss <- matrix(0, length(mu),length(mu))
-} else if(mean(design)==1){
-  sss <- matrix(r, length(mu),length(mu))
-} else {
-  
-}
-
 
 k=2
 for(k in 1:factors){
@@ -118,74 +102,38 @@ for(k in 1:factors){
                                                           (as.numeric(strsplit(string, "\\D+")[[1]])[[k]]))
 }
 
-k=1
-sum(as.list(strsplit(string, "\\D+"))[[1:k]]))-1
-
-k=2
-sum(as.numeric(strsplit(string, "\\D+")[[1]])[1:k])-1
-
-diag(sss) <- sd
-
-
-matrix(design[k], (as.numeric(strsplit(string, "\\D+")[[1]])[[k]]), (as.numeric(strsplit(string, "\\D+")[[1]])[[k]]))
-
-matrix(0,2,2)
-
-x<-(as.list(strsplit(string, "\\D+")[[1]])[[k]])
-str(x)
-as.list(strsplit(string, "\\D+")[[1]])[k]
-
-
-sum(as.numeric(strsplit(string, "\\D+")[[1]])[1:k])-sum(as.numeric(strsplit(string, "\\D+")[[1]])[1:k-1])
-
-nm[] <- mydata[3,3]
-
-
-
-#create new matrix
-mydata <- data.frame(Var1 = c("A", "A", "B"), Var2 = c("B", "C", "C"), values = c(2, 3, 6))
-vals<-sort(unique(c(as.character(mydata$Var1), as.character(mydata$Var2))))
-nm<-matrix(NA, nrow=length(vals), ncol=length(vals), dimnames=list(vals, vals))
-diag(nm)<-1
-
-#fill 
-nm[as.matrix(mydata[, 1:2])] <- mydata[,3]
-
-#symmetric
-nm[lower.tri(nm)] <- nm[upper.tri(nm)]
-nm
-
-
-
-
-x <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]][1]
-y <- (1:(as.numeric(strsplit(string, "\\D+")[[1]]))[1])
-d1 <- expand.grid(x = x, y = y)
-x <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]][2]
-y <- (1:(as.numeric(strsplit(string, "\\D+")[[1]]))[2])
-d2 <- expand.grid(x = x, y = y)
-str(d2)
-print(d1)
-
-d3<- expand.grid(x = d1, y = d2)
-
-
- 
-
 #Factors that are within should be 1, between 0
 design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
 design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
 
 #Get list of complete design
 ppp <- unique(paste(df$a,df$b, sep = ""))
+str(ppp)
 #Create empty dataframe
 df_r <- data.frame(matrix(ncol=length(mu), nrow = length(mu)))
+str(df_r)
+#Factors that are within should be 1, between 0
+design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
+design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
+str(design)
+
+for(i1 in 1:length(ppp)){
+  zzz <- ppp[i1]
+  for(i2 in 1:length(design)){
+    if(design[i2]==1){substr(zzz, i2*2,  i2*2) <- "*"}
+  }
+  df_r[i1,]<-as.numeric(grepl(zzz, ppp))
+}
+str(df_r)
+
 zxc<-glob2rx("a*b1")
 df_r[1,]<-grepl(zxc, ppp)
 zxc<-glob2rx("a*b2")
 df_r[2,]<-grepl(zxc, ppp)
 zxc<-glob2rx("a*b3")
 df_r[3,]<-grepl(zxc, ppp)
+
+str(ppp)
 
 x1<-"a"
 x2<-"*"

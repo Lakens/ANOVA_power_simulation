@@ -12,16 +12,13 @@ require(sjstats)
 
 #String used to specify the design
 # e.g., "2" for 1 factor, "2*2*2" for three factors
-string <- "2*2*2" #String used to specify the design
+string <- "3b*3w" #String used to specify the design
 factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
-if(factors == 1){frml1 <- as.formula("y ~ a + Error(subject/a)")}
-if(factors == 1){frml2 <- as.formula("~a")}
-if(factors == 2){frml1 <- as.formula("y ~ a*b + Error(subject/a*b)")}
-if(factors == 2){frml2 <- as.formula("~a+b")}
-if(factors == 3){frml1 <- as.formula("y ~ a*b*c + Error(subject/a*b*c)")}
-if(factors == 3){frml2 <- as.formula("~a+b+c")}
-if(factors == 4){frml1 <- as.formula("y ~ a*b*c*d + Error(subject/a*b*c*d)")}
-if(factors == 4){frml2 <- as.formula("~a+b+c+d")}
+
+#Specify within/between factors in design: Factors that are within are 1, between 0
+design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
+design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
+
 
 #indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
 p_adjust <- "none" 
@@ -30,28 +27,133 @@ p_adjust <- "none"
 #for 1x2: c(1, 2) so 2 means
 #for 2x2: c(1, 2, 3, 4) so 4 means
 #for 2x2x2: c(1, 2, 3, 4, 5, 6, 7, 8) so 8 means
-mu = c(1, 2, 2, 2, 1, 2, 2, 1) # population means - should match up with the design
+
+#2x2
+#mu = c(1, 2, 2, 2) # population means - should match up with the design
+#2x2x2
+#mu = c(1, 2, 2, 2, 1, 2, 2, 1) # population means - should match up with the design
+#3x3
+mu = c(1, 2, 2, 2, 1, 2, 2, 1, 2) # population means - should match up with the design
+#3x3x3
+#mu = c(2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 2, 3, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 3, 2, 2, 2) # population means - should match up with the design
+
+
+if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
+
 sd=1 #population standard deviations
 r=0.5 # correlation between repeated measures
-n<-50 #number of subjects
+n<-5 #number of subjects
 nsims = 100 # how many simulation replicates?
 
-#create matrix
+# create temp matrix to create one dataset, to get design ################################
+# (this section is lazy but efficient programming)
 sigmatrix <- matrix(r, length(mu),length(mu)) #create a matrix filled with value of correlation, nrow and ncol set to length in mu
 diag(sigmatrix) <- sd # replace the diagonal with the sd
+df <- as.data.frame(rmvnorm(n=n,
+                            mean=mu,
+                            sigma=sigmatrix))
+df$subject<-as.factor(c(1:n))
+df <- melt(df, 
+           id.vars = "subject", 
+           variable.name = "cond",
+           value.name = "y")
+for(j in 1:factors){
+  df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
+                                                     1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
+                                                     sep="")), 
+                                       each = n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
+                                       times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+  ))))
+}
+names(df)[4:(3+factors)] <- letters[1:factors]
+
+############################################
+#Specify factors for formula ###############
+
+#one factor
+if(factors == 1 & sum(design) == 1){frml1 <- as.formula("y ~ a + Error(subject/a)")}
+if(factors == 1 & sum(design) == 0){frml1 <- as.formula("y ~ a")}
+
+if(factors == 2){
+  if(sum(design) == 2){frml1 <- as.formula("y ~ a*b + Error(subject/a*b)")}
+  if(sum(design) == 0){frml1 <- as.formula("y ~ a*b")}
+  if(all(design == c(1, 0)) == TRUE){frml1 <- as.formula("y ~ a*b + Error(subject/a)")}
+  if(all(design == c(0, 1)) == TRUE){frml1 <- as.formula("y ~ a*b + Error(subject/b)")}
+}
+
+if(factors == 3){
+  if(sum(design) == 3){frml1 <- as.formula("y ~ a*b*c + Error(subject/a*b*c)")}
+  if(sum(design) == 0){frml1 <- as.formula("y ~ a*b*c")}
+  if(all(design == c(1, 0, 0)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/a)")}
+  if(all(design == c(0, 1, 0)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/b)")}
+  if(all(design == c(0, 0, 1)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/c)")}
+  if(all(design == c(1, 1, 0)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/a*b)")}
+  if(all(design == c(0, 1, 1)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/b*c)")}
+  if(all(design == c(1, 0, 1)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/a*c)")}
+}
+
+#Specify second formula used for plotting
+if(factors == 1){frml2 <- as.formula("~a")}
+if(factors == 2){frml2 <- as.formula("~a+b")}
+if(factors == 3){frml2 <- as.formula("~a+b+c")}
+
+############################################
+#Specify factors for formula ###############
+
+if(factors == 1){
+  design_list <- unique(paste(df$a, sep = "")) #hardcoded, limits total # factors
+}
+if(factors == 2){
+  design_list <- unique(paste(df$a,df$b, sep = "")) #hardcoded, limits total # factors
+}
+if(factors == 3){
+  design_list <- unique(paste(df$a,df$b,df$c, sep = "")) #hardcoded, limits total # factors
+}
+
+############################################
+#Create Real Covariance Matrix##############
+
+#Create empty matrix
+sigmatrix <- data.frame(matrix(ncol=length(mu), nrow = length(mu)))
+
+# General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
+# Then for each factor in the design, if 1, set number to wildcard
+for(i1 in 1:length(design_list)){
+  current_factor <- design_list[i1]
+  for(i2 in 1:length(design)){
+    #We set each number that is within to a wildcard, so that all within subject factors are matched
+    if(design[i2] == 1){substr(current_factor, i2*2,  i2*2) <- "*"} 
+  }
+  sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
+}
+
+frml1 <- as.formula("y ~ a*b + Error(subject/(a*b))")
+# We perform the ANOVA using AFEX
+within.aov<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+                    data=df,
+                    anova_table = list(es = "pes", p_adjust_method = p_adjust)) #This reports PES not GES
 
 
-# 2*(2^factors-1)+2^factors*(2^factors-1) #determines how much we will calculate - p and eta, for each main effect and interaction, and then add all simple pairwise comparisons
-#planned contrasts possible: 
+diag(sigmatrix) <- sd # replace the diagonal with the sd
+sigmatrix <- as.matrix(sigmatrix)
 
-#pairs comparisons between groups
+
+
+########################################################
+#Set up dataframe for simulation results ###############
+
+#How many possible planned comparisons are there (to store p and es)
 possible_pc <- (((prod(as.numeric(strsplit(string, "\\D+")[[1]])))^2)-prod(as.numeric(strsplit(string, "\\D+")[[1]])))/2
-
- 
+#create empty dataframe
+#number of columns if for ANOVA results and planned comparisons, times 2 (p and es)
 sim_data <- as.data.frame(matrix(ncol = 2*(2^factors-1)+2*possible_pc, nrow = nsims))
 
-pb <- winProgressBar(title = "progress bar", min = 0, max = nsims, width = 300)
+############################################
+#Start Simulation            ###############
 
+frml1 <- as.formula("y ~ a*b + Error(subject/b)")
+pb <- winProgressBar(title = "progress bar", min = 0, max = nsims, width = 300)
+i=1
 for(i in 1:nsims){ #for each simulated experiment
   setWinProgressBar(pb, i, title=paste( round(i/nsims*100, 0),
                                         "% done"))
@@ -93,6 +195,9 @@ for(i in 1:nsims){ #for each simulated experiment
 }
 
 close(pb) #close the progress bar
+
+############################################
+#End Simulation              ###############
 
 
 x<-within.aov[["lm"]][["terms"]][[2]]
@@ -176,22 +281,3 @@ es <- sim_data[13:18]
 describe(es)
 
 
-omega_sq(within.aov)
-
-
-
-within.aov<-aov(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                data=df) #This reports PES not GES
-
-# load sample data
-data(efc)
-
-# fit linear model
-fit <- aov(
-  c12hour ~ as.factor(e42dep) + as.factor(c172code) + c160age,
-  data = efc
-)
-
-eta_sq(fit)
-omega_sq(fit)
-eta_sq(fit, partial = TRUE)
