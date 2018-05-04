@@ -8,28 +8,17 @@ library(psych)
 library(tidyr)
 require(gridExtra)
 require(reshape2)
+require(sjstats)
 
 #String used to specify the design
 # e.g., "2" for 1 factor, "2*2*2" for three factors
-string <- "2w*2b" #String used to specify the design
+string <- "3b*3w" #String used to specify the design
 factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
 
+#Specify within/between factors in design: Factors that are within are 1, between 0
 design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
-design <- rep(design, as.list(strsplit(string, "\\D+")[[1]]))
-design <- as.numeric(design == "w") #if within design, set value to 0, otherwise to 1
+design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
 
-design*design*factors
-
-
-help("regmatches")
-if(factors == 1){frml1 <- as.formula("y ~ a + Error(subject/a)")}
-if(factors == 1){frml2 <- as.formula("~a")}
-if(factors == 2){frml1 <- as.formula("y ~ a*b + Error(subject/a*b)")}
-if(factors == 2){frml2 <- as.formula("~a+b")}
-if(factors == 3){frml1 <- as.formula("y ~ a*b*c + Error(subject/a*b*c)")}
-if(factors == 3){frml2 <- as.formula("~a+b+c")}
-if(factors == 4){frml1 <- as.formula("y ~ a*b*c*d + Error(subject/a*b*c*d)")}
-if(factors == 4){frml2 <- as.formula("~a+b+c+d")}
 
 #indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
 p_adjust <- "none" 
@@ -38,17 +27,29 @@ p_adjust <- "none"
 #for 1x2: c(1, 2) so 2 means
 #for 2x2: c(1, 2, 3, 4) so 4 means
 #for 2x2x2: c(1, 2, 3, 4, 5, 6, 7, 8) so 8 means
-#order = a1b1,a1b2,a1b3,a2b1,a2b2,a2b3
 
-mu = c(1, 2, 3, 4, 5, 6, 7, 8) # population means - should match up with the design
+#2x2
+#mu = c(1, 2, 2, 2) # population means - should match up with the design
+#2x2x2
+#mu = c(1, 2, 2, 2, 1, 2, 2, 1) # population means - should match up with the design
+#3x3
+mu = c(1, 2, 2, 2, 1, 2, 2, 1, 2) # population means - should match up with the design
+#3x3x3
+#mu = c(2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 2, 3, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 3, 2, 2, 2) # population means - should match up with the design
+
+
+if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
+
 sd=1 #population standard deviations
 r=0.5 # correlation between repeated measures
 n<-5 #number of subjects
 nsims = 100 # how many simulation replicates?
 
-#create matrix
+# create temp matrix to create one dataset, to get design ################################
+# (this section is lazy but efficient programming)
 sigmatrix <- matrix(r, length(mu),length(mu)) #create a matrix filled with value of correlation, nrow and ncol set to length in mu
 diag(sigmatrix) <- sd # replace the diagonal with the sd
+
 df <- as.data.frame(rmvnorm(n=n,
                             mean=mu,
                             sigma=sigmatrix))
@@ -57,14 +58,7 @@ df <- melt(df,
            id.vars = "subject", 
            variable.name = "cond",
            value.name = "y")
-
 for(j in 1:factors){
-  # Let's break this down - it's a bit tricky. First, we want to create a list of a1 a2 b1 b2 that will indicate the factors. 
-  # We are looping this over the number of factors.
-  # This: as.numeric(strsplit(string, "\\D+")[[1]]) - takes the string used to specify the design and turn it in a list. 
-  # we take the letters from the alfabet: paste(letters[[j]] and add numbers 1 to however many factors there as: 1:as.numeric(strsplit(string, "\\D+")[[1]])[j], sep="")
-  # We this get e.g. ,a1 a2 - we repeat these each: n*(2^(factors-1)*2)/(2^j) and them times:  (2^j/2) to get a list for each factor
-  # We then bind these together with the existing dataframe.
   df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
                                                      1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
                                                      sep="")), 
@@ -73,93 +67,104 @@ for(j in 1:factors){
   ))))
 }
 names(df)[4:(3+factors)] <- letters[1:factors]
+
+############################################
+#Specify factors for formula ###############
+
+#one factor
+if(factors == 1 & sum(design) == 1){frml1 <- as.formula("y ~ a + Error(subject/a)")}
+if(factors == 1 & sum(design) == 0){frml1 <- as.formula("y ~ a")}
+
+if(factors == 2){
+  if(sum(design) == 2){frml1 <- as.formula("y ~ a*b + Error(subject/a*b)")}
+  if(sum(design) == 0){frml1 <- as.formula("y ~ a*b")}
+  if(all(design == c(1, 0)) == TRUE){frml1 <- as.formula("y ~ a*b + Error(subject/a)")}
+  if(all(design == c(0, 1)) == TRUE){frml1 <- as.formula("y ~ a*b + Error(subject/b)")}
+}
+
+if(factors == 3){
+  if(sum(design) == 3){frml1 <- as.formula("y ~ a*b*c + Error(subject/a*b*c)")}
+  if(sum(design) == 0){frml1 <- as.formula("y ~ a*b*c")}
+  if(all(design == c(1, 0, 0)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/a)")}
+  if(all(design == c(0, 1, 0)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/b)")}
+  if(all(design == c(0, 0, 1)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/c)")}
+  if(all(design == c(1, 1, 0)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/a*b)")}
+  if(all(design == c(0, 1, 1)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/b*c)")}
+  if(all(design == c(1, 0, 1)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/a*c)")}
+}
+
+#Specify second formula used for plotting
+if(factors == 1){frml2 <- as.formula("~a")}
+if(factors == 2){frml2 <- as.formula("~a+b")}
+if(factors == 3){frml2 <- as.formula("~a+b+c")}
+
+############################################
+#Specify factors for formula ###############
+
+if(factors == 1){
+  design_list <- unique(paste(df$a, sep = "")) #hardcoded, limits total # factors
+}
+if(factors == 2){
+  design_list <- unique(paste(df$a,df$b, sep = "")) #hardcoded, limits total # factors
+}
+if(factors == 3){
+  design_list <- unique(paste(df$a,df$b,df$c, sep = "")) #hardcoded, limits total # factors
+}
+
+############################################
+#Create Real Covariance Matrix##############
+
+#Create empty matrix
+sigmatrix <- data.frame(matrix(ncol=length(mu), nrow = length(mu)))
+
+# General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
+# Then for each factor in the design, if 1, set number to wildcard
+for(i1 in 1:length(design_list)){
+  current_factor <- design_list[i1]
+  for(i2 in 1:length(design)){
+    #We set each number that is within to a wildcard, so that all within subject factors are matched
+    if(design[i2] == 1){substr(current_factor, i2*2,  i2*2) <- "*"} 
+  }
+  sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
+}
+
+frml1 <- as.formula("y ~ a*b + Error(subject)")
 # We perform the ANOVA using AFEX
 within.aov<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                    data=df,
-                    anova_table = list(es = "pes", p_adjust_method = p_adjust)) #This reports PES not GES
-
-emmip(within.aov, a~b)
+                    data=df) #This reports PES not GES
 
 
-design
-sigma=matrix(c(sd,r,r,r,r,r,r,r,
-               r,sd,r,r,r,r,r,r,
-               r,r,sd,r,r,r,r,r,
-               r,r,r,sd,r,r,r,r,
-               r,r,r,r,sd,r,r,r,
-               r,r,r,r,r,sd,r,r,
-               r,r,r,r,r,r,sd,r,
-               r,r,r,r,r,r,r,sd), 8,8)
-
-sss <- matrix(r, length(mu),length(mu))
+within.aov<-aov_ez("subject", "y",  #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+                    data=df, between = c("a"), within = c("b")) #This reports PES not GES
 
 
-k=2
-for(k in 1:factors){
-  sss[(sum(as.numeric(strsplit(string, "\\D+")[[1]])[1:k])-sum(as.numeric(strsplit(string, "\\D+")[[1]])[1:k-1])):sum(as.numeric(strsplit(string, "\\D+")[[1]])[1:k]),
-      (sum(as.numeric(strsplit(string, "\\D+")[[1]])[1:k])-sum(as.numeric(strsplit(string, "\\D+")[[1]])[1:k-1])):sum(as.numeric(strsplit(string, "\\D+")[[1]])[1:k])] <- matrix(design[k], 
-                                                          (as.numeric(strsplit(string, "\\D+")[[1]])[[k]]), 
-                                                          (as.numeric(strsplit(string, "\\D+")[[1]])[[k]]))
+
+within.aov<-aov_ez("subject", "y",  #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+                   data=df, between = c("a"), within = c("b")) #This reports PES not GES
+
+
+#######BETWEEN
+remove(df)
+df <- as.data.frame(rmvnorm(n=n,
+                            mean=mu,
+                            sigma=as.matrix(sigmatrix)))
+df$subject<-as.factor(c(1:n))
+df <- melt(df, 
+           id.vars = "subject", 
+           variable.name = "cond",
+           value.name = "y")
+for(j in 1:factors){
+  df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
+                                                     1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
+                                                     sep="")), 
+                                       each = n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
+                                       times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+  ))))
 }
+names(df)[4:(3+factors)] <- letters[1:factors]
 
-#Factors that are within should be 1, between 0
-design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
-design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
-
-#Get list of complete design
-ppp <- unique(paste(df$a,df$b, sep = ""))
-str(ppp)
-#Create empty dataframe
-df_r <- data.frame(matrix(ncol=length(mu), nrow = length(mu)))
-str(df_r)
-#Factors that are within should be 1, between 0
-design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
-design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
-str(design)
-
-for(i1 in 1:length(ppp)){
-  zzz <- ppp[i1]
-  for(i2 in 1:length(design)){
-    if(design[i2]==1){substr(zzz, i2*2,  i2*2) <- "*"}
-  }
-  df_r[i1,]<-as.numeric(grepl(zzz, ppp))
-}
-str(df_r)
-
-zxc<-glob2rx("a*b1")
-df_r[1,]<-grepl(zxc, ppp)
-zxc<-glob2rx("a*b2")
-df_r[2,]<-grepl(zxc, ppp)
-zxc<-glob2rx("a*b3")
-df_r[3,]<-grepl(zxc, ppp)
-
-str(ppp)
-
-x1<-"a"
-x2<-"*"
-x3<-"b"
-x4<-"1"
-zxy <- paste(x1,x2,x3,x4, sep="")
-df_r[1,]<-grepl(zxc, ppp)
+#all between, we add the correct subject numbers
+df$subject<-as.factor(c(1:(n*prod(as.numeric(strsplit(string, "\\D+")[[1]])))))
 
 
-
-
-
-zzz <- as.list(unique(paste(df$a)))
-
-as.list(ppp[1])*design
-
-as.list(ppp[1])
-
-
-zxc<-glob2rx(ppp[1])
-df_r[1,]<-grepl(zxc, ppp)
-
-
-ll<-levels(df$a)
-ll
-
-
-
-ppp$Var1==ppp$Var2
+df$subject<-as.factor(c(1:n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))))
