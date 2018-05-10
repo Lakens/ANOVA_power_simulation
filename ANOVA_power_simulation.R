@@ -9,7 +9,7 @@ options(scipen=999)
 # Seperate factors with a * (asteriks)
 # Thus "2b*3w) is a design with 2 between levels, and 3 within levels
 
-string <- "3b*3w" #String used to specify the design
+string <- "2b*3w*2b" #String used to specify the design
 
 # Specify the parameters you expect in your data (sd, r for within measures)
 
@@ -20,7 +20,7 @@ string <- "3b*3w" #String used to specify the design
 n<-5 
 
 # specify population means for each condition (so 2 values for 2b design, 6 for 2b*3w, etc) 
-mu = c(1, 2, 2, 2, 1, 2, 2, 1, 2) # population means - should match up with the design
+mu = c(1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 2, 2) # population means - should match up with the design
 
 sd=1 #population standard deviation (currently assumes equal variances)
 r=0.5 # correlation between within factors (currently only 1 value can be entered)
@@ -29,7 +29,7 @@ r=0.5 # correlation between within factors (currently only 1 value can be entere
 p_adjust <- "none" 
 
 # how many studies should be simulated? 100.000 is very accurate, 10.000 reasonable accurate, 10.000 somewhat accurate
-nsims = 100 
+nsims = 1000 
 
 #Check if design an means match up - if not, throw an error and stop
 if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
@@ -90,9 +90,7 @@ for(j in 1:factors){
 #Rename the factor variables that were just created
 names(df)[4:(3+factors)] <- letters[1:factors]
 
-##########################################################
-#Create subject colum (depends on design)  ###############
-
+#Create subject colum (depends on design)
 subject <- 1:n #Set subject to 1 to the number of subjects collected
 
 for(j2 in length(design):1){ #for each factor in the design, from last to first
@@ -110,8 +108,9 @@ for(j2 in length(design):1){ #for each factor in the design, from last to first
 #Overwrite subject columns in df
 df$subject <- subject
 
-############################################
-#Specify factors for formula ###############
+###############
+# 3. Specify factors for formula ----
+###############
 
 #one factor
 if(factors == 1 & sum(design) == 1){frml1 <- as.formula("y ~ a + Error(subject/a)")}
@@ -144,8 +143,9 @@ if(factors == 3){frml2 <- as.formula("~a+b+c")}
 #Specify factors for formula ###############
 design_list <- unique(apply((df)[4:(3+factors)], 1, paste, collapse=""))
 
-############################################
-#Create Real Covariance Matrix##############
+###############
+# 4. Create Covariance Matrix ----
+###############
 
 #Create empty matrix
 sigmatrix <- data.frame(matrix(ncol=length(mu), nrow = length(mu)))
@@ -170,8 +170,9 @@ within.aov<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed abo
 diag(sigmatrix) <- sd # replace the diagonal with the sd
 sigmatrix <- as.matrix(sigmatrix)
 
-########################################################
-#Set up dataframe for simulation results ###############
+###############
+# 5. Set up dataframe for simulation results
+###############
 
 #How many possible planned comparisons are there (to store p and es)
 possible_pc <- (((prod(as.numeric(strsplit(string, "\\D+")[[1]])))^2)-prod(as.numeric(strsplit(string, "\\D+")[[1]])))/2
@@ -180,8 +181,23 @@ possible_pc <- (((prod(as.numeric(strsplit(string, "\\D+")[[1]])))^2)-prod(as.nu
 #number of columns if for ANOVA results and planned comparisons, times 2 (p and es)
 sim_data <- as.data.frame(matrix(ncol = 2*(2^factors-1)+2*possible_pc, nrow = nsims))
 
-############################################
-#Start Simulation            ###############
+#Dynamically create names for the data we will store
+names(sim_data) = c(paste("anova_p_",
+                          within.aov$Anova$terms[-1], 
+                          sep=""), 
+                    paste("anova_es_", 
+                          within.aov$Anova$terms[-1], 
+                          sep=""), 
+                    paste("paired_comparison_p_", 
+                          pc@grid[["contrast"]], 
+                          sep=""), 
+                    paste("d_", 
+                          pc@grid[["contrast"]], 
+                          sep=""))
+
+###############
+# 6. Start Simulation ----
+###############
 
 pb <- winProgressBar(title = "progress bar", min = 0, max = nsims, width = 300)
 i=1
@@ -199,7 +215,7 @@ for(i in 1:nsims){ #for each simulated experiment
                       data=df,
                       anova_table = list(es = "pes", p_adjust_method = p_adjust)) #This reports PES not GES
   # pairwise comparisons
-  pc <- pairs(emmeans(within.aov, frml2), adjust = p_adjust) #no adjustments
+  pc <- pairs(emmeans(within.aov, frml2), adjust = p_adjust)
   # store p-values and effect sizes for calculations and plots.
   sim_data[i,] <- c(within.aov$anova_table[[6]], #p-value for ANOVA
                   within.aov$anova_table[[5]], #partial eta squared
@@ -213,87 +229,110 @@ close(pb) #close the progress bar
 #End Simulation              ###############
 
 
-x<-within.aov[["lm"]][["terms"]][[2]]
-pc@grid[["contrast"]]
-
-#Dynamically create names for thedata we will store
-names(sim_data) = c(paste("anova_p_",
-                          within.aov$Anova$terms[-1], 
-                          sep=""), 
-                    paste("anova_es_", 
-                          within.aov$Anova$terms[-1], 
-                          sep=""), 
-                    paste("paired_comparison_p_", 
-                          pc@grid[["contrast"]], 
-                          sep=""), 
-                    paste("d_", 
-                          pc@grid[["contrast"]], 
-                          sep=""))
+###############
+# 7. Plot Results ----
+###############
 
 # melt the data into a long format for plots in ggplot2
-require(reshape2)
-power_anova = apply(as.matrix(sim_data[1:(2^factors-1)]), 2, 
-              function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2))
-power_anova
 
 plotData <- melt(sim_data[1:(2^factors-1)], value.name = 'p')
+
+SalientLineColor<-"#535353"
+LineColor<-"#D0D0D0"
+BackgroundColor<-"#F0F0F0"
 
 # plot each of the p-value distributions 
 options(scipen = 999) # 'turn off' scientific notation
 plt1 = ggplot(plotData, aes(x = p)) +
   scale_x_continuous(breaks=seq(0, 1, by = .1),
                      labels=seq(0, 1, by = .1)) +
-  geom_histogram(colour = "darkgrey", fill = "white", breaks=seq(0, 1, by = .01)) +
+  geom_histogram(colour="#535353", fill="#84D5F0", breaks=seq(0, 1, by = .01)) +
   geom_vline(xintercept = 0.05, colour='red') +
   facet_grid(variable ~ .) +
   labs(x = expression(p)) +
-  theme(axis.text.x = element_text(color='black', size=7))
+  theme_bw() + 
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),panel.grid.minor.y = element_blank()) + 
+  theme(panel.background=element_rect(fill=BackgroundColor)) +
+  theme(plot.background=element_rect(fill=BackgroundColor)) +
+  theme(panel.border=element_rect(colour=BackgroundColor)) + 
+  theme(panel.grid.major=element_line(colour=LineColor,size=.75)) + 
+  theme(plot.title=element_text(face="bold",colour=SalientLineColor, vjust=2, size=20)) + 
+  theme(axis.text.x=element_text(size=10,colour=SalientLineColor, face="bold")) +
+  theme(axis.text.y=element_text(size=10,colour=SalientLineColor, face="bold")) +
+  theme(axis.title.y=element_text(size=12,colour=SalientLineColor,face="bold", vjust=2)) +
+  theme(axis.title.x=element_text(size=12,colour=SalientLineColor,face="bold", vjust=0)) + 
+  theme(axis.ticks.x=element_line(colour=SalientLineColor, size=2)) +
+  theme(axis.ticks.y=element_line(colour=BackgroundColor)) +
+  theme(axis.line = element_line()) +
+  theme(axis.line.x=element_line(size=1.2,colour=SalientLineColor)) +
+  theme(axis.line.y=element_line(colour=BackgroundColor)) + 
+  theme(plot.margin = unit(c(1,1,1,1), "cm"))
 plt1
 
-#effect sizes for each test in the ANOVA (partial eta-squared)
-colMeans(sim_data[(2^factors):(2*(2^factors-1))])
+
+#Plot p-value distributions for simple comparisons
+
+# melt the data into a ggplot friendly 'long' format
+p_paired <- sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]
+
+plotData <- melt(p_paired, value.name = 'p')
+
+# plot each of the p-value distributions 
+plt2 = ggplot(plotData, aes(x = p)) +
+  scale_x_continuous(breaks=seq(0, 1, by = .1),
+                     labels=seq(0, 1, by = .1)) +
+  geom_histogram(colour="#535353", fill="#84D5F0", breaks=seq(0, 1, by = .01)) +
+  geom_vline(xintercept = 0.05, colour='red') +
+  facet_grid(variable ~ .) +
+  labs(x = expression(p)) +
+  theme_bw() + 
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),panel.grid.minor.y = element_blank()) + 
+  theme(panel.background=element_rect(fill=BackgroundColor)) +
+  theme(plot.background=element_rect(fill=BackgroundColor)) +
+  theme(panel.border=element_rect(colour=BackgroundColor)) + 
+  theme(panel.grid.major=element_line(colour=LineColor,size=.75)) + 
+  theme(plot.title=element_text(face="bold",colour=SalientLineColor, vjust=2, size=20)) + 
+  theme(axis.text.x=element_text(size=10,colour=SalientLineColor, face="bold")) +
+  theme(axis.text.y=element_text(size=10,colour=SalientLineColor, face="bold")) +
+  theme(axis.title.y=element_text(size=12,colour=SalientLineColor,face="bold", vjust=2)) +
+  theme(axis.title.x=element_text(size=12,colour=SalientLineColor,face="bold", vjust=0)) + 
+  theme(axis.ticks.x=element_line(colour=SalientLineColor, size=2)) +
+  theme(axis.ticks.y=element_line(colour=BackgroundColor)) +
+  theme(axis.line = element_line()) +
+  theme(axis.line.x=element_line(size=1.2,colour=SalientLineColor)) +
+  theme(axis.line.y=element_line(colour=BackgroundColor)) + 
+  theme(plot.margin = unit(c(1,1,1,1), "cm"))
+plt2
+
+
+
+
+
+###############
+# 8. Sumary of power and effect sizes of main effects and contrasts ----
+###############
+
+#Main effects and interactions from the ANOVA
+power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors-1))]), 2, 
+                                   function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2)))
+es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors-1)))]), 2, 
+                                function(x) round(mean(x),3)))
+
+main_results <- data.frame(power,es)
+names(main_results) = c("power","effect size")
+main_results
+
 #estimated power for each test in the ANOVA
 apply(as.matrix(sim_data[1:(2^factors-1)]), 2, 
       function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2))
 
 
+#Data summary for contrasts
+power_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]), 2, 
+              function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2)))
+es_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+possible_pc+1):(2*(2^factors-1)+2*possible_pc)]), 2, 
+                                   function(x) round(mean(x),2)))
 
-
-
-
-
-# melt the data into a ggplot friendly 'long' format
-require(reshape2)
-p <- sim_data[2*(2^factors-1)+1:2*(2^factors-1)+2*possible_pc]
-
-power = apply(as.matrix(sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+2*possible_pc)]), 2, 
-              function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2))
-power
-
-sim_data[2*(2^factors-1)+1:2*(2^factors-1)+2*possible_pc]
-
-plotData <- melt(p, value.name = 'p')
-
-# plot each of the p-value distributions 
-options(scipen = 999) # 'turn off' scientific notation
-plt2 = ggplot(plotData, aes(x = p)) +
-  scale_x_continuous(breaks=seq(0, 1, by = .1),
-                     labels=seq(0, 1, by = .1)) +
-  geom_histogram(colour = "darkblue", fill = "white", breaks=seq(0, 1, by = .01)) +
-  geom_vline(xintercept = 0.05, colour='red') +
-  facet_grid(variable ~ .) +
-  labs(x = expression(p)) +
-  theme(axis.text.x = element_text(color='black', size=7))
-plt2
-
-
-es <- sim_data[4:6]
-describe(sim_data)
-
-es <- sim_data[13:18]
-describe(es)
-
-
-
-
-
+pc_results <- data.frame(power_paired,es_paired)
+names(pc_results) = c("power","effect size")
+pc_results
