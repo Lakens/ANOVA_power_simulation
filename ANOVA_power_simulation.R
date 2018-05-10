@@ -1,5 +1,43 @@
 options(scipen=999)
 
+###############
+# 1. Specify Design and Simulation----
+###############
+# String used to specify the design
+# Add numers for each factor with 2 levels, e.g., 2 for a factor with 2 levels
+# Add a w after the number for within factors, and a b for between factors
+# Seperate factors with a * (asteriks)
+# Thus "2b*3w) is a design with 2 between levels, and 3 within levels
+
+string <- "3b*3w" #String used to specify the design
+
+# Specify the parameters you expect in your data (sd, r for within measures)
+
+#number of subjects you will collect (for each between factor) 
+# For an all within design, this is total N
+# For a 2b*2b design, this is the number of people in each between condition, so in each of 2*2 = 4 groups 
+
+n<-5 
+
+# specify population means for each condition (so 2 values for 2b design, 6 for 2b*3w, etc) 
+mu = c(1, 2, 2, 2, 1, 2, 2, 1, 2) # population means - should match up with the design
+
+sd=1 #population standard deviation (currently assumes equal variances)
+r=0.5 # correlation between within factors (currently only 1 value can be entered)
+
+#indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
+p_adjust <- "none" 
+
+# how many studies should be simulated? 100.000 is very accurate, 10.000 reasonable accurate, 10.000 somewhat accurate
+nsims = 100 
+
+#Check if design an means match up - if not, throw an error and stop
+if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
+
+###############
+# 2. Load libraries ----
+###############
+
 library(mvtnorm)
 library(afex)
 library(lsmeans)
@@ -10,53 +48,37 @@ require(gridExtra)
 require(reshape2)
 require(sjstats)
 
-#String used to specify the design
-# e.g., "2" for 1 factor, "2*2*2" for three factors
-string <- "3b*3w" #String used to specify the design
+###############
+# 2. Create Dataframe based on Design ----
+###############
+
+#Count number of factors in design
 factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
 
 #Specify within/between factors in design: Factors that are within are 1, between 0
 design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
 design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
 
-
-#indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
-p_adjust <- "none" 
-
-# specify means. 
-#for 1x2: c(1, 2) so 2 means
-#for 2x2: c(1, 2, 3, 4) so 4 means
-#for 2x2x2: c(1, 2, 3, 4, 5, 6, 7, 8) so 8 means
-
-#2x2
-#mu = c(1, 2, 2, 2) # population means - should match up with the design
-#2x2x2
-#mu = c(1, 2, 2, 2, 1, 2, 2, 1) # population means - should match up with the design
-#3x3
-mu = c(1, 2, 2, 2, 1, 2, 2, 1, 2) # population means - should match up with the design
-#3x3x3
-#mu = c(2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 2, 3, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 3, 2, 2, 2) # population means - should match up with the design
-
-
-if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
-
-sd=1 #population standard deviations
-r=0.5 # correlation between repeated measures
-n<-5 #number of subjects
-nsims = 100 # how many simulation replicates?
-
-# create temp matrix to create one dataset, to get design ################################
-# (this section is lazy but efficient programming)
-sigmatrix <- matrix(r, length(mu),length(mu)) #create a matrix filled with value of correlation, nrow and ncol set to length in mu
+sigmatrix <- matrix(r, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
 diag(sigmatrix) <- sd # replace the diagonal with the sd
+
+#Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
 df <- as.data.frame(rmvnorm(n=n,
                             mean=mu,
                             sigma=sigmatrix))
-df$subject<-as.factor(c(1:n))
+df$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
+#Melt dataframe
 df <- melt(df, 
            id.vars = "subject", 
            variable.name = "cond",
            value.name = "y")
+
+# Let's break this down - it's a bit tricky. First, we want to create a list of a1 a2 b1 b2 that will indicate the factors. 
+# We are looping this over the number of factors.
+# This: as.numeric(strsplit(string, "\\D+")[[1]]) - takes the string used to specify the design and turn it in a list. 
+# we take the letters from the alfabet: paste(letters[[j]] and add numbers 1 to however many factors there as: 1:as.numeric(strsplit(string, "\\D+")[[1]])[j], sep="")
+# We this get e.g. ,a1 a2 - we repeat these each: n*(2^(factors-1)*2)/(2^j) and them times:  (2^j/2) to get a list for each factor
+# We then bind these together with the existing dataframe.
 for(j in 1:factors){
   df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
                                                      1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
@@ -65,7 +87,28 @@ for(j in 1:factors){
                                        times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
   ))))
 }
+#Rename the factor variables that were just created
 names(df)[4:(3+factors)] <- letters[1:factors]
+
+##########################################################
+#Create subject colum (depends on design)  ###############
+
+subject <- 1:n #Set subject to 1 to the number of subjects collected
+
+for(j2 in length(design):1){ #for each factor in the design, from last to first
+  #if w: repeat current string as often as the levels in the current factor (e.g., 3)
+  #id b: repeat current string + max of current subject
+  if(design[j2] == 1){subject <- rep(subject,as.numeric(strsplit(string, "\\D+")[[1]])[j2])}
+  subject_length <- length(subject) #store current length - to append to string of this length below
+  if(design[j2] == 0){
+    for(j3 in 2:as.numeric(strsplit(string, "\\D+")[[1]])[j2]){
+      subject <- append(subject,subject[1:subject_length]+max(subject))
+    }
+  }
+}
+
+#Overwrite subject columns in df
+df$subject <- subject
 
 ############################################
 #Specify factors for formula ###############
@@ -118,7 +161,6 @@ for(i1 in 1:length(design_list)){
   sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
 }
 
-frml1 <- as.formula("y ~ a*b + Error(subject/(a*b))")
 # We perform the ANOVA using AFEX
 within.aov<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                     data=df,
@@ -128,50 +170,30 @@ within.aov<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed abo
 diag(sigmatrix) <- sd # replace the diagonal with the sd
 sigmatrix <- as.matrix(sigmatrix)
 
-
-
 ########################################################
 #Set up dataframe for simulation results ###############
 
 #How many possible planned comparisons are there (to store p and es)
 possible_pc <- (((prod(as.numeric(strsplit(string, "\\D+")[[1]])))^2)-prod(as.numeric(strsplit(string, "\\D+")[[1]])))/2
-#create empty dataframe
+
+#create empty dataframe to store simulation results
 #number of columns if for ANOVA results and planned comparisons, times 2 (p and es)
 sim_data <- as.data.frame(matrix(ncol = 2*(2^factors-1)+2*possible_pc, nrow = nsims))
 
 ############################################
 #Start Simulation            ###############
 
-frml1 <- as.formula("y ~ a*b + Error(subject/b)")
 pb <- winProgressBar(title = "progress bar", min = 0, max = nsims, width = 300)
 i=1
 for(i in 1:nsims){ #for each simulated experiment
   setWinProgressBar(pb, i, title=paste( round(i/nsims*100, 0),
                                         "% done"))
-  df <- as.data.frame(rmvnorm(n=n,
+  #We simulate a new y variable, melt it in long format, and add it to the df (surpressing messages)
+  df$y<-suppressMessages({melt(as.data.frame(rmvnorm(n=n,
                              mean=mu,
-                             sigma=sigmatrix))
-  df$subject<-as.factor(c(1:n))
-  df <- melt(df, 
-            id.vars = "subject", 
-            variable.name = "cond",
-            value.name = "y")
-  
-  for(j in 1:factors){
-    # Let's break this down - it's a bit tricky. First, we want to create a list of a1 a2 b1 b2 that will indicate the factors. 
-    # We are looping this over the number of factors.
-    # This: as.numeric(strsplit(string, "\\D+")[[1]]) - takes the string used to specify the design and turn it in a list. 
-    # we take the letters from the alfabet: paste(letters[[j]] and add numbers 1 to however many factors there as: 1:as.numeric(strsplit(string, "\\D+")[[1]])[j], sep="")
-    # We this get e.g. ,a1 a2 - we repeat these each: n*(2^(factors-1)*2)/(2^j) and them times:  (2^j/2) to get a list for each factor
-    # We then bind these together with the existing dataframe.
-    df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
-                                                       1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
-                                                       sep="")), 
-                                         each = n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
-                                         times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
-    ))))
-  }
-  names(df)[4:(3+factors)] <- letters[1:factors]
+                             sigma=sigmatrix)))$value
+  })
+
   # We perform the ANOVA using AFEX
   within.aov<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                       data=df,
@@ -275,26 +297,3 @@ describe(es)
 
 
 
-########New Code generate DF for between data
-#######BETWEEN
-remove(df)
-df <- as.data.frame(rmvnorm(n=n,
-                            mean=mu,
-                            sigma=as.matrix(sigmatrix)))
-df$subject<-as.factor(c(1:n))
-df <- melt(df, 
-           id.vars = "subject", 
-           variable.name = "cond",
-           value.name = "y")
-for(j in 1:factors){
-  df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
-                                                     1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
-                                                     sep="")), 
-                                       each = n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
-                                       times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
-  ))))
-}
-names(df)[4:(3+factors)] <- letters[1:factors]
-
-#all between, we add the correct subject numbers
-df$subject<-as.factor(c(1:(n*prod(as.numeric(strsplit(string, "\\D+")[[1]])))))
