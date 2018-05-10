@@ -143,43 +143,6 @@ within.aov<-aov_ez("subject", "y",  #here we use frml1 to enter fromula 1 as des
                    data=df, between = c("a"), within = c("b")) #This reports PES not GES
 
 
-#######BETWEEN
-remove(df)
-df <- as.data.frame(rmvnorm(n=n,
-                            mean=mu,
-                            sigma=as.matrix(sigmatrix)))
-df$subject<-as.factor(c(1:n))
-df <- melt(df, 
-           id.vars = "subject", 
-           variable.name = "cond",
-           value.name = "y")
-for(j in 1:factors){
-  df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
-                                                     1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
-                                                     sep="")), 
-                                       each = n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
-                                       times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
-  ))))
-}
-names(df)[4:(3+factors)] <- letters[1:factors]
-
-#all between, we add the correct subject numbers
-df$subject<-as.factor(c(1:(n*prod(as.numeric(strsplit(string, "\\D+")[[1]])))))
-
-
-df$subject<-as.factor(c(1:n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))))
-
-
-
-
-as.list(design)
-
-design
-str(df)
-
-str(c(1,2))
-
-design <- c(1,1)
 
 #Get columns that specify factors, but only when within (marked as 1 in design)
 temp <- df[, c(FALSE,FALSE,FALSE,as.logical(design))]
@@ -196,7 +159,7 @@ within_factors
 
 #String used to specify the design
 # e.g., "2" for 1 factor, "2*2*2" for three factors
-string <- "2w*2b*2w*2b" #String used to specify the design
+string <- "3b*3b*3b" #String used to specify the design
 factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
 
 #Specify within/between factors in design: Factors that are within are 1, between 0
@@ -208,17 +171,19 @@ design <- as.numeric(design == "w") #if within design, set value to 1, otherwise
 #if w: repeat current string
 #id b: repeat current string, add current factor
 
-subject <- 1 #Set minimal subject to 1
-
-j2 <- 2
-design
-factors
-as.numeric(strsplit(string, "\\D+")[[1]])
-
+subject <- 1:n #Set minimal subject to 1
+j2<-3
+j3<-2
 for(j2 in length(design):1){ #for each factor in the design, from last to first
-  #We set each number that is within to a wildcard, so that all within subject factors are matched
-  if(design[j2] == 1){subject <- rep(subject,as.numeric(strsplit(string, "\\D+")[[1]])[j2])} 
-  if(design[j2] == 0){subject <- c(subject,subject+max(subject))} 
+  #if w: repeat current string as often as the levels in the current factor (e.g., 3)
+  #id b: repeat current string + max of current subject
+  if(design[j2] == 1){subject <- rep(subject,as.numeric(strsplit(string, "\\D+")[[1]])[j2])}
+  subject_length <- length(subject) #store current length - to append to string of this length below
+  if(design[j2] == 0){
+    for(j3 in 2:as.numeric(strsplit(string, "\\D+")[[1]])[j2]){
+      subject <- append(subject,subject[1:subject_length]+max(subject))
+    }
+  }
 }
 
 subject
