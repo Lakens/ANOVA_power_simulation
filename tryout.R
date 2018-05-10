@@ -168,3 +168,90 @@ df$subject<-as.factor(c(1:(n*prod(as.numeric(strsplit(string, "\\D+")[[1]])))))
 
 
 df$subject<-as.factor(c(1:n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))))
+
+
+
+
+as.list(design)
+
+design
+str(df)
+
+str(c(1,2))
+
+design <- c(1,1)
+
+#Get columns that specify factors, but only when within (marked as 1 in design)
+temp <- df[, c(FALSE,FALSE,FALSE,as.logical(design))]
+#Get number of unique within conditions based on design.
+#add this should only be done when more than 1 column - now gives an error
+within_factors <- unique(apply((temp)[1:(factors)], 1, paste, collapse="")) #add this should only be done when more than 1 column
+within_factors
+
+
+
+
+
+
+
+#String used to specify the design
+# e.g., "2" for 1 factor, "2*2*2" for three factors
+string <- "2w*2b*2w*2b" #String used to specify the design
+factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
+
+#Specify within/between factors in design: Factors that are within are 1, between 0
+design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
+design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
+
+
+#Subject list is created counting from last to first factor
+#if w: repeat current string
+#id b: repeat current string, add current factor
+
+subject <- 1 #Set minimal subject to 1
+
+j2 <- 2
+design
+factors
+as.numeric(strsplit(string, "\\D+")[[1]])
+
+for(j2 in length(design):1){ #for each factor in the design, from last to first
+  #We set each number that is within to a wildcard, so that all within subject factors are matched
+  if(design[j2] == 1){subject <- rep(subject,as.numeric(strsplit(string, "\\D+")[[1]])[j2])} 
+  if(design[j2] == 0){subject <- c(subject,subject+max(subject))} 
+}
+
+subject
+
+
+
+
+
+
+#all between, we add the correct subject numbers
+df$subject<-as.factor(c(1:(n*prod(as.numeric(strsplit(string, "\\D+")[[1]])))))
+df$subject<-as.factor(c(1:(n*length(wihin_factors))))
+
+
+highest_n <- prod(as.numeric(strsplit(string, "\\D+")[[1]]))/length(within_factors)
+
+
+n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))
+
+
+apply(df[3:5], 1, paste, collapse="")
+
+design_list <- unique(apply((df)[4:(3+factors)], 1, paste, collapse=""))
+
+
+tempy2 <- unique(paste(tempy, sep = "")) 
+
+factors
+d
+
+as.numeric(strsplit(string, "\\D+")[[1]])
+
+design_list <- unique(paste(df[4:5],sep = "")) 
+
+
+

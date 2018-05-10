@@ -99,16 +99,7 @@ if(factors == 3){frml2 <- as.formula("~a+b+c")}
 
 ############################################
 #Specify factors for formula ###############
-
-if(factors == 1){
-  design_list <- unique(paste(df$a, sep = "")) #hardcoded, limits total # factors
-}
-if(factors == 2){
-  design_list <- unique(paste(df$a,df$b, sep = "")) #hardcoded, limits total # factors
-}
-if(factors == 3){
-  design_list <- unique(paste(df$a,df$b,df$c, sep = "")) #hardcoded, limits total # factors
-}
+design_list <- unique(apply((df)[4:(3+factors)], 1, paste, collapse=""))
 
 ############################################
 #Create Real Covariance Matrix##############
@@ -281,3 +272,29 @@ es <- sim_data[13:18]
 describe(es)
 
 
+
+
+
+########New Code generate DF for between data
+#######BETWEEN
+remove(df)
+df <- as.data.frame(rmvnorm(n=n,
+                            mean=mu,
+                            sigma=as.matrix(sigmatrix)))
+df$subject<-as.factor(c(1:n))
+df <- melt(df, 
+           id.vars = "subject", 
+           variable.name = "cond",
+           value.name = "y")
+for(j in 1:factors){
+  df <- cbind(df, as.factor(unlist(rep(as.list(paste(letters[[j]], 
+                                                     1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
+                                                     sep="")), 
+                                       each = n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
+                                       times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+  ))))
+}
+names(df)[4:(3+factors)] <- letters[1:factors]
+
+#all between, we add the correct subject numbers
+df$subject<-as.factor(c(1:(n*prod(as.numeric(strsplit(string, "\\D+")[[1]])))))
