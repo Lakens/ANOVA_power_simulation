@@ -1,4 +1,5 @@
 options(scipen=999)
+rm(list=ls())  
 
 ###############
 # 1. Specify Design and Simulation----
@@ -9,7 +10,7 @@ options(scipen=999)
 # Seperate factors with a * (asteriks)
 # Thus "2b*3w) is a design with 2 between levels, and 3 within levels
 
-string <- "2b*3w*2b" #String used to specify the design
+string <- "2b*2b" #String used to specify the design
 
 # Specify the parameters you expect in your data (sd, r for within measures)
 
@@ -17,10 +18,10 @@ string <- "2b*3w*2b" #String used to specify the design
 # For an all within design, this is total N
 # For a 2b*2b design, this is the number of people in each between condition, so in each of 2*2 = 4 groups 
 
-n<-5 
+n<-50
 
 # specify population means for each condition (so 2 values for 2b design, 6 for 2b*3w, etc) 
-mu = c(1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 2, 2) # population means - should match up with the design
+mu = c(1.6, 1, 1.1, 1) # population means - should match up with the design
 
 sd=1 #population standard deviation (currently assumes equal variances)
 r=0.5 # correlation between within factors (currently only 1 value can be entered)
@@ -29,7 +30,7 @@ r=0.5 # correlation between within factors (currently only 1 value can be entere
 p_adjust <- "none" 
 
 # how many studies should be simulated? 100.000 is very accurate, 10.000 reasonable accurate, 10.000 somewhat accurate
-nsims = 1000 
+nsims = 100
 
 #Check if design an means match up - if not, throw an error and stop
 if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
@@ -114,18 +115,18 @@ df$subject <- subject
 
 #one factor
 if(factors == 1 & sum(design) == 1){frml1 <- as.formula("y ~ a + Error(subject/a)")}
-if(factors == 1 & sum(design) == 0){frml1 <- as.formula("y ~ a")}
+if(factors == 1 & sum(design) == 0){frml1 <- as.formula("y ~ a + Error(1 | subject)")}
 
 if(factors == 2){
   if(sum(design) == 2){frml1 <- as.formula("y ~ a*b + Error(subject/a*b)")}
-  if(sum(design) == 0){frml1 <- as.formula("y ~ a*b")}
+  if(sum(design) == 0){frml1 <- as.formula("y ~ a*b  + Error(1 | subject)")}
   if(all(design == c(1, 0)) == TRUE){frml1 <- as.formula("y ~ a*b + Error(subject/a)")}
   if(all(design == c(0, 1)) == TRUE){frml1 <- as.formula("y ~ a*b + Error(subject/b)")}
 }
 
 if(factors == 3){
   if(sum(design) == 3){frml1 <- as.formula("y ~ a*b*c + Error(subject/a*b*c)")}
-  if(sum(design) == 0){frml1 <- as.formula("y ~ a*b*c")}
+  if(sum(design) == 0){frml1 <- as.formula("y ~ a*b*c + Error(1 | subject)")}
   if(all(design == c(1, 0, 0)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/a)")}
   if(all(design == c(0, 1, 0)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/b)")}
   if(all(design == c(0, 0, 1)) == TRUE){frml1 <- as.formula("y ~ a*b*c + Error(subject/c)")}
@@ -162,10 +163,12 @@ for(i1 in 1:length(design_list)){
 }
 
 # We perform the ANOVA using AFEX
-within.aov<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+aov_result<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                     data=df,
                     anova_table = list(es = "pes", p_adjust_method = p_adjust)) #This reports PES not GES
 
+# pairwise comparisons
+pc <- pairs(emmeans(aov_result, frml2), adjust = p_adjust)
 
 diag(sigmatrix) <- sd # replace the diagonal with the sd
 sigmatrix <- as.matrix(sigmatrix)
@@ -183,10 +186,10 @@ sim_data <- as.data.frame(matrix(ncol = 2*(2^factors-1)+2*possible_pc, nrow = ns
 
 #Dynamically create names for the data we will store
 names(sim_data) = c(paste("anova_p_",
-                          within.aov$Anova$terms[-1], 
+                          rownames(aov_result$anova_table), 
                           sep=""), 
                     paste("anova_es_", 
-                          within.aov$Anova$terms[-1], 
+                          rownames(aov_result$anova_table), 
                           sep=""), 
                     paste("paired_comparison_p_", 
                           pc@grid[["contrast"]], 
@@ -195,8 +198,44 @@ names(sim_data) = c(paste("anova_p_",
                           pc@grid[["contrast"]], 
                           sep=""))
 
+rownames(summary(aov_result))
+
+rownames(aov_result$anova_table)
+
 ###############
-# 6. Start Simulation ----
+# 6. Create plot of means to vizualize the design ----
+###############
+
+df_means <- data.frame(mu, SE = sd / sqrt(n))
+for(j in 1:factors){
+  df_means <- cbind(df_means, as.factor(unlist(rep(as.list(paste(letters[[j]], 
+                                                                 1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
+                                                                 sep="")), 
+                                                   each = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
+                                                   times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+  ))))
+}
+
+if(factors == 1){names(df_means)<-c("mu","SE","a")}
+if(factors == 2){names(df_means)<-c("mu","SE","a","b")}
+if(factors == 3){names(df_means)<-c("mu","SE","a","b","c")}
+
+if(factors == 1){meansplot = ggplot(df_means, aes(y = mu, x = a))}
+if(factors == 2){meansplot = ggplot(df_means, aes(y = mu, x = a, fill=b))}
+if(factors == 3){meansplot = ggplot(df_means, aes(y = mu, x = a, fill=b)) + facet_wrap(  ~ c)}
+
+meansplot = meansplot +
+  geom_bar(position = position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
+                position = position_dodge(width=0.9), size=.6, width=.3) +
+  coord_cartesian(ylim=c((.7*min(mu)), 1.2*max(mu))) +
+  theme_bw()
+meansplot
+
+
+
+###############
+# 7. Start Simulation ----
 ###############
 
 pb <- winProgressBar(title = "progress bar", min = 0, max = nsims, width = 300)
@@ -211,14 +250,14 @@ for(i in 1:nsims){ #for each simulated experiment
   })
 
   # We perform the ANOVA using AFEX
-  within.aov<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+  aov_result<-suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                       data=df,
-                      anova_table = list(es = "pes", p_adjust_method = p_adjust)) #This reports PES not GES
+                      anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
   # pairwise comparisons
-  pc <- pairs(emmeans(within.aov, frml2), adjust = p_adjust)
+  pc <- pairs(emmeans(aov_result, frml2), adjust = p_adjust)
   # store p-values and effect sizes for calculations and plots.
-  sim_data[i,] <- c(within.aov$anova_table[[6]], #p-value for ANOVA
-                  within.aov$anova_table[[5]], #partial eta squared
+  sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
+                  aov_result$anova_table[[5]], #partial eta squared
                   as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
                   as.data.frame(summary(pc))$t.ratio/sqrt(n)) #Cohen's dz
 }
@@ -230,7 +269,7 @@ close(pb) #close the progress bar
 
 
 ###############
-# 7. Plot Results ----
+# 8. Plot Results ----
 ###############
 
 # melt the data into a long format for plots in ggplot2
@@ -270,62 +309,52 @@ plt1 = ggplot(plotData, aes(x = p)) +
 plt1
 
 
-#Plot p-value distributions for simple comparisons
-
-# melt the data into a ggplot friendly 'long' format
-p_paired <- sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]
-
-plotData <- melt(p_paired, value.name = 'p')
-
-# plot each of the p-value distributions 
-plt2 = ggplot(plotData, aes(x = p)) +
-  scale_x_continuous(breaks=seq(0, 1, by = .1),
-                     labels=seq(0, 1, by = .1)) +
-  geom_histogram(colour="#535353", fill="#84D5F0", breaks=seq(0, 1, by = .01)) +
-  geom_vline(xintercept = 0.05, colour='red') +
-  facet_grid(variable ~ .) +
-  labs(x = expression(p)) +
-  theme_bw() + 
-  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),panel.grid.minor.y = element_blank()) + 
-  theme(panel.background=element_rect(fill=BackgroundColor)) +
-  theme(plot.background=element_rect(fill=BackgroundColor)) +
-  theme(panel.border=element_rect(colour=BackgroundColor)) + 
-  theme(panel.grid.major=element_line(colour=LineColor,size=.75)) + 
-  theme(plot.title=element_text(face="bold",colour=SalientLineColor, vjust=2, size=20)) + 
-  theme(axis.text.x=element_text(size=10,colour=SalientLineColor, face="bold")) +
-  theme(axis.text.y=element_text(size=10,colour=SalientLineColor, face="bold")) +
-  theme(axis.title.y=element_text(size=12,colour=SalientLineColor,face="bold", vjust=2)) +
-  theme(axis.title.x=element_text(size=12,colour=SalientLineColor,face="bold", vjust=0)) + 
-  theme(axis.ticks.x=element_line(colour=SalientLineColor, size=2)) +
-  theme(axis.ticks.y=element_line(colour=BackgroundColor)) +
-  theme(axis.line = element_line()) +
-  theme(axis.line.x=element_line(size=1.2,colour=SalientLineColor)) +
-  theme(axis.line.y=element_line(colour=BackgroundColor)) + 
-  theme(plot.margin = unit(c(1,1,1,1), "cm"))
-plt2
-
-
-
-
+# #Plot p-value distributions for simple comparisons
+# # melt the data into a ggplot friendly 'long' format
+# p_paired <- sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]
+# 
+# plotData <- melt(p_paired, value.name = 'p')
+# 
+# # plot each of the p-value distributions 
+# plt2 = ggplot(plotData, aes(x = p)) +
+#   scale_x_continuous(breaks=seq(0, 1, by = .1),
+#                      labels=seq(0, 1, by = .1)) +
+#   geom_histogram(colour="#535353", fill="#84D5F0", breaks=seq(0, 1, by = .01)) +
+#   geom_vline(xintercept = 0.05, colour='red') +
+#   facet_grid(variable ~ .) +
+#   labs(x = expression(p)) +
+#   theme_bw() + 
+#   theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),panel.grid.minor.y = element_blank()) + 
+#   theme(panel.background=element_rect(fill=BackgroundColor)) +
+#   theme(plot.background=element_rect(fill=BackgroundColor)) +
+#   theme(panel.border=element_rect(colour=BackgroundColor)) + 
+#   theme(panel.grid.major=element_line(colour=LineColor,size=.75)) + 
+#   theme(plot.title=element_text(face="bold",colour=SalientLineColor, vjust=2, size=20)) + 
+#   theme(axis.text.x=element_text(size=10,colour=SalientLineColor, face="bold")) +
+#   theme(axis.text.y=element_text(size=10,colour=SalientLineColor, face="bold")) +
+#   theme(axis.title.y=element_text(size=12,colour=SalientLineColor,face="bold", vjust=2)) +
+#   theme(axis.title.x=element_text(size=12,colour=SalientLineColor,face="bold", vjust=0)) + 
+#   theme(axis.ticks.x=element_line(colour=SalientLineColor, size=2)) +
+#   theme(axis.ticks.y=element_line(colour=BackgroundColor)) +
+#   theme(axis.line = element_line()) +
+#   theme(axis.line.x=element_line(size=1.2,colour=SalientLineColor)) +
+#   theme(axis.line.y=element_line(colour=BackgroundColor)) + 
+#   theme(plot.margin = unit(c(1,1,1,1), "cm"))
+# plt2
 
 ###############
-# 8. Sumary of power and effect sizes of main effects and contrasts ----
+# 9. Sumary of power and effect sizes of main effects and contrasts ----
 ###############
 
 #Main effects and interactions from the ANOVA
 power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors-1))]), 2, 
-                                   function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2)))
+                                   function(x) round(mean(ifelse(x < .05, 1, 0) * 100),3)))
 es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors-1)))]), 2, 
                                 function(x) round(mean(x),3)))
 
 main_results <- data.frame(power,es)
 names(main_results) = c("power","effect size")
 main_results
-
-#estimated power for each test in the ANOVA
-apply(as.matrix(sim_data[1:(2^factors-1)]), 2, 
-      function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2))
-
 
 #Data summary for contrasts
 power_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]), 2, 
