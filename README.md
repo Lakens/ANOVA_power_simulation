@@ -55,91 +55,6 @@ The general principle is that the code generates factors, indicated by letters o
 
 The plot below vizualized means from 1 to 8 being entered in a vector.
 
-``` r
-ANOVA_design(string = "2b*2w*2b",
-             n = 10, 
-             mu = c(1, 2, 3, 4, 5, 6, 7, 8), 
-             sd = 1, 
-             r = 0, 
-             p_adjust = "none")
-```
-
-    ## Loading required package: lme4
-
-    ## Loading required package: Matrix
-
-    ## Loading required package: emmeans
-
-    ## ************
-    ## Welcome to afex. For support visit: http://afex.singmann.science/
-
-    ## - Functions for ANOVAs: aov_car(), aov_ez(), and aov_4()
-    ## - Methods for calculating p-values with mixed(): 'KR', 'S', 'LRT', and 'PB'
-    ## - 'afex_aov' and 'mixed' objects can be passed to emmeans() for follow-up tests
-    ## - Get and set global package options with: afex_options()
-    ## - Set orthogonal sum-to-zero contrasts globally: set_sum_contrasts()
-    ## - For example analyses see: browseVignettes("afex")
-    ## ************
-
-    ## 
-    ## Attaching package: 'afex'
-
-    ## The following object is masked from 'package:lme4':
-    ## 
-    ##     lmer
-
-    ## The 'lsmeans' package is being deprecated.
-    ## Users are encouraged to switch to 'emmeans'.
-    ## See help('transition') for more information, including how
-    ## to convert 'lsmeans' objects and scripts to work with 'emmeans'.
-
-    ## 
-    ## Attaching package: 'lsmeans'
-
-    ## The following objects are masked from 'package:emmeans':
-    ## 
-    ##     .all.vars, .aovlist.dffun, .diag, .get.offset, .my.vcov,
-    ##     add_grouping, as.glht, contrast, get.lsm.option, lsm,
-    ##     lsm.basis, lsm.options, lsmeans, lsmip, lsmobj, lstrends,
-    ##     make.tran, pmm, pmmeans, pmmip, pmmobj, pmtrends,
-    ##     recover.data, ref.grid, regrid, test
-
-    ## 
-    ## Attaching package: 'psych'
-
-    ## The following objects are masked from 'package:ggplot2':
-    ## 
-    ##     %+%, alpha
-
-    ## 
-    ## Attaching package: 'tidyr'
-
-    ## The following object is masked from 'package:Matrix':
-    ## 
-    ##     expand
-
-    ## Loading required package: gridExtra
-
-    ## Loading required package: reshape2
-
-    ## 
-    ## Attaching package: 'reshape2'
-
-    ## The following object is masked from 'package:tidyr':
-    ## 
-    ##     smiths
-
-    ## Loading required package: sjstats
-
-    ## 
-    ## Attaching package: 'sjstats'
-
-    ## The following objects are masked from 'package:psych':
-    ## 
-    ##     pca, phi
-
-    ## Contrasts set to contr.sum for the following variables: a, c
-
 ![](README_files/figure-markdown_github/unnamed-chunk-2-1.png)
 
 The ANOVA\_power function
@@ -177,15 +92,19 @@ ANOVA_power(design_result, nsims = 100)
 
     ## Power and Effect sizes for ANOVA tests
     ##             power effect size
-    ## anova_p_a       6       0.015
-    ## anova_p_b      98       0.166
-    ## anova_p_a:b    73       0.092
+    ## anova_p_a      11       0.018
+    ## anova_p_b      93       0.152
+    ## anova_p_a:b    78       0.094
     ## 
     ## Power and Effect sizes for contrasts
     ##                                   power effect size
-    ## paired_comparison_p_a1,b1 - a2,b1     6        0.02
-    ## paired_comparison_p_a1,b1 - a1,b2    99       -0.74
-    ## paired_comparison_p_a1,b1 - a2,b2     7        0.00
-    ## paired_comparison_p_a2,b1 - a1,b2    16       -0.15
-    ## paired_comparison_p_a2,b1 - a2,b2    13       -0.13
-    ## paired_comparison_p_a1,b2 - a2,b2    12        0.12
+    ## paired_comparison_p_a1,b1 - a2,b1     5        0.05
+    ## paired_comparison_p_a1,b1 - a1,b2    99       -0.72
+    ## paired_comparison_p_a1,b1 - a2,b2     5        0.03
+    ## paired_comparison_p_a2,b1 - a1,b2    19       -0.17
+    ## paired_comparison_p_a2,b1 - a2,b2    11       -0.11
+    ## paired_comparison_p_a1,b2 - a2,b2    14        0.15
+
+The result for the power simulation reveal poewr is very high for the main effect of b - remember that this is the within-subjects factor, and the means are highly correlated (0.87) - so we have high power for within comparisons. This is also clear from the contrasts, where power is very high for the a1,b1-a1,b2 contrast (the within-subject contrast where means differ).
+
+Power is very low for the minor differences among the three similar means (1.03, 0.98, 1.01) and the main effect of a (between-subjects factor). Power is reasonable but not high for the within-between interaction.

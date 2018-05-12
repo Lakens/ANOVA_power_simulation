@@ -59,7 +59,7 @@ The general principle is that the code generates factors, indicated by letters o
 
 The plot below vizualized means from 1 to 8 being entered in a vector.
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 ANOVA_design(string = "2b*2w*2b",
              n = 10, 
              mu = c(1, 2, 3, 4, 5, 6, 7, 8), 
@@ -91,3 +91,6 @@ ANOVA_power(design_result, nsims = 100)
 
 ```
 
+The result for the power simulation reveal poewr is very high for the main effect of b - remember that this is the within-subjects factor, and the means are highly correlated (0.87) - so we have high power for within comparisons. This is also clear from the contrasts, where power is very high for the a1,b1-a1,b2 contrast (the within-subject contrast where means differ). 
+
+Power is very low for the minor differences among the three similar means (1.03, 0.98, 1.01) and the main effect of a (between-subjects factor). Power is reasonable but not high for the within-between interaction. 
