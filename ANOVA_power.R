@@ -19,7 +19,7 @@ ANOVA_power <- function(ANOVA_design, nsims){
   p_adjust <- ANOVA_design$p_adjust
   
   # how many studies should be simulated? 100.000 is very accurate, 10.000 reasonable accurate, 10.000 somewhat accurate
-  nsims = 100
+  nsims = nsims
   
   ###############
   # 2. Load libraries ----
