@@ -176,9 +176,9 @@ ANOVA_design<-function(string, n, mu, sd, r, p_adjust){
     geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
                   position = position_dodge(width=0.9), size=.6, width=.3) +
     coord_cartesian(ylim=c((.7*min(mu)), 1.2*max(mu))) +
-    theme_bw()
-  meansplot
-
+    theme_bw() + ggtitle("Means for each condition in the design")
+  print(meansplot)  
+  
   # Return results in list()
   invisible(list(df = df,
                  design = design,
@@ -190,5 +190,6 @@ ANOVA_design<-function(string, n, mu, sd, r, p_adjust){
                  n = n, 
                  p_adjust = p_adjust, 
                  sigmatrix = sigmatrix,
-                 string = string))
+                 string = string,
+                 meansplot = meansplot))
 }

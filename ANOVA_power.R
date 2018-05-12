@@ -61,6 +61,9 @@ ANOVA_power <- function(ANOVA_design, nsims){
                       data=df,
                       anova_table = list(es = "pes", p_adjust_method = p_adjust)) #This reports PES not GES
   
+  # pairwise comparisons
+  pc <- pairs(emmeans(aov_result, frml2), adjust = p_adjust)
+  
   ############################################
   #Specify factors for formula ###############
   design_list <- ANOVA_design$design_list
