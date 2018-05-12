@@ -162,6 +162,9 @@ for(i1 in 1:length(design_list)){
   sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
 }
 
+diag(sigmatrix) <- sd # replace the diagonal with the sd
+sigmatrix <- as.matrix(sigmatrix)
+
 # We perform the ANOVA using AFEX
 aov_result<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                     data=df,
@@ -169,9 +172,6 @@ aov_result<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed abo
 
 # pairwise comparisons
 pc <- pairs(emmeans(aov_result, frml2), adjust = p_adjust)
-
-diag(sigmatrix) <- sd # replace the diagonal with the sd
-sigmatrix <- as.matrix(sigmatrix)
 
 ###############
 # 5. Set up dataframe for simulation results
@@ -197,10 +197,6 @@ names(sim_data) = c(paste("anova_p_",
                     paste("d_", 
                           pc@grid[["contrast"]], 
                           sep=""))
-
-rownames(summary(aov_result))
-
-rownames(aov_result$anova_table)
 
 ###############
 # 6. Create plot of means to vizualize the design ----
