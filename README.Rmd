@@ -27,7 +27,7 @@ As you can see in your R environment, you will now have two functions, ANOVA_des
 
 ## The ANOVA_design function
 
-Currently the ANOVA_design function can create designs up three factors, for both within, between, and mixed designs. It requires the followinf input: string, n, mu, sd, r, and p_adjust. 
+Currently the ANOVA_design function can create designs up three factors, for both within, between, and mixed designs. It requires the following input: string, n, mu, sd, r, and p_adjust. 
 
 1. string: string that specifies the design (see below)
 2. n: the sample size for each between subject condition
@@ -42,7 +42,7 @@ Currently the ANOVA_design function can create designs up three factors, for bot
 
 ###specifying the means using mu
 
-Note that for each cell in the design, a mean must be provided. Thus, for a "2b*3w" design, 66 means need to be entered. 
+Note that for each cell in the design, a mean must be provided. Thus, for a "2b*3w" design, 6 means need to be entered. 
 
 Means need to be entered in the correct order. ANOVA_design outputs a plot so you can check if you entered means correctly. 
 
@@ -57,9 +57,9 @@ The general principle is that the code generates factors, indicated by letters o
 7. a2 b2 c1
 8. a2 b2 c2
 
-The plot below vizualized means from 1 to 8 being entered in a vector.
+The plot below vizualizes means from 1 to 8 being entered in a vector: mu = c(1, 2, 3, 4, 5, 6, 7, 8).
 
-<<<<<<< HEAD
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 ANOVA_design(string = "2b*2w*2b",
              n = 10, 
@@ -74,7 +74,7 @@ ANOVA_design(string = "2b*2w*2b",
 
 The ANOVA_power function takes the result from the ANOVA_design function, and simulates data nsims times. As output, it provides a table for the ANOVA results, and the results for contrasts. 
 
-At least on windows systems, a progress bar should appear that shows the progress for the siulation. Larger numbers yield more accurate results, but also take a long time. I recommend testing with 100 simulations, or 1000 if you are getting a coffee. 
+At least on windows systems, a progress bar should appear that shows the progress for the simulation. Larger numbers yield more accurate results, but also take a long time. I recommend testing with 100 simulations, or 1000 if you are getting a coffee. 
 
 ## An Example
 

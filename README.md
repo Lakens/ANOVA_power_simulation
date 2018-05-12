@@ -23,7 +23,7 @@ As you can see in your R environment, you will now have two functions, ANOVA\_de
 The ANOVA\_design function
 --------------------------
 
-Currently the ANOVA\_design function can create designs up three factors, for both within, between, and mixed designs. It requires the followinf input: string, n, mu, sd, r, and p\_adjust.
+Currently the ANOVA\_design function can create designs up three factors, for both within, between, and mixed designs. It requires the following input: string, n, mu, sd, r, and p\_adjust.
 
 1.  string: string that specifies the design (see below)
 2.  n: the sample size for each between subject condition
@@ -38,7 +38,7 @@ Currently the ANOVA\_design function can create designs up three factors, for bo
 
 ### specifying the means using mu
 
-Note that for each cell in the design, a mean must be provided. Thus, for a "2b\*3w" design, 66 means need to be entered.
+Note that for each cell in the design, a mean must be provided. Thus, for a "2b\*3w" design, 6 means need to be entered.
 
 Means need to be entered in the correct order. ANOVA\_design outputs a plot so you can check if you entered means correctly.
 
@@ -53,16 +53,16 @@ The general principle is that the code generates factors, indicated by letters o
 7.  a2 b2 c1
 8.  a2 b2 c2
 
-The plot below vizualized means from 1 to 8 being entered in a vector.
+The plot below vizualizes means from 1 to 8 being entered in a vector: mu = c(1, 2, 3, 4, 5, 6, 7, 8).
 
-&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD ![](README_files/figure-markdown_github/unnamed-chunk-2-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-2-1.png)
 
 The ANOVA\_power function
 -------------------------
 
 The ANOVA\_power function takes the result from the ANOVA\_design function, and simulates data nsims times. As output, it provides a table for the ANOVA results, and the results for contrasts.
 
-At least on windows systems, a progress bar should appear that shows the progress for the siulation. Larger numbers yield more accurate results, but also take a long time. I recommend testing with 100 simulations, or 1000 if you are getting a coffee.
+At least on windows systems, a progress bar should appear that shows the progress for the simulation. Larger numbers yield more accurate results, but also take a long time. I recommend testing with 100 simulations, or 1000 if you are getting a coffee.
 
 An Example
 ----------
@@ -92,18 +92,18 @@ ANOVA_power(design_result, nsims = 100)
 
     ## Power and Effect sizes for ANOVA tests
     ##             power effect size
-    ## anova_p_a       6       0.012
-    ## anova_p_b      97       0.165
-    ## anova_p_a:b    73       0.099
+    ## anova_p_a      15       0.019
+    ## anova_p_b      98       0.165
+    ## anova_p_a:b    78       0.093
     ## 
     ## Power and Effect sizes for contrasts
     ##                                   power effect size
-    ## paired_comparison_p_a1,b1 - a2,b1     4        0.02
-    ## paired_comparison_p_a1,b1 - a1,b2    99       -0.75
-    ## paired_comparison_p_a1,b1 - a2,b2     4       -0.01
-    ## paired_comparison_p_a2,b1 - a1,b2     9       -0.14
-    ## paired_comparison_p_a2,b1 - a2,b2    11       -0.12
-    ## paired_comparison_p_a1,b2 - a2,b2     9        0.12
+    ## paired_comparison_p_a1,b1 - a2,b1    10        0.06
+    ## paired_comparison_p_a1,b1 - a1,b2   100       -0.74
+    ## paired_comparison_p_a1,b1 - a2,b2     6        0.03
+    ## paired_comparison_p_a2,b1 - a1,b2    25       -0.18
+    ## paired_comparison_p_a2,b1 - a2,b2    13       -0.13
+    ## paired_comparison_p_a1,b2 - a2,b2    20        0.16
 
 The result for the power simulation reveal power is very high for the main effect of b - remember that this is the within-subjects factor, and the means are highly correlated (0.87) - so we have high power for within comparisons. This is also clear from the contrasts, where power is very high for the a1,b1-a1,b2 contrast (the within-subject contrast where means differ).
 
