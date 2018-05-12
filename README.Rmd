@@ -1,0 +1,93 @@
+---
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+THIS IS AN UNTESTED ALPHA VERSION WITH KNOWN ERRORS - ONLY USE FOR TESTING PURPOSES
+
+This code allows you to simulate factorial ANOVA's and calculate the power of main effects, interactions, and follow up contrasts. 
+
+It is work in progress. Expect many bugs.
+
+## Installation
+
+```{r}
+# Install the two functions from GitHub by running the code below:
+
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+```
+
+As you can see in your R environment, you will now have two functions, ANOVA_design and ANOVA_power. ANOVA_design can be used to specify the design of the study you want to simulate. ANOVA_power then uses the result from the ANOVA_design function to simulate studies and return the power (based on simulations) for the ANOVA (main effects and interactions) and the contrasts. 
+
+## The ANOVA_design function
+
+Currently the ANOVA_design function can create designs up three factors, for both within, between, and mixed designs. It requires the followinf input: string, n, mu, sd, r, and p_adjust. 
+
+1. string: string that specifies the design (see below)
+2. n: the sample size for each between subject condition
+3. mu: a vector with the means for each condition
+4. sd: the population standard deviation. Currenlty assumes homogeneity of variances (only one sd can be provided)
+5. r: the correlation for within designs (or 0 for between designs)
+6. p_adjust: adjustment method for multiple comparisons. E.g., "none" or "holm".
+
+###specifying the design using string
+
+"string" is used to specify the design. Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a "w"" after the number for within factors, and a "b"" for between factors. Seperate factors with a \* (asteriks). Thus "2b*3w" is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels.
+
+###specifying the means using mu
+
+Note that for each cell in the design, a mean must be provided. Thus, for a "2b*3w" design, 66 means need to be entered. 
+
+Means need to be entered in the correct order. ANOVA_design outputs a plot so you can check if you entered means correctly. 
+
+The general principle is that the code generates factors, indicated by letters of the alphabet, (i.e., a, b, and c). Levels are indicated by numbers (e.g., a1, a2, a3, etc). Means are entered in the following order for a 3 factors design: 
+
+1. a1 b1 c1
+2. a1 b1 c2
+3. a1 b2 c1
+4. a1 b2 c2
+5. a2 b1 c1
+6. a2 b1 c2
+7. a2 b2 c1
+8. a2 b2 c2
+
+The plot below vizualized means from 1 to 8 being entered in a vector.
+
+```{r}
+ANOVA_design(string = "2b*2w*2b",
+             n = 10, 
+             mu = c(1, 2, 3, 4, 5, 6, 7, 8), 
+             sd = 1, 
+             r = 0, 
+             p_adjust = "none")
+
+```
+
+## The ANOVA_power function
+
+The ANOVA_power function takes the result from the ANOVA_design function, and simulates data nsims times. As output, it provides a table for the ANOVA results, and the results for contrasts. 
+
+At least on windows systems, a progress bar should appear that shows the progress for the siulation. Larger numbers yield more accurate results, but also take a long time. I recommend testing with 100 simulations, or 1000 if you are getting a coffee. 
+
+## An Example
+
+In the example below, 100 simulations for a 2*2 mixed design (first factor between, second factor within) is performed. The sample size is 40 in each between subject condition (so 80 participants in total), the sd is 1.03, the correlation for the within factors is 0.87, and the means are 1.03, 1.21, 0.98, 1.01. No correction for multiple comparisons is made.
+
+```{r}
+design_result <- ANOVA_design(string = "2b*2w",
+                   n = 40, 
+                   mu = c(1.03, 1.21, 0.98, 1.01), 
+                   sd = 1.03, 
+                   r=0.87, 
+                   p_adjust = "none")
+
+ANOVA_power(design_result, nsims = 100)
+
+```
+
