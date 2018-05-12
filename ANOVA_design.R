@@ -1,4 +1,4 @@
-ANOVA_power_design<-function(string, n, mu, sd, r, p_adjust){
+ANOVA_design<-function(string, n, mu, sd, r, p_adjust){
   ###############
   # 1. Specify Design and Simulation----
   ###############
