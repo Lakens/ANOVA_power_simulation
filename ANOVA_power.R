@@ -1,4 +1,7 @@
-ANOVA_power <- function(ANOVA_design, nsims){
+ANOVA_power <- function(ANOVA_design, alpha, nsims){
+  if(missing(alpha)) {
+    alpha<-0.05
+  }
   string <- ANOVA_design$string #String used to specify the design
   
   # Specify the parameters you expect in your data (sd, r for within measures)
@@ -146,7 +149,7 @@ ANOVA_power <- function(ANOVA_design, nsims){
     scale_x_continuous(breaks=seq(0, 1, by = .1),
                        labels=seq(0, 1, by = .1)) +
     geom_histogram(colour="#535353", fill="#84D5F0", breaks=seq(0, 1, by = .01)) +
-    geom_vline(xintercept = 0.05, colour='red') +
+    geom_vline(xintercept = alpha, colour='red') +
     facet_grid(variable ~ .) +
     labs(x = expression(p)) +
     theme_bw() + 
@@ -180,7 +183,7 @@ ANOVA_power <- function(ANOVA_design, nsims){
   #   scale_x_continuous(breaks=seq(0, 1, by = .1),
   #                      labels=seq(0, 1, by = .1)) +
   #   geom_histogram(colour="#535353", fill="#84D5F0", breaks=seq(0, 1, by = .01)) +
-  #   geom_vline(xintercept = 0.05, colour='red') +
+  #   geom_vline(xintercept = alpha, colour='red') +
   #   facet_grid(variable ~ .) +
   #   labs(x = expression(p)) +
   #   theme_bw() + 
@@ -208,7 +211,7 @@ ANOVA_power <- function(ANOVA_design, nsims){
   
   #Main effects and interactions from the ANOVA
   power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors-1))]), 2, 
-                                     function(x) round(mean(ifelse(x < .05, 1, 0) * 100),3)))
+                                     function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),3)))
   es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors-1)))]), 2, 
                                   function(x) round(mean(x),3)))
   
@@ -218,7 +221,7 @@ ANOVA_power <- function(ANOVA_design, nsims){
   
   #Data summary for contrasts
   power_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]), 2, 
-                function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2)))
+                function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),2)))
   es_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+possible_pc+1):(2*(2^factors-1)+2*possible_pc)]), 2, 
                                      function(x) round(mean(x),2)))
 
