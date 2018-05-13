@@ -7,7 +7,7 @@ knitr::opts_chunk$set(echo = TRUE)
 nsims <- 10000 #set number of simulations
 ```
 
-## Validation for One-Way ANOVA
+## Validation of effect size estimates for One-Way ANOVA
 
 Using the formulas below, we can calculate the means for between designs with one factor (One-Way ANOVA). Using the formula also used in Albers & Lakens (2018), we can determine the means that should yield a specified effect sizes (expressed in Cohen's f).
 
