@@ -138,8 +138,8 @@ ANOVA_design<-function(string, n, mu, sd, r, p_adjust){
     sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
   }
   
+  sigmatrix <- as.matrix(sigmatrix*r)
   diag(sigmatrix) <- sd # replace the diagonal with the sd
-  sigmatrix <- as.matrix(sigmatrix)
   
   # We perform the ANOVA using AFEX
   aov_result<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 

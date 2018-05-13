@@ -10,7 +10,7 @@ rm(list=ls())
 # Seperate factors with a * (asteriks)
 # Thus "2b*3w) is a design with 2 between levels, and 3 within levels
 
-string <- "2b*2b" #String used to specify the design
+string <- "2w" #String used to specify the design
 
 # Specify the parameters you expect in your data (sd, r for within measures)
 
@@ -18,10 +18,10 @@ string <- "2b*2b" #String used to specify the design
 # For an all within design, this is total N
 # For a 2b*2b design, this is the number of people in each between condition, so in each of 2*2 = 4 groups 
 
-n<-50
+n<-20
 
 # specify population means for each condition (so 2 values for 2b design, 6 for 2b*3w, etc) 
-mu = c(1.6, 1, 1.1, 1) # population means - should match up with the design
+mu = c(1.6, 1) # population means - should match up with the design
 
 sd=1 #population standard deviation (currently assumes equal variances)
 r=0.5 # correlation between within factors (currently only 1 value can be entered)
@@ -67,6 +67,14 @@ diag(sigmatrix) <- sd # replace the diagonal with the sd
 df <- as.data.frame(rmvnorm(n=n,
                             mean=mu,
                             sigma=sigmatrix))
+
+# colMeans(df)
+# cor(df[1],df[2])
+# sd(df[[1]])
+# sd(df[[2]])
+
+mean(df[[1]]-df[[2]])
+
 df$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
 #Melt dataframe
 df <- melt(df, 
@@ -108,6 +116,9 @@ for(j2 in length(design):1){ #for each factor in the design, from last to first
 
 #Overwrite subject columns in df
 df$subject <- subject
+
+mean(df[[1]]-df[[2]])
+
 
 ###############
 # 3. Specify factors for formula ----
@@ -162,8 +173,10 @@ for(i1 in 1:length(design_list)){
   sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
 }
 
+sigmatrix <- as.matrix(sigmatrix*r)
 diag(sigmatrix) <- sd # replace the diagonal with the sd
-sigmatrix <- as.matrix(sigmatrix)
+
+#sigmatrix <- as.matrix(sigmatrix*r)
 
 # We perform the ANOVA using AFEX
 aov_result<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
@@ -263,6 +276,14 @@ close(pb) #close the progress bar
 ############################################
 #End Simulation              ###############
 
+t.test(df$y ~ df$a, paired = TRUE)
+
+a1 <- df$y[1:n]
+a2 <- df$y[(n+1):(2*n)]
+
+a1-a2
+mean(a1-a2)
+cor(a1,a2)
 
 ###############
 # 8. Plot Results ----
