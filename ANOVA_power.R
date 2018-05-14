@@ -122,7 +122,9 @@ ANOVA_power <- function(ANOVA_design, alpha, nsims){
     sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
                     aov_result$anova_table[[5]], #partial eta squared
                     as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
-                    as.data.frame(summary(pc))$t.ratio/sqrt(n)) #Cohen's dz
+                    ifelse(as.data.frame(summary(pc))$df < n, #if df < n (means within factor)
+                           as.data.frame(summary(pc))$t.ratio/sqrt(n), #Cohen's dz for within
+                           2 * as.data.frame(summary(pc))$t.ratio/sqrt(n))) #Cohen's d for between
   }
   
   close(pb) #close the progress bar
