@@ -59,7 +59,7 @@ The general principle is that the code generates factors, indicated by letters o
 7. a2 b2 c1
 8. a2 b2 c2
 
-The plot below vizualizes means from 1 to 8 being entered in a vector: mu = c(1, 2, 3, 4, 5, 6, 7, 8).
+The plot below visualizes means from 1 to 8 being entered in a vector: mu = c(1, 2, 3, 4, 5, 6, 7, 8).
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -100,11 +100,11 @@ The result for the power simulation has two sections. The first table provides p
 
 The result for the power simulation reveal power is very high for the main effect of b - remember that this is the within-subjects factor, and the means are highly correlated (0.87) - so we have high power for within comparisons. Power is lower for the interaction. 
 
-An ANOVA is typically followed up with contrasts. A statistical hypothesis often predicts not just an interaction, but also the shape of an interaction. For example, when looking at theplot of our design above, we might be specifically interested in comparing the mean in condition a1,b2 against a1,b1 and a2,b2 in simple contrasts. 
+An ANOVA is typically followed up with contrasts. A statistical hypothesis often predicts not just an interaction, but also the shape of an interaction. For example, when looking at the plot of our design above, we might be specifically interested in comparing the mean in condition a1,b2 against a1,b1 and a2,b2 in simple contrasts. 
 
 The second table provides the power for all contrasts, and the effect sizes. Effect sizes are provided in Cohen's d for between-subject contrasts, and in Cohen's dz for within-subject contrasts (see Lakens, 2013). These are the effect sizes used in a-priori power analysis. Note that Cohen's d is slightly upwardly biased when calculated from observed data (as in these simulations).
 
-Power is relatively high for the contrast comparing a1,b2, and a1, b1 - remember this is the within-subject contrast where means differ, and the correlation between dependent observations is large (r = 0.87). Power for the contrast a1,b2 - a2,b2 is much lower, because thisis a between subjects comparison. 
+Power is relatively high for the contrast comparing a1,b2-a1,b1 - remember this is the within-subject contrast where means differ, and the correlation between dependent observations is large (r = 0.87). Power for the contrast a1,b2-a2,b2 is much lower, because this is a between subjects comparison. 
 
 Power is very low for the minor differences among the three similar means (1.03, 0.98, 1.01) as can be seen from first, third, and fifth lines in the contrast output. 
 
