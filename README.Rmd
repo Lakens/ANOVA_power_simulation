@@ -80,7 +80,7 @@ At least on windows systems, a progress bar should appear that shows the progres
 
 ## An Example
 
-In the example below, 1000 simulations for a 2*2 mixed design (first factor between, second factor within) is performed. The sample size is 40 in each between subject condition (so 80 participants in total), the sd is 1.03, the correlation for the within factors is 0.87, and the means are 1.03, 1.21, 0.98, 1.01. No correction for multiple comparisons is made.
+In the example below, 1000 simulations for a 2*2 mixed design (first factor between, second factor within) is performed. The sample size is 80 in each between subject condition (so 160 participants in total), the sd is 1.03, the correlation for the within factors is 0.87, and the means are 1.03, 1.21, 0.98, 1.01. No correction for multiple comparisons is made.
 
 The alpha level used as a significance threshold can be specified, and is set to 0.05 for this simulation.
 
