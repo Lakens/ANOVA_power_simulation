@@ -4,7 +4,7 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 100 #set number of simulations
+nsims <- 100000 #set number of simulations
 ```
 
 ## Validation of Power in One-Way ANOVA
@@ -102,7 +102,7 @@ mu <- mu_from_ES(K = K, ES = ES)
 
 string = paste(K,"b",sep="")
 ```
-We have 90% power for an effect size (eta-squared) of 0.2349157. So let's simulate data with this effect size, and check if we get 90% power. 
+We have 95% power for an effect size (eta-squared) of 0.2349157. So let's simulate data with this effect size, and check if we get 95% power. 
 
 ```{r, message=FALSE, warning=FALSE}
 design_result <- ANOVA_design(string = string,
@@ -116,7 +116,7 @@ ANOVA_power(design_result, nsims = nsims)
 
 ```
 
-The result of the simulation is a power that is very close to the intended 90% power. Note that the mean observed effect size is larger than the true effect size (because eta-squared is upwardly biased, see Albers & Lakens, 2018). 
+The result of the simulation is a power that is very close to the intended 95% power. Note that the mean observed effect size is larger than the true effect size (because eta-squared is upwardly biased, see Albers & Lakens, 2018). 
 
 ## Two conditions, medium effect size
 

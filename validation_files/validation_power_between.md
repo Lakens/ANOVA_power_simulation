@@ -82,21 +82,21 @@ ANOVA_power(design_result, nsims = nsims)
 ```
 
     ## Power and Effect sizes for ANOVA tests
-    ##           power effect size
-    ## anova_p_a    79       0.001
+    ##            power effect size
+    ## anova_p_a 79.958       0.001
     ## 
     ## Power and Effect sizes for contrasts
     ##                             power effect size
-    ## paired_comparison_p_a1 - a2    38       -0.02
-    ## paired_comparison_p_a1 - a3    89       -0.05
-    ## paired_comparison_p_a2 - a3    36       -0.02
+    ## paired_comparison_p_a1 - a2 33.98       -0.02
+    ## paired_comparison_p_a1 - a3 87.30       -0.04
+    ## paired_comparison_p_a2 - a3 34.22       -0.02
 
 The results of the simulation are indeed very close to 80%.
 
 Four conditions, very large effect size
 ---------------------------------------
 
-We can simulate a One-Way ANOVA with an alpha of 0.01, a sample size of 15 per group for four groups, and an effect size to achieve 90% power.
+We can simulate a One-Way ANOVA with an alpha of 0.05, a sample size of 15 per group for four groups, and an effect size to achieve 95% power.
 
 ``` r
 K <- 4
@@ -120,7 +120,7 @@ mu <- mu_from_ES(K = K, ES = ES)
 string = paste(K,"b",sep="")
 ```
 
-We have 90% power for an effect size (eta-squared) of 0.2349157. So let's simulate data with this effect size, and check if we get 90% power.
+We have 95% power for an effect size (eta-squared) of 0.2349157. So let's simulate data with this effect size, and check if we get 95% power.
 
 ``` r
 design_result <- ANOVA_design(string = string,
@@ -138,19 +138,19 @@ ANOVA_power(design_result, nsims = nsims)
 ```
 
     ## Power and Effect sizes for ANOVA tests
-    ##           power effect size
-    ## anova_p_a    98       0.266
+    ##            power effect size
+    ## anova_p_a 94.898       0.272
     ## 
     ## Power and Effect sizes for contrasts
     ##                             power effect size
-    ## paired_comparison_p_a1 - a2     4       -0.03
-    ## paired_comparison_p_a1 - a3    89       -0.79
-    ## paired_comparison_p_a1 - a4    86       -0.79
-    ## paired_comparison_p_a2 - a3    83       -0.75
-    ## paired_comparison_p_a2 - a4    90       -0.76
-    ## paired_comparison_p_a3 - a4     5       -0.01
+    ## paired_comparison_p_a1 - a2  5.12        0.00
+    ## paired_comparison_p_a1 - a3 84.69       -0.79
+    ## paired_comparison_p_a1 - a4 84.57       -0.79
+    ## paired_comparison_p_a2 - a3 84.59       -0.79
+    ## paired_comparison_p_a2 - a4 84.55       -0.79
+    ## paired_comparison_p_a3 - a4  4.98        0.00
 
-The result of the simulation is a power that is very close to the intended 90% power. Note that the mean observed effect size is larger than the true effect size (because eta-squared is upwardly biased, see Albers & Lakens, 2018).
+The result of the simulation is a power that is very close to the intended 95% power. Note that the mean observed effect size is larger than the true effect size (because eta-squared is upwardly biased, see Albers & Lakens, 2018).
 
 Two conditions, medium effect size
 ----------------------------------
@@ -197,14 +197,14 @@ power_result <- ANOVA_power(design_result, nsims = nsims)
 ```
 
     ## Power and Effect sizes for ANOVA tests
-    ##           power effect size
-    ## anova_p_a    96       0.115
+    ##            power effect size
+    ## anova_p_a 94.876       0.125
     ## 
     ## Power and Effect sizes for contrasts
     ##                             power effect size
-    ## paired_comparison_p_a1 - a2    96        -0.5
+    ## paired_comparison_p_a1 - a2 94.88       -0.52
 
-The result of the simulation is a power that is very close to the intended 90% power.
+The result of the simulation is a power that is very close to the intended 95% power.
 
 We can plot the p-value distribution for the ANOVA:
 
