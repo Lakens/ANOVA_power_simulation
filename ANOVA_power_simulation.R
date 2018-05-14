@@ -10,7 +10,7 @@ rm(list=ls())
 # Seperate factors with a * (asteriks)
 # Thus "2b*3w) is a design with 2 between levels, and 3 within levels
 
-string <- "2w" #String used to specify the design
+string <- "2w*2b" #String used to specify the design
 
 # Specify the parameters you expect in your data (sd, r for within measures)
 
@@ -21,7 +21,7 @@ string <- "2w" #String used to specify the design
 n<-20
 
 # specify population means for each condition (so 2 values for 2b design, 6 for 2b*3w, etc) 
-mu = c(1.6, 1) # population means - should match up with the design
+mu = c(1.6, 1, 1, 1) # population means - should match up with the design
 
 sd=1 #population standard deviation (currently assumes equal variances)
 r=0.5 # correlation between within factors (currently only 1 value can be entered)
