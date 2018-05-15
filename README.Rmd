@@ -16,13 +16,26 @@ It is work in progress.
 
 I've created some validation files that suggest the simulations work for [One-Way ANOVA designs](https://github.com/Lakens/ANOVA_power_simulation/blob/master/validation_files/validation_power_between.md) and one factor [within ANOVA designs](https://github.com/Lakens/ANOVA_power_simulation/blob/master/validation_files/validation_power_within.md). More validation work is needed. 
 
-## Installation
+## Installation functions and packages
+
+Run the code below to download the functions, and load the packages. Make sure to install these packages if needed.
 
 ```{r}
 # Install the two functions from GitHub by running the code below:
 
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+
+###############
+# Load libraries ----
+###############
+
+library(mvtnorm)
+library(afex)
+library(lsmeans)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
 ```
 
 As you can see in your R environment, you will now have two functions, ANOVA_design and ANOVA_power. ANOVA_design can be used to specify the design of the study you want to simulate. ANOVA_power then uses the result from the ANOVA_design function to simulate studies and return the power (based on simulations) for the ANOVA (main effects and interactions) and the contrasts. 

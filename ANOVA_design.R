@@ -19,8 +19,8 @@ ANOVA_design<-function(string, n, mu, sd, r, p_adjust){
   library(afex)
   library(lsmeans)
   library(ggplot2)
-  require(gridExtra)
-  require(reshape2)
+  library(gridExtra)
+  library(reshape2)
   
   ###############
   # 2. Create Dataframe based on Design ----

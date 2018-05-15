@@ -10,14 +10,27 @@ It is work in progress.
 
 I've created some validation files that suggest the simulations work for [One-Way ANOVA designs](https://github.com/Lakens/ANOVA_power_simulation/blob/master/validation_files/validation_power_between.md) and one factor [within ANOVA designs](https://github.com/Lakens/ANOVA_power_simulation/blob/master/validation_files/validation_power_within.md). More validation work is needed.
 
-Installation
-------------
+Installation functions and packages
+-----------------------------------
+
+Run the code below to download the functions, and load the packages. Make sure to install these packages if needed.
 
 ``` r
 # Install the two functions from GitHub by running the code below:
 
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+
+###############
+# Load libraries ----
+###############
+
+library(mvtnorm)
+library(afex)
+library(lsmeans)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
 ```
 
 As you can see in your R environment, you will now have two functions, ANOVA\_design and ANOVA\_power. ANOVA\_design can be used to specify the design of the study you want to simulate. ANOVA\_power then uses the result from the ANOVA\_design function to simulate studies and return the power (based on simulations) for the ANOVA (main effects and interactions) and the contrasts.
@@ -55,7 +68,7 @@ The general principle is that the code generates factors, indicated by letters o
 7.  a2 b2 c1
 8.  a2 b2 c2
 
-The plot below vizualizes means from 1 to 8 being entered in a vector: mu = c(1, 2, 3, 4, 5, 6, 7, 8).
+The plot below visualizes means from 1 to 8 being entered in a vector: mu = c(1, 2, 3, 4, 5, 6, 7, 8).
 
 ![](README_files/figure-markdown_github/unnamed-chunk-2-1.png)
 
@@ -96,28 +109,28 @@ simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = 1000)
 
     ## Power and Effect sizes for ANOVA tests
     ##           power effect size
-    ## anova_a    12.9       0.010
-    ## anova_b    62.4       0.039
-    ## anova_a:b  37.2       0.024
+    ## anova_a    12.0       0.010
+    ## anova_b    64.1       0.039
+    ## anova_a:b  39.1       0.024
     ## 
     ## Power and Effect sizes for contrasts
     ##                                 power effect size
-    ## paired_comparison_a1,b1 - a2,b1   5.2        0.06
-    ## paired_comparison_a1,b1 - a1,b2  79.3       -0.64
-    ## paired_comparison_a1,b1 - a2,b2   4.6        0.02
-    ## paired_comparison_a2,b1 - a1,b2  28.4       -0.31
-    ## paired_comparison_a2,b1 - a2,b2   7.9       -0.10
-    ## paired_comparison_a1,b2 - a2,b2  22.9        0.27
+    ## paired_comparison_a1,b1 - a2,b1   6.5        0.06
+    ## paired_comparison_a1,b1 - a1,b2  79.7       -0.64
+    ## paired_comparison_a1,b1 - a2,b2   5.0        0.02
+    ## paired_comparison_a2,b1 - a1,b2  27.5       -0.31
+    ## paired_comparison_a2,b1 - a2,b2   8.2       -0.10
+    ## paired_comparison_a1,b2 - a2,b2  20.6        0.27
 
 The result for the power simulation has two sections. The first table provides power (from 0 to 100%) and effect sizes (partial eta-squared) for the ANOVA result. We see the results for the main effects of factor a, b and the interaction between a and b.
 
 The result for the power simulation reveal power is very high for the main effect of b - remember that this is the within-subjects factor, and the means are highly correlated (0.87) - so we have high power for within comparisons. Power is lower for the interaction.
 
-An ANOVA is typically followed up with contrasts. A statistical hypothesis often predicts not just an interaction, but also the shape of an interaction. For example, when looking at theplot of our design above, we might be specifically interested in comparing the mean in condition a1,b2 against a1,b1 and a2,b2 in simple contrasts.
+An ANOVA is typically followed up with contrasts. A statistical hypothesis often predicts not just an interaction, but also the shape of an interaction. For example, when looking at the plot of our design above, we might be specifically interested in comparing the mean in condition a1,b2 against a1,b1 and a2,b2 in simple contrasts.
 
 The second table provides the power for all contrasts, and the effect sizes. Effect sizes are provided in Cohen's d for between-subject contrasts, and in Cohen's dz for within-subject contrasts (see Lakens, 2013). These are the effect sizes used in a-priori power analysis. Note that Cohen's d is slightly upwardly biased when calculated from observed data (as in these simulations).
 
-Power is relatively high for the contrast comparing a1,b2, and a1, b1 - remember this is the within-subject contrast where means differ, and the correlation between dependent observations is large (r = 0.87). Power for the contrast a1,b2 - a2,b2 is much lower, because thisis a between subjects comparison.
+Power is relatively high for the contrast comparing a1,b2-a1,b1 - remember this is the within-subject contrast where means differ, and the correlation between dependent observations is large (r = 0.87). Power for the contrast a1,b2-a2,b2 is much lower, because this is a between subjects comparison.
 
 Power is very low for the minor differences among the three similar means (1.03, 0.98, 1.01) as can be seen from first, third, and fifth lines in the contrast output.
 

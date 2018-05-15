@@ -32,8 +32,8 @@ ANOVA_power <- function(ANOVA_design, alpha, nsims){
   library(afex)
   library(lsmeans)
   library(ggplot2)
-  require(gridExtra)
-  require(reshape2)
+  library(gridExtra)
+  library(reshape2)
   
   ###############
   # 2. Create Dataframe based on Design ----
