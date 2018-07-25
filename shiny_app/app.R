@@ -1,14 +1,8 @@
-###############
-# Load libraries ----
-###############
-
 library(shiny)
-library(mvtnorm)
-library(afex)
-library(emmeans)
-library(ggplot2)
-library(gridExtra)
-library(reshape2)
+
+
+
+
 
 # Define User Interface for simulations
 ui <- fluidPage(
@@ -97,6 +91,17 @@ server <- function(input, output) {
     
     #Check if design an means match up - if not, throw an error and stop
     if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
+    
+    ###############
+    # 2. Load libraries ----
+    ###############
+    
+    library(mvtnorm)
+    library(afex)
+    library(lsmeans)
+    library(ggplot2)
+    library(gridExtra)
+    library(reshape2)
     
     ###############
     # 2. Create Dataframe based on Design ----
@@ -294,7 +299,17 @@ server <- function(input, output) {
     # how many studies should be simulated? 100.000 is very accurate, 10.000 reasonable accurate, 10.000 somewhat accurate
     nsims = nsims
     
-
+    ###############
+    # 2. Load libraries ----
+    ###############
+    
+    library(mvtnorm)
+    library(afex)
+    library(lsmeans)
+    library(ggplot2)
+    library(gridExtra)
+    library(reshape2)
+    
     ###############
     # 2. Create Dataframe based on Design ----
     ###############
@@ -357,9 +372,12 @@ server <- function(input, output) {
     ###############
     # 7. Start Simulation ----
     ###############
-    withProgress(message = 'Running simulations', value = 0, {
+    
+    pb <- winProgressBar(title = "progress bar", min = 0, max = nsims, width = 300)
+    i=1
     for(i in 1:nsims){ #for each simulated experiment
-      incProgress(1/nsims, detail = paste("Now running simulation", i, "out of",nsims,"simulations"))
+      setWinProgressBar(pb, i, title=paste( round(i/nsims*100, 0),
+                                            "% done"))
       #We simulate a new y variable, melt it in long format, and add it to the df (surpressing messages)
       df$y<-suppressMessages({melt(as.data.frame(rmvnorm(n=n,
                                                          mean=mu,
@@ -380,7 +398,8 @@ server <- function(input, output) {
                                as.data.frame(summary(pc))$t.ratio/sqrt(n), #Cohen's dz for within
                                (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(n))) #Cohen's d for between
     }
-    })#close withProgress
+    
+    close(pb) #close the progress bar
     
     ############################################
     #End Simulation              ###############
