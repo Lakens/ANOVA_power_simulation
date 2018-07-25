@@ -6,25 +6,13 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Overview
-
-THIS IS AN UNTESTED ALPHA VERSION - TAKE GREAT CARE IN USING THESE FUNCTIONS
-
-This code allows you to simulate factorial ANOVA's and calculate the power of main effects, interactions, and follow up contrasts. 
-
-It is work in progress. 
-
-I've created some validation files that suggest the simulations work for [One-Way ANOVA designs](https://github.com/Lakens/ANOVA_power_simulation/blob/master/validation_files/validation_power_between.md) and one factor [within ANOVA designs](https://github.com/Lakens/ANOVA_power_simulation/blob/master/validation_files/validation_power_within.md). More validation work is needed. 
-
-## Installation functions and packages
-
-Run the code below to download the functions, and load the packages. Make sure to install these packages if needed.
+## Power for interactions.
 
 ```{r, message=FALSE, warning=FALSE}
 # Install the two functions from GitHub by running the code below:
 
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+source("ANOVA_design.R")
+source("ANOVA_power.R")
 
 ###############
 # Load libraries ----
@@ -38,50 +26,40 @@ library(gridExtra)
 library(reshape2)
 ```
 
-As you can see in your R environment, you will now have two functions, ANOVA_design and ANOVA_power. ANOVA_design can be used to specify the design of the study you want to simulate. ANOVA_power then uses the result from the ANOVA_design function to simulate studies and return the power (based on simulations) for the ANOVA (main effects and interactions) and the contrasts. 
-
-## The ANOVA_design function
-
-Currently the ANOVA_design function can create designs up three factors, for both within, between, and mixed designs. It requires the following input: string, n, mu, sd, r, and p_adjust. 
-
-1. string: string that specifies the design (see below)
-2. n: the sample size for each between subject condition
-3. mu: a vector with the means for each condition
-4. sd: the population standard deviation. Currenlty assumes homogeneity of variances (only one sd can be provided)
-5. r: the correlation for within designs (or 0 for between designs)
-6. p_adjust: adjustment method for multiple comparisons. E.g., "none" or "holm".
-
-###specifying the design using string
-
-"string" is used to specify the design. Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a "w"" after the number for within factors, and a "b"" for between factors. Seperate factors with a \* (asteriks). Thus "2b*3w" is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels.
-
-###specifying the means using mu
-
-Note that for each cell in the design, a mean must be provided. Thus, for a "2b*3w" design, 6 means need to be entered. 
-
-Means need to be entered in the correct order. ANOVA_design outputs a plot so you can check if you entered means correctly. 
-
-The general principle is that the code generates factors, indicated by letters of the alphabet, (i.e., a, b, and c). Levels are indicated by numbers (e.g., a1, a2, a3, etc). Means are entered in the following order for a 3 factors design: 
-
-1. a1 b1 c1
-2. a1 b1 c2
-3. a1 b2 c1
-4. a1 b2 c2
-5. a2 b1 c1
-6. a2 b1 c2
-7. a2 b2 c1
-8. a2 b2 c2
-
-The plot below visualizes means from 1 to 8 being entered in a vector: mu = c(1, 2, 3, 4, 5, 6, 7, 8).
-
+It is common in psychological science to examine studies with multiple factors, and analyse these results in an Analysis of Variance (ANOVA). For example, we might perform a study where we give students a an intermittent exam, or not, and a short quiz at the beginning of each lecture, or not. We might want to examine whether the effects of both these interventions (an intermittant exam, and quizzes) are additive, or not. Two possible hypotheses are that we might predict two main effects, with higher final grades when quizzes are given, and when an intermittent exam is presented, but both benefits stack and thus grades are best when both  
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-ANOVA_design(string = "2b*2w*2b",
-             n = 10, 
-             mu = c(1, 2, 3, 4, 5, 6, 7, 8), 
-             sd = 1, 
-             r = 0, 
-             p_adjust = "none")
+mu <- c(1, 2, 3, 4)
+sd <- 1
+n <- 20
+
+df_means <- data.frame(mu, SE = sd / sqrt(n))
+
+  for(j in 1:factors){
+    df_means <- cbind(df_means, as.factor(unlist(rep(as.list(paste(letters[[j]], 
+                                                                   1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
+                                                                   sep="")), 
+                                                     each = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
+                                                     times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+    ))))
+  }
+  
+  if(factors == 1){names(df_means)<-c("mu","SE","a")}
+  if(factors == 2){names(df_means)<-c("mu","SE","a","b")}
+  if(factors == 3){names(df_means)<-c("mu","SE","a","b","c")}
+  
+  if(factors == 1){meansplot = ggplot(df_means, aes(y = mu, x = a))}
+  if(factors == 2){meansplot = ggplot(df_means, aes(y = mu, x = a, fill=b))}
+  if(factors == 3){meansplot = ggplot(df_means, aes(y = mu, x = a, fill=b)) + facet_wrap(  ~ c)}
+  
+  meansplot = meansplot +
+    geom_bar(position = position_dodge(), stat="identity") +
+    geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
+                  position = position_dodge(width=0.9), size=.6, width=.3) +
+    coord_cartesian(ylim=c((.7*min(mu)), 1.2*max(mu))) +
+    theme_bw() + ggtitle("Means for each condition in the design")
+  print(meansplot)  
+
 
 ```
 
