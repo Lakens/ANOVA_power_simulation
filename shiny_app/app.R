@@ -1,15 +1,14 @@
 library(shiny)
 
 
-#Source functions
+
 
 
 # Define User Interface for simulations
 ui <- fluidPage(
   titlePanel("ANOVA Simulation"),
   
-  #sidebarLayout(
-  # sidebarPanel(
+#Panel to define ANOVA design
   column(4, wellPanel(  
     textInput(inputId = "design", label = "Design Input",
               value = "2b*2w"),
@@ -32,10 +31,10 @@ ui <- fluidPage(
                 choices = list("None" = "none", "Holm-Bonferroni" = "holm",
                                "Bonferroni" = "bonferroni",
                                "False Discovery Rate" = "fdr"), selected = 1),
-    
+    #Button to initiate the design
     actionButton("designBut","Set-Up Design"),
     
-    
+    #Conditional; once design is clicked. Then settings for power simulation can be defined
     conditionalPanel("input.designBut >= 1",
                      sliderInput("sig",
                                  label = "Alpha Level",
@@ -44,17 +43,13 @@ ui <- fluidPage(
                                  label = "Number of Simulations",
                                  min = 100, max = 10000, value = 1000),
                      actionButton("sim", "Simulate!"))
-    
-    
-    
-    
+
     
   )),
   
-  column(5,  #hr(),
-         #fluidRow(column(3, verbatimTextOutput("value")))
-         # Output: Verbatim text for data summary ----
-         #verbatimTextOutput("main")#,
+
+#Output for Design
+  column(5,  
          conditionalPanel("input.designBut >= 1", 
                           h3("Design for Simulation")),
          
@@ -63,7 +58,7 @@ ui <- fluidPage(
          plotOutput('plot'),
          
          tableOutput("corMat")),
-  
+  #output for Simulation
   column(4, 
          conditionalPanel("input.sim >= 1", 
                           h3("Simulation Results")),
@@ -82,6 +77,8 @@ server <- function(input, output) {
   
   v <- reactiveValues(data = NULL)
   
+  
+  #ANOVA design function; last update: 07.25.2018
   ANOVA_design <- function(string, n, mu, sd, r, p_adjust){
     ###############
     # 1. Specify Design and Simulation----
@@ -275,7 +272,7 @@ server <- function(input, output) {
                    meansplot = meansplot))
   }
   
-  
+  #ANOVA simulation function; last update: 07.25.2018
   ANOVA_power <- function(ANOVA_design, alpha, nsims){
     if(missing(alpha)) {
       alpha<-0.05
@@ -523,19 +520,10 @@ server <- function(input, output) {
     
   }
   
-  #design <- as.character(input$design)
-  #sample_size <- as.numeric(input$sample_size)
-  #means <- as.vector(input$mu)
-  #SD <- as.numeric(input$sd)
-  #correl <- as.numeric(input$r)
-  #p_adjust <- as.character(input$p_adjust)
-  #sig <- as.numeric(input$sig)
-  #sims <- as.numeric(input$nsims)
-  
-  #mu_vec <- reactive({as.numeric(unlist(strsplit(input$mu, ",")))})
-  
+  #Create set of reactive values
   values <- reactiveValues(design_result=0, power_result=0)
   
+  #Produce ANOVA design
   observeEvent(input$designBut, { values$design_result <- ANOVA_design(string = as.character(input$design),
                                                                        n = as.numeric(input$sample_size), 
                                                                        mu = as.numeric(unlist(strsplit(input$mu, ","))), 
@@ -544,8 +532,8 @@ server <- function(input, output) {
                                                                        p_adjust = as.character(input$p_adjust))
   })
   
-  #design_result <- reactive({ })
   
+  #Output text for ANOVA design
   output$DESIGN <- renderText({
     req(input$designBut)
     
@@ -562,6 +550,7 @@ server <- function(input, output) {
     
   })
   
+  #Output of correlation and standard deviation matrix
   output$corMat <- renderTable(colnames = FALSE, 
                                caption = "Matrix of Standard Deviation and Correlations",
                                caption.placement = getOption("xtable.caption.placement", "top"),
@@ -570,17 +559,13 @@ server <- function(input, output) {
                                  values$design_result$sigmatrix
                                  
                                })
-  
+  #Output plot of the design
   output$plot <- renderPlot({
     req(input$designBut)
     values$design_result$meansplot})
   
-  #output$plot <- renderPlot({
-  #  if (is.null(v$data)) return()
-  #   values$design_result$meansplot})
-  
-  #output$plot <- reactive ({values$design_result$meansplot})
-  
+
+  #Runs simulation and saves result as reactive value
   observeEvent(input$sim, {values$power_result <-ANOVA_power(values$design_result, 
                                                              alpha = input$sig, 
                                                              nsims = input$nsims)
@@ -588,17 +573,13 @@ server <- function(input, output) {
   
   })
   
-  #power_result <- reactive({ })
-  
-  
-  #power_main <- as.data.frame(values$power_result$main_results)
-  #power_pc <- as.data.frame(values$power_result$pc_results)
-  
+  #Table output of ANOVA level effects; rownames needed
   output$tableMain <-  renderTable({
     req(input$sim)
     values$power_result$main_results},
     rownames = TRUE)
   
+  #Table output of pairwise comparisons; rownames needed
   output$tablePC <-  renderTable({
     req(input$sim)
     values$power_result$pc_result},
