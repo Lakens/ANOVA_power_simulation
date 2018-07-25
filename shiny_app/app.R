@@ -1,8 +1,14 @@
+###############
+# Load libraries ----
+###############
+
 library(shiny)
-
-
-
-
+library(mvtnorm)
+library(afex)
+library(emmeans)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
 
 # Define User Interface for simulations
 ui <- fluidPage(
@@ -91,17 +97,6 @@ server <- function(input, output) {
     
     #Check if design an means match up - if not, throw an error and stop
     if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
-    
-    ###############
-    # 2. Load libraries ----
-    ###############
-    
-    library(mvtnorm)
-    library(afex)
-    library(lsmeans)
-    library(ggplot2)
-    library(gridExtra)
-    library(reshape2)
     
     ###############
     # 2. Create Dataframe based on Design ----
@@ -299,17 +294,7 @@ server <- function(input, output) {
     # how many studies should be simulated? 100.000 is very accurate, 10.000 reasonable accurate, 10.000 somewhat accurate
     nsims = nsims
     
-    ###############
-    # 2. Load libraries ----
-    ###############
-    
-    library(mvtnorm)
-    library(afex)
-    library(lsmeans)
-    library(ggplot2)
-    library(gridExtra)
-    library(reshape2)
-    
+
     ###############
     # 2. Create Dataframe based on Design ----
     ###############
