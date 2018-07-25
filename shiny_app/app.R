@@ -220,12 +220,12 @@ server <- function(input, output) {
     diag(sigmatrix) <- sd # replace the diagonal with the sd
     
     # We perform the ANOVA using AFEX
-    aov_result<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+    aov_result<- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                         data=df,
-                        anova_table = list(es = "pes", p_adjust_method = p_adjust)) #This reports PES not GES
+                        anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
     
     # pairwise comparisons
-    pc <- pairs(emmeans(aov_result, frml2), adjust = p_adjust)
+    pc <- suppressWarnings({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
     
     ###############
     # 6. Create plot of means to vizualize the design ----
@@ -255,7 +255,7 @@ server <- function(input, output) {
                     position = position_dodge(width=0.9), size=.6, width=.3) +
       coord_cartesian(ylim=c((.7*min(mu)), 1.2*max(mu))) +
       theme_bw() + ggtitle("Means for each condition in the design")
-    print(meansplot)  
+    #print(meansplot)  
     
     # Return results in list()
     invisible(list(df = df,
@@ -332,12 +332,12 @@ server <- function(input, output) {
     frml1 <- ANOVA_design$frml1 
     frml2 <- ANOVA_design$frml2
     
-    aov_result<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+    aov_result<- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                         data=df,
-                        anova_table = list(es = "pes", p_adjust_method = p_adjust)) #This reports PES not GES
+                        anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
     
     # pairwise comparisons
-    pc <- pairs(emmeans(aov_result, frml2), adjust = p_adjust)
+    pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust) })
     
     ############################################
     #Specify factors for formula ###############
@@ -389,7 +389,7 @@ server <- function(input, output) {
                                             data=df,
                                             anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
       # pairwise comparisons
-      pc <- pairs(emmeans(aov_result, frml2), adjust = p_adjust)
+      pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
       # store p-values and effect sizes for calculations and plots.
       sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
                         aov_result$anova_table[[5]], #partial eta squared
@@ -508,13 +508,13 @@ server <- function(input, output) {
     # Return Results ----
     #######################
     
-    cat("Power and Effect sizes for ANOVA tests")
-    cat("\n")
-    print(main_results)
-    cat("\n")
-    cat("Power and Effect sizes for contrasts")
-    cat("\n")
-    print(pc_results)
+    #cat("Power and Effect sizes for ANOVA tests")
+    #cat("\n")
+    #print(main_results)
+    #cat("\n")
+    #cat("Power and Effect sizes for contrasts")
+    #cat("\n")
+    #print(pc_results)
     
     # Return results in list()
     invisible(list(sim_data = sim_data,
