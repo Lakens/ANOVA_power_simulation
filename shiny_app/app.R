@@ -16,6 +16,11 @@ ui <- fluidPage(
   
 #Panel to define ANOVA design
   column(4, wellPanel(  
+    
+    h4("This is an alpha version of an app to calculate power for ANOVA designs through simulation. It is made by ", a("Aaron Caldwell", href="https://twitter.com/ExPhysStudent"), "and ", a("Daniel Lakens", href="https://twitter.com/Lakens"),"and we appreciate hearing any feedback you have as we develop this app."),
+
+    h4("Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a 'w' after the number for within factors, and a 'b' for between factors. Seperate factors with a * (asteriks). Thus '2b*3w' is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels."),
+    
     textInput(inputId = "design", label = "Design Input",
               value = "2b*2w"),
     
@@ -30,6 +35,8 @@ ui <- fluidPage(
                 label = "Correlation for Within Subjects Factors",
                 min = 0, max = 1, value = 0.87),
     
+    h4("Note that for each cell in the design, a mean must be provided. Thus, for a '2b*3w' design, 6 means need to be entered. Means need to be entered in the correct order. ANOVA_design outputs a plot so you can check if you entered means correctly. The general principle is that the code generates factors, indicated by letters of the alphabet, (i.e., a, b, and c). Levels are indicated by numbers (e.g., a1, a2, a3, etc). Means are entered in the following order for a 3 factors design: a1, b1, c1, a1, b1, c2, a1, b2, c1, a1, b2, c2, a2, b1, c1, a2, b1, c2, a2, b2, c1, a2, b2, c2."),
+    
     textInput("mu", label = "Vector of Means", 
               value = "1.03, 1.21, 0.98, 1.01"),
     
@@ -38,6 +45,8 @@ ui <- fluidPage(
                                "Bonferroni" = "bonferroni",
                                "False Discovery Rate" = "fdr"), selected = 1),
     #Button to initiate the design
+    h4("Click the button below to set up the design - a graph will be displayed with the means as you specified them. If this graph is as you intended, you can run the simulation."),
+    
     actionButton("designBut","Set-Up Design"),
     
     #Conditional; once design is clicked. Then settings for power simulation can be defined
@@ -45,9 +54,11 @@ ui <- fluidPage(
                      sliderInput("sig",
                                  label = "Alpha Level",
                                  min = 0, max = 1, value = 0.05),
+                     h4("To test out the app, keep the number of simulations to 100. To get more accurate results, increase the nummber of simulations."),
                      sliderInput("nsims", 
                                  label = "Number of Simulations",
-                                 min = 100, max = 10000, value = 1000),
+                                 min = 100, max = 10000, value = 100, step = 100),
+                     h4("Click the button below to start the simulation."),
                      actionButton("sim", "Simulate!"))
 
     
