@@ -288,6 +288,7 @@ server <- function(input, output) {
                    p_adjust = p_adjust, 
                    sigmatrix = sigmatrix,
                    string = string,
+                   labelnames = labelnames,
                    meansplot = meansplot))
   }
   
