@@ -24,6 +24,11 @@ ui <- fluidPage(
     textInput(inputId = "design", label = "Design Input",
               value = "2b*2w"),
     
+    h4("Specify one word for each level of each factor (e.g., old and young for a factor age with 2 levels)."),
+
+    textInput("labelnames", label = "Factor Labels",
+              value = "old, young, fast, slow"),
+
     sliderInput("sample_size",
                 label = "Sample Size per Cell",
                 min = 3, max = 200, value = 80),
@@ -96,7 +101,7 @@ server <- function(input, output) {
   
   
   #ANOVA design function; last update: 07.25.2018
-  ANOVA_design <- function(string, n, mu, sd, r, p_adjust){
+  ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     ###############
     # 1. Specify Design and Simulation----
     ###############
@@ -236,11 +241,19 @@ server <- function(input, output) {
     ###############
     # 6. Create plot of means to vizualize the design ----
     ###############
+
+    labelnames1 <- labelnames[1:as.numeric(strsplit(string, "\\D+")[[1]])[1]]
+    if(factors > 1){labelnames2 <- labelnames[(as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1):((as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1) + as.numeric(strsplit(string, "\\D+")[[1]])[2] - 1)]}
+    if(factors > 2){labelnames3 <- labelnames[(as.numeric(strsplit(string, "\\D+")[[1]])[2] + as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1):((as.numeric(strsplit(string, "\\D+")[[1]])[2] + as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1) + as.numeric(strsplit(string, "\\D+")[[1]])[3] - 1)]}
     
+    if(factors == 1){labelnames <- list(labelnames1)}
+    if(factors == 2){labelnames <- list(labelnames1,labelnames2)}
+    if(factors == 3){labelnames <- list(labelnames1,labelnames2,labelnames3)}
+    
+        
     df_means <- data.frame(mu, SE = sd / sqrt(n))
     for(j in 1:factors){
-      df_means <- cbind(df_means, as.factor(unlist(rep(as.list(paste(letters[[j]], 
-                                                                     1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
+      df_means <- cbind(df_means, as.factor(unlist(rep(as.list(paste(labelnames[[j]], 
                                                                      sep="")), 
                                                        each = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
                                                        times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
@@ -523,6 +536,7 @@ server <- function(input, output) {
   observeEvent(input$designBut, { values$design_result <- ANOVA_design(string = as.character(input$design),
                                                                        n = as.numeric(input$sample_size), 
                                                                        mu = as.numeric(unlist(strsplit(input$mu, ","))), 
+                                                                       labelnames = as.vector(unlist(strsplit(input$labelnames, ","))), 
                                                                        sd = as.numeric(input$sd), 
                                                                        r= as.numeric(input$r), 
                                                                        p_adjust = as.character(input$p_adjust))
