@@ -104,7 +104,7 @@ server <- function(input, output) {
   
   
   #ANOVA design function; last update: 07.25.2018
-  ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
+  ANOVA_design <- function(string, n, mu, sd, r, p_adjust){
     ###############
     # 1. Specify Design and Simulation----
     ###############
@@ -318,6 +318,9 @@ server <- function(input, output) {
     
     #indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
     p_adjust <- ANOVA_design$p_adjust
+    
+    labelnames <- ANOVA_design$labelnames
+    
     
     # how many studies should be simulated? 100.000 is very accurate, 10.000 reasonable accurate, 10.000 somewhat accurate
     nsims = nsims

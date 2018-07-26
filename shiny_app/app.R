@@ -101,7 +101,7 @@ server <- function(input, output) {
   
   
   #ANOVA design function; last update: 07.25.2018
-  ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
+  ANOVA_design <- function(string, n, mu, sd, r, p_adjust){
     ###############
     # 1. Specify Design and Simulation----
     ###############
