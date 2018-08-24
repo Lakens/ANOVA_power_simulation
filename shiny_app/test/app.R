@@ -1,5 +1,7 @@
 #TEST APP
-#Added labels
+#Added labels back
+#Adjusted effect size for between subjects pairwise (sample size) and partial eta squared (median)
+#Save labelnames has been removed
 
 ###############
 # Load libraries ----
@@ -17,21 +19,21 @@ library(reshape2)
 ui <- fluidPage(
   titlePanel("ANOVA Simulation"),
   
-#Panel to define ANOVA design
+  #Panel to define ANOVA design
   column(4, wellPanel(  
     
     h4("This is an alpha version of an app to calculate power for ANOVA designs through simulation. It is made by ", a("Aaron Caldwell", href="https://twitter.com/ExPhysStudent"), "and ", a("Daniel Lakens", href="https://twitter.com/Lakens"),"and we appreciate hearing any feedback you have as we develop this app."),
-
+    
     h4("Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a 'w' after the number for within factors, and a 'b' for between factors. Seperate factors with a * (asteriks). Thus '2b*3w' is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels."),
     
     textInput(inputId = "design", label = "Design Input",
               value = "2b*2w"),
     
     h4("Specify one word for each level of each factor (e.g., old and yound for a factor age with 2 levels)."),
-
+    
     textInput("labelnames", label = "Factor Labels",
               value = "old, young, fast, slow"),
-
+    
     sliderInput("sample_size",
                 label = "Sample Size per Cell",
                 min = 3, max = 200, value = 80),
@@ -68,12 +70,12 @@ ui <- fluidPage(
                                  min = 100, max = 10000, value = 100, step = 100),
                      h4("Click the button below to start the simulation."),
                      actionButton("sim", "Simulate!"))
-
+    
     
   )),
   
-
-#Output for Design
+  
+  #Output for Design
   column(5,  
          conditionalPanel("input.designBut >= 1", 
                           h3("Design for Simulation")),
@@ -104,7 +106,7 @@ server <- function(input, output) {
   
   
   #ANOVA design function; last update: 07.25.2018
-  ANOVA_design <- function(string, n, mu, sd, r, p_adjust){
+  ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     ###############
     # 1. Specify Design and Simulation----
     ###############
@@ -235,8 +237,8 @@ server <- function(input, output) {
     
     # We perform the ANOVA using AFEX
     aov_result<- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                        data=df,
-                        anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
+                                           data=df,
+                                           anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
     
     # pairwise comparisons
     pc <- suppressWarnings({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
@@ -244,7 +246,7 @@ server <- function(input, output) {
     ###############
     # 6. Create plot of means to vizualize the design ----
     ###############
-
+    
     labelnames1 <- labelnames[1:as.numeric(strsplit(string, "\\D+")[[1]])[1]]
     if(factors > 1){labelnames2 <- labelnames[(as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1):((as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1) + as.numeric(strsplit(string, "\\D+")[[1]])[2] - 1)]}
     if(factors > 2){labelnames3 <- labelnames[(as.numeric(strsplit(string, "\\D+")[[1]])[2] + as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1):((as.numeric(strsplit(string, "\\D+")[[1]])[2] + as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1) + as.numeric(strsplit(string, "\\D+")[[1]])[3] - 1)]}
@@ -253,7 +255,7 @@ server <- function(input, output) {
     if(factors == 2){labelnames <- list(labelnames1,labelnames2)}
     if(factors == 3){labelnames <- list(labelnames1,labelnames2,labelnames3)}
     
-        
+    
     df_means <- data.frame(mu, SE = sd / sqrt(n))
     for(j in 1:factors){
       df_means <- cbind(df_means, as.factor(unlist(rep(as.list(paste(labelnames[[j]], 
@@ -319,13 +321,10 @@ server <- function(input, output) {
     #indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
     p_adjust <- ANOVA_design$p_adjust
     
-    labelnames <- ANOVA_design$labelnames
-    
-    
     # how many studies should be simulated? 100.000 is very accurate, 10.000 reasonable accurate, 10.000 somewhat accurate
     nsims = nsims
     
-
+    
     ###############
     # 2. Create Dataframe based on Design ----
     ###############
@@ -349,8 +348,8 @@ server <- function(input, output) {
     frml2 <- ANOVA_design$frml2
     
     aov_result<- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                        data=df,
-                        anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
+                                           data=df,
+                                           anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
     
     # pairwise comparisons
     pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust) })
@@ -389,28 +388,28 @@ server <- function(input, output) {
     # 7. Start Simulation ----
     ###############
     withProgress(message = 'Running simulations', value = 0, {
-    for(i in 1:nsims){ #for each simulated experiment
-      incProgress(1/nsims, detail = paste("Now running simulation", i, "out of",nsims,"simulations"))
-      #We simulate a new y variable, melt it in long format, and add it to the df (surpressing messages)
-      df$y<-suppressMessages({melt(as.data.frame(rmvnorm(n=n,
-                                                         mean=mu,
-                                                         sigma=sigmatrix)))$value
-      })
-      
-      # We perform the ANOVA using AFEX
-      aov_result<-suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                            data=df,
-                                            anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
-      # pairwise comparisons
-      pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
-      # store p-values and effect sizes for calculations and plots.
-      sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
-                        aov_result$anova_table[[5]], #partial eta squared
-                        as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
-                        ifelse(as.data.frame(summary(pc))$df < n, #if df < n (means within factor)
-                               as.data.frame(summary(pc))$t.ratio/sqrt(n), #Cohen's dz for within
-                               (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(n))) #Cohen's d for between
-    }
+      for(i in 1:nsims){ #for each simulated experiment
+        incProgress(1/nsims, detail = paste("Now running simulation", i, "out of",nsims,"simulations"))
+        #We simulate a new y variable, melt it in long format, and add it to the df (surpressing messages)
+        df$y<-suppressMessages({melt(as.data.frame(rmvnorm(n=n,
+                                                           mean=mu,
+                                                           sigma=sigmatrix)))$value
+        })
+        
+        # We perform the ANOVA using AFEX
+        aov_result<-suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+                                              data=df,
+                                              anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
+        # pairwise comparisons
+        pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
+        # store p-values and effect sizes for calculations and plots.
+        sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
+                          aov_result$anova_table[[5]], #partial eta squared
+                          as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
+                          ifelse(as.data.frame(summary(pc))$df < n, #if df < n (means within factor)
+                                 as.data.frame(summary(pc))$t.ratio/sqrt(n), #Cohen's dz for within
+                                 (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(2*n))) #Cohen's d for between
+      }
     })#close withProgress
     
     ############################################
@@ -499,7 +498,7 @@ server <- function(input, output) {
     power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors-1))]), 2, 
                                 function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),3)))
     es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors-1)))]), 2, 
-                             function(x) round(mean(x),3)))
+                             function(x) round(median(x),3)))
     
     main_results <- data.frame(power,es)
     names(main_results) = c("power","effect size")
@@ -581,7 +580,7 @@ server <- function(input, output) {
     req(input$designBut)
     values$design_result$meansplot})
   
-
+  
   #Runs simulation and saves result as reactive value
   observeEvent(input$sim, {values$power_result <-ANOVA_power(values$design_result, 
                                                              alpha = input$sig, 
