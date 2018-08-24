@@ -121,7 +121,7 @@ ANOVA_power <- function(ANOVA_design, alpha, nsims){
                     as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
                     ifelse(as.data.frame(summary(pc))$df < n, #if df < n (means within factor)
                            as.data.frame(summary(pc))$t.ratio/sqrt(n), #Cohen's dz for within
-                           (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(n))) #Cohen's d for between
+                           (2*as.data.frame(summary(pc))$t.ratio)/sqrt(2*n))) #Cohen's d for between
   }
   
   close(pb) #close the progress bar
