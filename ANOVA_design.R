@@ -11,6 +11,18 @@ ANOVA_design<-function(string, n, mu, sd, r, p_adjust){
   #Check if design an means match up - if not, throw an error and stop
   if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
   
+  #Set correlation if there is no within subjects factors
+  nowithin <- grepl("w", string)
+  if(nowithin == "FALSE") {
+    r=0
+  }
+  
+  #Check to ensure sd is greater than the correlation
+  if(r > sd) {
+    error <- "Sorry, the correlation must be greater than the standard deviation"
+    stop(error)
+  }
+  
   ###############
   # 2. Load libraries ----
   ###############
@@ -21,26 +33,41 @@ ANOVA_design<-function(string, n, mu, sd, r, p_adjust){
   library(ggplot2)
   library(gridExtra)
   library(reshape2)
+
   
   ###############
   # 2. Create Dataframe based on Design ----
   ###############
+  #Set correlation if there is no within subjects factors
+  nowithin <- grepl("w", string)
+  if(nowithin == "FALSE") {
+    r=0
+  }
   
   #Count number of factors in design
   factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
+  
   
   #Specify within/between factors in design: Factors that are within are 1, between 0
   design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
   design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
   
+  ################################################################################################################################################
   sigmatrix <- matrix(r, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
   diag(sigmatrix) <- sd # replace the diagonal with the sd
+  ################################################################################################################################################
   
+
+  
+  ################################################################################################################################################
   #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
   df <- as.data.frame(rmvnorm(n=n,
                               mean=mu,
                               sigma=sigmatrix))
+  ################################################################################################################################################
+  
   df$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
+
   #Melt dataframe
   df <- melt(df, 
              id.vars = "subject", 
@@ -121,22 +148,40 @@ ANOVA_design<-function(string, n, mu, sd, r, p_adjust){
   # 4. Create Covariance Matrix ----
   ###############
   
+  
+  ################################################################################################################################################
+  
   #Create empty matrix
   sigmatrix <- data.frame(matrix(ncol=length(mu), nrow = length(mu)))
   
-  # General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
-  # Then for each factor in the design, if 1, set number to wildcard
+   #General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
+   #Then for each factor in the design, if 1, set number to wildcard
+  
+  
   for(i1 in 1:length(design_list)){
     current_factor <- design_list[i1]
+    current_factor <- unlist(strsplit(current_factor,"[a-z]"))
+    current_factor <- current_factor[2:length(current_factor)]
     for(i2 in 1:length(design)){
       #We set each number that is within to a wildcard, so that all within subject factors are matched
-      if(design[i2] == 1){substr(current_factor, i2*2,  i2*2) <- "*"} 
+      
+      
+      if(design[i2]==1){current_factor[i2] <- "*"}
+      
+      #depracated
+      #if(design[i2] == 1){substr(current_factor, i2*2,  i2*2) <- "*"} 
     }
+    ifelse(factors == 1, current_factor <- paste0(c("a"),current_factor, collapse=""),
+           ifelse(factors == 2, current_factor <- paste0(c("a","b"),current_factor, collapse=""),
+                  current_factor <- paste0(c("a","b","c"),current_factor, collapse="")))
+    
     sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
   }
   
   sigmatrix <- as.matrix(sigmatrix*r)
   diag(sigmatrix) <- sd # replace the diagonal with the sd
+  ################################################################################################################################################
+
   
   # We perform the ANOVA using AFEX
   aov_result<-aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 

@@ -377,7 +377,7 @@ main_results
 power_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]), 2, 
               function(x) round(mean(ifelse(x < .05, 1, 0) * 100),2)))
 es_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+possible_pc+1):(2*(2^factors-1)+2*possible_pc)]), 2, 
-                                   function(x) round(mean(x),2)))
+                                   function(x) round(median(x),2)))
 
 pc_results <- data.frame(power_paired,es_paired)
 names(pc_results) = c("power","effect size")

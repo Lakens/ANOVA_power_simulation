@@ -1,7 +1,12 @@
-ANOVA_power <- function(ANOVA_design, alpha, nsims){
+ANOVA_power <- function(ANOVA_design, alpha, nsims, verbose){
   if(missing(alpha)) {
     alpha<-0.05
   }
+  
+  if(missing(verbose)) {
+    verbose<-TRUE
+  }
+  
   string <- ANOVA_design$string #String used to specify the design
   
   # Specify the parameters you expect in your data (sd, r for within measures)
@@ -212,7 +217,7 @@ ANOVA_power <- function(ANOVA_design, alpha, nsims){
   power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors-1))]), 2, 
                                      function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),3)))
   es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors-1)))]), 2, 
-                                  function(x) round(mean(x),3)))
+                                  function(x) round(median(x),3)))
   
   main_results <- data.frame(power,es)
   names(main_results) = c("power","effect size")
@@ -232,7 +237,7 @@ ANOVA_power <- function(ANOVA_design, alpha, nsims){
   #######################
   # Return Results ----
   #######################
-  
+  if(verbose == TRUE) {
   cat("Power and Effect sizes for ANOVA tests")
   cat("\n")
   print(main_results)
@@ -240,6 +245,7 @@ ANOVA_power <- function(ANOVA_design, alpha, nsims){
   cat("Power and Effect sizes for contrasts")
   cat("\n")
   print(pc_results)
+  }
   
   # Return results in list()
   invisible(list(sim_data = sim_data,
