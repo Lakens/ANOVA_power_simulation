@@ -1,3 +1,8 @@
+#TEST APP
+#Added labels back
+#Adjusted effect size for between subjects pairwise (sample size) and partial eta squared (median)
+#Save labelnames has been removed
+
 ###############
 # Load libraries ----
 ###############
@@ -24,6 +29,11 @@ ui <- fluidPage(
     textInput(inputId = "design", label = "Design Input",
               value = "2b*2w"),
     
+    h4("Specify one word for each level of each factor (e.g., old and yound for a factor age with 2 levels)."),
+    
+    textInput("labelnames", label = "Factor Labels",
+              value = "old, young, fast, slow"),
+    
     sliderInput("sample_size",
                 label = "Sample Size per Cell",
                 min = 3, max = 200, value = 80),
@@ -31,8 +41,10 @@ ui <- fluidPage(
     textInput(inputId = "sd", label = "Standard Deviation",
               value = 1.03),
     
+    h4("Specify the correlation for within subjects factors. Note: the standard deviation cannot be numerically smaller than the correlation"),
+    
     sliderInput("r",
-                label = "Correlation for Within Subjects Factors",
+                label = "Correlation",
                 min = 0, max = 1, value = 0.87),
     
     h4("Note that for each cell in the design, a mean must be provided. Thus, for a '2b*3w' design, 6 means need to be entered. Means need to be entered in the correct order. ANOVA_design outputs a plot so you can check if you entered means correctly. The general principle is that the code generates factors, indicated by letters of the alphabet, (i.e., a, b, and c). Levels are indicated by numbers (e.g., a1, a2, a3, etc). Means are entered in the following order for a 3 factors design: a1, b1, c1, a1, b1, c2, a1, b2, c1, a1, b2, c2, a2, b1, c1, a2, b1, c2, a2, b2, c1, a2, b2, c2."),
@@ -96,7 +108,7 @@ server <- function(input, output) {
   
   
   #ANOVA design function; last update: 07.25.2018
-  ANOVA_design <- function(string, n, mu, sd, r, p_adjust){
+  ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     ###############
     # 1. Specify Design and Simulation----
     ###############
@@ -211,14 +223,27 @@ server <- function(input, output) {
     #Create empty matrix
     sigmatrix <- data.frame(matrix(ncol=length(mu), nrow = length(mu)))
     
-    # General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
-    # Then for each factor in the design, if 1, set number to wildcard
+    #General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
+    #Then for each factor in the design, if 1, set number to wildcard
+    
+    
     for(i1 in 1:length(design_list)){
       current_factor <- design_list[i1]
+      current_factor <- unlist(strsplit(current_factor,"[a-z]"))
+      current_factor <- current_factor[2:length(current_factor)]
       for(i2 in 1:length(design)){
         #We set each number that is within to a wildcard, so that all within subject factors are matched
-        if(design[i2] == 1){substr(current_factor, i2*2,  i2*2) <- "*"} 
+        
+        
+        if(design[i2]==1){current_factor[i2] <- "*"}
+        
+        #depracated
+        #if(design[i2] == 1){substr(current_factor, i2*2,  i2*2) <- "*"} 
       }
+      ifelse(factors == 1, current_factor <- paste0(c("a"),current_factor, collapse=""),
+             ifelse(factors == 2, current_factor <- paste0(c("a","b"),current_factor, collapse=""),
+                    current_factor <- paste0(c("a","b","c"),current_factor, collapse="")))
+      
       sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
     }
     
@@ -237,10 +262,18 @@ server <- function(input, output) {
     # 6. Create plot of means to vizualize the design ----
     ###############
     
+    labelnames1 <- labelnames[1:as.numeric(strsplit(string, "\\D+")[[1]])[1]]
+    if(factors > 1){labelnames2 <- labelnames[(as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1):((as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1) + as.numeric(strsplit(string, "\\D+")[[1]])[2] - 1)]}
+    if(factors > 2){labelnames3 <- labelnames[(as.numeric(strsplit(string, "\\D+")[[1]])[2] + as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1):((as.numeric(strsplit(string, "\\D+")[[1]])[2] + as.numeric(strsplit(string, "\\D+")[[1]])[1] + 1) + as.numeric(strsplit(string, "\\D+")[[1]])[3] - 1)]}
+    
+    if(factors == 1){labelnames <- list(labelnames1)}
+    if(factors == 2){labelnames <- list(labelnames1,labelnames2)}
+    if(factors == 3){labelnames <- list(labelnames1,labelnames2,labelnames3)}
+    
+    
     df_means <- data.frame(mu, SE = sd / sqrt(n))
     for(j in 1:factors){
-      df_means <- cbind(df_means, as.factor(unlist(rep(as.list(paste(letters[[j]], 
-                                                                     1:as.numeric(strsplit(string, "\\D+")[[1]])[j], 
+      df_means <- cbind(df_means, as.factor(unlist(rep(as.list(paste(labelnames[[j]], 
                                                                      sep="")), 
                                                        each = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
                                                        times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
@@ -275,6 +308,7 @@ server <- function(input, output) {
                    p_adjust = p_adjust, 
                    sigmatrix = sigmatrix,
                    string = string,
+                   labelnames = labelnames,
                    meansplot = meansplot))
   }
   
@@ -389,7 +423,7 @@ server <- function(input, output) {
                           as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
                           ifelse(as.data.frame(summary(pc))$df < n, #if df < n (means within factor)
                                  as.data.frame(summary(pc))$t.ratio/sqrt(n), #Cohen's dz for within
-                                 (2*as.data.frame(summary(pc))$t.ratio)/sqrt(2*n))) #Cohen's d for between
+                                 (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(2*n))) #Cohen's d for between
       }
     })#close withProgress
     
@@ -479,7 +513,7 @@ server <- function(input, output) {
     power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors-1))]), 2, 
                                 function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),3)))
     es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors-1)))]), 2, 
-                             function(x) round(mean(x),3)))
+                             function(x) round(median(x),3)))
     
     main_results <- data.frame(power,es)
     names(main_results) = c("power","effect size")
@@ -523,6 +557,7 @@ server <- function(input, output) {
   observeEvent(input$designBut, { values$design_result <- ANOVA_design(string = as.character(input$design),
                                                                        n = as.numeric(input$sample_size), 
                                                                        mu = as.numeric(unlist(strsplit(input$mu, ","))), 
+                                                                       labelnames = as.vector(unlist(strsplit(input$labelnames, ","))), 
                                                                        sd = as.numeric(input$sd), 
                                                                        r= as.numeric(input$r), 
                                                                        p_adjust = as.character(input$p_adjust))

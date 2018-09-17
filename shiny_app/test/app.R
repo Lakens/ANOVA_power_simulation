@@ -14,6 +14,8 @@ library(emmeans)
 library(ggplot2)
 library(gridExtra)
 library(reshape2)
+library(sendmailR)
+
 
 # Define User Interface for simulations
 ui <- fluidPage(
@@ -63,6 +65,16 @@ ui <- fluidPage(
     
     #Conditional; once design is clicked. Then settings for power simulation can be defined
     conditionalPanel("input.designBut >= 1",
+                     
+                     fluidRow(
+                       div(id = "login",
+                           wellPanel( h4("If you want to send your results as an email, please enter your email address with angle brackets (<address@email.com>) and a subject line. Warning: this email may end up in your spam folder"),
+                                     textInput("to", label = "To: inlclude angle brackets < >", placeholder = "<address@email.com>"),
+                                     textInput("sub","Subject:")
+                                      
+                           )
+                       )),
+                     
                      sliderInput("sig",
                                  label = "Alpha Level",
                                  min = 0, max = 1, value = 0.05),
@@ -71,7 +83,8 @@ ui <- fluidPage(
                                  label = "Number of Simulations",
                                  min = 100, max = 10000, value = 100, step = 100),
                      h4("Click the button below to start the simulation."),
-                     actionButton("sim", "Simulate!"))
+                     actionButton("sim", "Simulate -> Print Results"),
+                     actionButton("mailButton",label = "Simulate -> Email Results"))
     
     
   )),
@@ -469,41 +482,7 @@ server <- function(input, output) {
       theme(axis.line.x=element_line(size=1.2,colour=SalientLineColor)) +
       theme(axis.line.y=element_line(colour=BackgroundColor)) + 
       theme(plot.margin = unit(c(1,1,1,1), "cm"))
-    plt1
     
-    
-    # #Plot p-value distributions for simple comparisons
-    # # melt the data into a ggplot friendly 'long' format
-    # p_paired <- sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]
-    # 
-    # plotData <- melt(p_paired, value.name = 'p')
-    # 
-    # # plot each of the p-value distributions 
-    # plt2 = ggplot(plotData, aes(x = p)) +
-    #   scale_x_continuous(breaks=seq(0, 1, by = .1),
-    #                      labels=seq(0, 1, by = .1)) +
-    #   geom_histogram(colour="#535353", fill="#84D5F0", breaks=seq(0, 1, by = .01)) +
-    #   geom_vline(xintercept = alpha, colour='red') +
-    #   facet_grid(variable ~ .) +
-    #   labs(x = expression(p)) +
-    #   theme_bw() + 
-    #   theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),panel.grid.minor.y = element_blank()) + 
-    #   theme(panel.background=element_rect(fill=BackgroundColor)) +
-    #   theme(plot.background=element_rect(fill=BackgroundColor)) +
-    #   theme(panel.border=element_rect(colour=BackgroundColor)) + 
-    #   theme(panel.grid.major=element_line(colour=LineColor,size=.75)) + 
-    #   theme(plot.title=element_text(face="bold",colour=SalientLineColor, vjust=2, size=20)) + 
-    #   theme(axis.text.x=element_text(size=10,colour=SalientLineColor, face="bold")) +
-    #   theme(axis.text.y=element_text(size=10,colour=SalientLineColor, face="bold")) +
-    #   theme(axis.title.y=element_text(size=12,colour=SalientLineColor,face="bold", vjust=2)) +
-    #   theme(axis.title.x=element_text(size=12,colour=SalientLineColor,face="bold", vjust=0)) + 
-    #   theme(axis.ticks.x=element_line(colour=SalientLineColor, size=2)) +
-    #   theme(axis.ticks.y=element_line(colour=BackgroundColor)) +
-    #   theme(axis.line = element_line()) +
-    #   theme(axis.line.x=element_line(size=1.2,colour=SalientLineColor)) +
-    #   theme(axis.line.y=element_line(colour=BackgroundColor)) + 
-    #   theme(plot.margin = unit(c(1,1,1,1), "cm"))
-    # plt2
     
     ###############
     # 9. Sumary of power and effect sizes of main effects and contrasts ----
@@ -530,17 +509,7 @@ server <- function(input, output) {
     names(pc_results) = c("power","effect size")
     pc_results
     
-    #######################
-    # Return Results ----
-    #######################
-    
-    #cat("Power and Effect sizes for ANOVA tests")
-    #cat("\n")
-    #print(main_results)
-    #cat("\n")
-    #cat("Power and Effect sizes for contrasts")
-    #cat("\n")
-    #print(pc_results)
+   
     
     # Return results in list()
     invisible(list(sim_data = sim_data,
@@ -594,6 +563,45 @@ server <- function(input, output) {
   output$plot <- renderPlot({
     req(input$designBut)
     values$design_result$meansplot})
+  
+  
+  
+  #Run simulation as an email
+  
+  observeEvent(input$mailButton,{
+    isolate({
+      
+      values$power_result <-ANOVA_power(values$design_result, 
+                                        alpha = input$sig, 
+                                        nsims = input$nsims)
+      values$anova_power <-  qplot(1:10, 1:10, geom = "blank") + theme_bw() + theme(line = element_blank(), text = element_blank()) +
+        annotation_custom(grob = tableGrob(values$power_result$main_results))
+  
+      values$pc_power <-  qplot(1:10, 1:10, geom = "blank") + theme_bw() + theme(line = element_blank(), text = element_blank()) +
+        annotation_custom(grob = tableGrob(values$power_result$pc_results))
+         
+      #values$pc_power <- knitr::kable(values$power_result$pc_results)
+      
+      values$from <- sprintf("<sendmailR@\\%s>", Sys.info()[4])
+      values$body <- list("Attached are the results from ANOVA simulation app. Thanks for using our app - Aaron Caldwell & Daniel Lakens",
+                          paste(" 
+                                ",
+                                "The design is set as", values$design_result$string, 
+                                " 
+                                ", 
+                                "Model formula: ", deparse(values$design_result$frml1), 
+                                " 
+                                ",
+                                "Sample size per cell n = ", values$design_result$n, 
+                                " 
+                                ",
+                                "Adjustment for multiple comparisons: ", values$design_result$p_adjust), 
+                          mime_part(values$anova_power), mime_part(values$pc_power),
+                          mime_part(values$power_result$plot1), mime_part(values$design_result$meansplot))
+      sendmail(values$from, input$to, input$sub, values$body,
+               control=list(smtpServer="ASPMX.L.GOOGLE.COM"))
+    })
+  })
   
   
   #Runs simulation and saves result as reactive value
