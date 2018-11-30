@@ -22,7 +22,13 @@ ui <- fluidPage(
   #Panel to define ANOVA design
   column(4, wellPanel(  
     
-    h4("This is an alpha version of an app to calculate power for ANOVA designs through simulation. It is made by ", a("Aaron Caldwell", href="https://twitter.com/ExPhysStudent"), "and ", a("Daniel Lakens", href="https://twitter.com/Lakens"),"and we appreciate hearing any feedback you have as we develop this app."),
+    h4("This is an alpha version of an app to calculate power for ANOVA designs through simulation. 
+       It is made by ", a("Aaron Caldwell", href="https://twitter.com/ExPhysStudent"), "and ", 
+       a("Daniel Lakens", href="https://twitter.com/Lakens"),"and we 
+       appreciate hearing any feedback you have as we develop this app."),
+    
+    h4("Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a 'w' after the number for within factors, and a 'b' for between factors. Seperate factors with a * (asteriks). Thus '2b*3w' is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels."),
+    
     
     h4("Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a 'w' after the number for within factors, and a 'b' for between factors. Seperate factors with a * (asteriks). Thus '2b*3w' is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels."),
     
@@ -288,13 +294,31 @@ server <- function(input, output) {
     if(factors == 2){meansplot = ggplot(df_means, aes(y = mu, x = a, fill=b))}
     if(factors == 3){meansplot = ggplot(df_means, aes(y = mu, x = a, fill=b)) + facet_wrap(  ~ c)}
     
-    meansplot = meansplot +
-      geom_bar(position = position_dodge(), stat="identity") +
-      geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
-                    position = position_dodge(width=0.9), size=.6, width=.3) +
-      coord_cartesian(ylim=c((.7*min(mu)), 1.2*max(mu))) +
-      theme_bw() + ggtitle("Means for each condition in the design")
-    #print(meansplot)  
+    # 30/11/2018. Mike: Fixed the padding issues with the graph. The control flow below assures approriate
+    # (1.2*mean) padding for each bar (regardless of the direction of the mean). 
+    # If all means are + or -, no padding is provided for the unused side.
+    if (min(mu) < 0 & max(mu) > 0) {
+      meansplot = meansplot +
+        geom_bar(position = position_dodge(), stat="identity") +
+        geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
+                      position = position_dodge(width=0.9), size=.6, width=.3) +
+        coord_cartesian(ylim=c(1.2*min(mu), 1.2*max(mu))) +
+        theme_bw() + ggtitle("Means for each condition in the design")
+    } else if (min(mu) > 0) {
+      meansplot = meansplot +
+        geom_bar(position = position_dodge(), stat="identity") +
+        geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
+                      position = position_dodge(width=0.9), size=.6, width=.3) +
+        coord_cartesian(ylim=c(0, 1.2*max(mu))) +
+        theme_bw() + ggtitle("Means for each condition in the design")
+    } else {
+      meansplot = meansplot +
+        geom_bar(position = position_dodge(), stat="identity") +
+        geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
+                      position = position_dodge(width=0.9), size=.6, width=.3) +
+        coord_cartesian(ylim=c(1.2*min(mu), 0)) +
+        theme_bw() + ggtitle("Means for each condition in the design")
+    }
     
     # Return results in list()
     invisible(list(df = df,
