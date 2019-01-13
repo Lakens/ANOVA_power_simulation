@@ -76,6 +76,8 @@ So if you enter the means 1, 2, 3, 4, 5, 6, 7, 8 the first 4 means correspond to
 
 The plot below visualizes means from 1 to 8 being entered in a vector: mu = c(1, 2, 3, 4, 5, 6, 7, 8) so you can see how the basic ordering works.
 
+![](README_files/figure-markdown_github/unnamed-chunk-2-1.png)
+
 ### specifying label names
 
 To make sure the plots and tables with simulation results are easy to interpret, it really helps to name all factors and levels. You can enter the labels in the 'labelnames' variable.
@@ -108,12 +110,36 @@ design_result <- ANOVA_design(string = "2b*2w",
                    r=0.87, 
                    p_adjust = "none",
                    labelnames = c("age", "old", "young", "speed", "fast", "slow"))
+```
 
+![](README_files/figure-markdown_github/unnamed-chunk-3-1.png)
+
+``` r
 set.seed(1) #set seed to get reproducible results
 simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = 1000)
 ```
 
-    ## No id variables; using all as measure variables
+    ## Power and Effect sizes for ANOVA tests
+    ##                 power effect size
+    ## anova_age        18.7       0.008
+    ## anova_speed      19.0       0.007
+    ## anova_age:speed  10.9       0.005
+    ## 
+    ## Power and Effect sizes for contrasts
+    ##                                                               power
+    ## paired_comparison_age_old,speed_fast - age_young,speed_fast     5.4
+    ## paired_comparison_age_old,speed_fast - age_old,speed_slow      21.0
+    ## paired_comparison_age_old,speed_fast - age_young,speed_slow     4.5
+    ## paired_comparison_age_young,speed_fast - age_old,speed_slow    32.5
+    ## paired_comparison_age_young,speed_fast - age_young,speed_slow   5.9
+    ## paired_comparison_age_old,speed_slow - age_young,speed_slow    25.5
+    ##                                                               effect size
+    ## paired_comparison_age_old,speed_fast - age_young,speed_fast          0.04
+    ## paired_comparison_age_old,speed_fast - age_old,speed_slow           -0.19
+    ## paired_comparison_age_old,speed_fast - age_young,speed_slow          0.01
+    ## paired_comparison_age_young,speed_fast - age_old,speed_slow         -0.23
+    ## paired_comparison_age_young,speed_fast - age_young,speed_slow       -0.03
+    ## paired_comparison_age_old,speed_slow - age_young,speed_slow          0.20
 
 The result for the power simulation has two sections. The first table provides power (from 0 to 100%) and effect sizes (partial eta-squared) for the ANOVA result. We see the results for the main effects of factor a, b and the interaction between a and b.
 
