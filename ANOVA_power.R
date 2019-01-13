@@ -163,7 +163,7 @@ ANOVA_power <- function(design_result, alpha, nsims){
   # melt the data into a ggplot friendly 'long' format
   p_paired <- sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]
 
-  plotData <- melt(p_paired, value.name = 'p')
+  plotData <- suppressMessages(melt(p_paired, value.name = 'p'))
 
   # plot each of the p-value distributions
   plt2 = ggplot(plotData, aes(x = p)) +
@@ -220,13 +220,14 @@ ANOVA_power <- function(design_result, alpha, nsims){
   # Return Results ----
   #######################
   
-  #cat("Power and Effect sizes for ANOVA tests")
-  #cat("\n")
-  #print(main_results)
-  #cat("\n")
-  #cat("Power and Effect sizes for contrasts")
-  #cat("\n")
-  #print(pc_results)
+  # The section below should be blocked out when 
+  cat("Power and Effect sizes for ANOVA tests")
+  cat("\n")
+  print(main_results)
+  cat("\n")
+  cat("Power and Effect sizes for contrasts")
+  cat("\n")
+  print(pc_results)
   
   # Return results in list()
   invisible(list(sim_data = sim_data,

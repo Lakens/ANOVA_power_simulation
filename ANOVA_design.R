@@ -180,7 +180,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   if(factors == 1){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1]))}
   if(factors == 2){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], fill = factornames[2]))}
-  if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], fill = factornames[2])) + facet_wrap(  ~ factornames[3])}
+  if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], fill = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
   
   meansplot = meansplot +
     geom_bar(position = position_dodge(), stat="identity") +
@@ -188,7 +188,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
                   position = position_dodge(width=0.9), size=.6, width=.3) +
     coord_cartesian(ylim=c((.7*min(mu)), 1.2*max(mu))) +
     theme_bw() + ggtitle("Means for each condition in the design")
-  #print(meansplot)  
+  print(meansplot)  #should be blocked in Shiny context
   
   # Return results in list()
   invisible(list(df = df,
