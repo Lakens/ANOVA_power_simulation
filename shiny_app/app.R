@@ -402,9 +402,9 @@ server <- function(input, output) {
     ###############
     # 7. Start Simulation ----
     ###############
-    withProgress(message = 'Running simulations', value = 0, {
+    withProgress(message = 'Running simulations', value = 0, {  #block this line outside of Shiny
       for(i in 1:nsims){ #for each simulated experiment
-        incProgress(1/nsims, detail = paste("Now running simulation", i, "out of",nsims,"simulations"))
+        incProgress(1/nsims, detail = paste("Now running simulation", i, "out of",nsims,"simulations")) #block this line outside of Shiny
         #We simulate a new y variable, melt it in long format, and add it to the df (surpressing messages)
         df$y<-suppressMessages({melt(as.data.frame(rmvnorm(n=n,
                                                            mean=mu,
@@ -425,7 +425,7 @@ server <- function(input, output) {
                                  as.data.frame(summary(pc))$t.ratio/sqrt(n), #Cohen's dz for within
                                  (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(2*n))) #Cohen's d for between
       }
-    })#close withProgress
+    })#close withProgress (block this line outside of Shiny)
     
     ############################################
     #End Simulation              ###############
