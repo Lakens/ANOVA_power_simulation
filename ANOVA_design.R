@@ -91,6 +91,8 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   ###############
   # 3. Specify factors for formula ----
   ###############
+  if(factors == 1 & sum(design) == 1){frml1 <- as.formula(paste("y ~ ",factornames[1]," + Error(subject/",factornames[1],")",sep=""))}
+  if(factors == 1 & sum(design) == 0){frml1 <- as.formula(paste("y ~ ",factornames[1]," + Error(1 | subject)",sep=""))}
   
   if(factors == 2){
     if(sum(design) == 2){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2]," + Error(subject/",factornames[1],"*",factornames[2],")"))}
