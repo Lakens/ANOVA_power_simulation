@@ -4,7 +4,7 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 100000 #set number of simulations
+nsims <- 1000 #set number of simulations
 ```
 
 ## Validation of Power in One-Way ANOVA
@@ -73,7 +73,8 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none")
+                   p_adjust = "none",
+                   labelnames = c("factor1", "level1", "level2", "level3"))
 
 ANOVA_power(design_result, nsims = nsims)
 
@@ -110,7 +111,8 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none")
+                   p_adjust = "none",
+                   labelnames = c("factor1", "level1", "level2", "level3"))
 
 ANOVA_power(design_result, nsims = nsims)
 
@@ -147,9 +149,10 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none")
+                   p_adjust = "none",
+                   labelnames = c("factor1", "level1", "level2"))
 
-power_result <- ANOVA_power(design_result, nsims = nsims)
+power_result <- ANOVA_power(design_result, nsims = 1000)
 ```
 
 The result of the simulation is a power that is very close to the intended 90% power.
