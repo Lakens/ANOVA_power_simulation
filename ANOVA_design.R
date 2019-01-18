@@ -128,9 +128,86 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   #Create empty matrix
   sigmatrix <- data.frame(matrix(ncol=length(mu), nrow = length(mu)))
   
+  #NEW CODE, JUST FOR SINGLE correlation entry
+  
+  #single number
+  cors <- r
+  vars <- length(design_list)
+  
+  #Code by Lisa De Bruine. Allows multiple inputs for r - only use single value now.
+  # correlation matrix
+  generate_cor_matrix <- function(vars = 3, cors = 0){
+    if (class(cors) == "numeric" & length(cors) == 1) {
+      if (cors >=0 & cors <=1) {
+        cors = rep(cors, vars*(vars-1)/2)
+      } else {
+        stop("cors must be between 0 and 1")
+      }
+    }
+    
+    if (class(cors) == "matrix") { 
+      if (mean(dim(cors) == c(n,n)) == 1) {
+        cor_mat <- cors
+      } else {
+        stop("matrix badly specified")
+      }
+    } else if (length(cors) == vars*vars) {
+      cor_mat <- matrix(cors, vars)
+    } else if (length(cors) == vars*(vars-1)/2) {
+      cor_mat <- matrix(nrow=vars, ncol = vars)
+      upcounter = 1
+      lowcounter = 1
+      for (col in 1:vars) {
+        for (row in 1:vars) {
+          if (row == col) {
+            # diagoal
+            cor_mat[row, col] = 1
+          } else if (row < col) {
+            # upper right triangle
+            cor_mat[row, col] = cors[upcounter]
+            upcounter <- upcounter + 1
+          } else {
+            # lower left triangle
+            cor_mat[row, col] = cors[lowcounter]
+            lowcounter <- lowcounter + 1
+          }
+        }
+      }
+    }
+    return(cor_mat)
+  }
+  
+  cor_mat <- generate_cor_matrix(vars = vars, cors = cors)
+  cor_mat
+  
+  if (length(sd) == 1) {
+    sd <- rep(sd, vars)
+  } else if (length(sd) != vars) {
+    stop("the length of sd must be 1 or vars");
+  }
+  
+  sigma <- (sd %*% t(sd)) * cor_mat #Our earlier code had a bug, with SD on the diagonal. Not correct! Thanks Lisa.
+  
+  #check if code below works with more than 1 factor!
+  row.names(sigma) <- design_list
+  colnames(sigma) <- design_list
+  
+  #Create a matrix of 1 and 0 indicating which variables are within and between
+  wb_mat <- c()
+  for(i3 in 1:factors){
+    wb_mat <- c(wb_mat,rep(design[i3],each=as.numeric(unlist(strsplit(string, "\\D+")))[i3]))
+  }
+  wb_mat <- (wb_mat %*% t(wb_mat))
+  
+  sigma_diag <- diag(sigma)
+  
+  sigmatrix <- sigma*wb_mat
+  diag(sigmatrix) <- sigma_diag
+
+###THIS PART IS BROKEN!! 
+  
   #General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
   #Then for each factor in the design, if 1, set number to wildcard
-
   for(i1 in 1:length(design_list)){
     current_factor <- design_list[i1]
     current_factor <- unlist(strsplit(current_factor,"[a-z]"))
@@ -138,7 +215,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     for(i2 in 1:length(design)){
       #We set each number that is within to a wildcard, so that all within subject factors are matched
       
-      
+    
       if(design[i2]==1){current_factor[i2] <- "*"}
       
       #depracated
@@ -151,8 +228,12 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
   }
   
-  sigmatrix <- as.matrix(sigmatrix*r)
-  diag(sigmatrix) <- sd # replace the diagonal with the sd
+  
+  
+  
+  
+  
+  
   
   # We perform the ANOVA using AFEX
   aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
