@@ -192,48 +192,41 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   row.names(sigma) <- design_list
   colnames(sigma) <- design_list
   
-  #Create a matrix of 1 and 0 indicating which variables are within and between
-  wb_mat <- c()
-  for(i3 in 1:factors){
-    wb_mat <- c(wb_mat,rep(design[i3],each=as.numeric(unlist(strsplit(string, "\\D+")))[i3]))
-  }
-  wb_mat <- (wb_mat %*% t(wb_mat))
-  
-  sigma_diag <- diag(sigma)
-  
-  sigmatrix <- sigma*wb_mat
-  diag(sigmatrix) <- sigma_diag
-
-###THIS PART IS BROKEN!! 
-  
   #General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
   #Then for each factor in the design, if 1, set number to wildcard
   for(i1 in 1:length(design_list)){
-    current_factor <- design_list[i1]
-    current_factor <- unlist(strsplit(current_factor,"[a-z]"))
-    current_factor <- current_factor[2:length(current_factor)]
+    design_list_split <- unlist(strsplit(design_list[i1],"_"))
+    current_factor <- design_list_split[c(2,4,6)[1:length(design)]] #this creates a strong of 2, 2,4 or 2,4,6 depending on the length of the design for below
     for(i2 in 1:length(design)){
       #We set each number that is within to a wildcard, so that all within subject factors are matched
       
-    
       if(design[i2]==1){current_factor[i2] <- "*"}
       
-      #depracated
-      #if(design[i2] == 1){substr(current_factor, i2*2,  i2*2) <- "*"} 
     }
-    ifelse(factors == 1, current_factor <- paste0(c("a"),current_factor, collapse=""),
-           ifelse(factors == 2, current_factor <- paste0(c("a","b"),current_factor, collapse=""),
-                  current_factor <- paste0(c("a","b","c"),current_factor, collapse="")))
+    ifelse(factors == 1, 
+           current_factor <- paste0(c(design_list_split[1]),
+                                    "_",
+                                    current_factor, 
+                                    collapse="_"),
+           ifelse(factors == 2, 
+                  current_factor <- paste0(c(design_list_split[c(1,3)]), 
+                                           "_", 
+                                           current_factor, 
+                                           collapse="_"),
+                  current_factor <- paste0(c(design_list_split[c(1,3,5)]),
+                                           "_",
+                                           current_factor, 
+                                           collapse="")))
+    
+    
     
     sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
   }
+
+  #Now multiply the matrix we just created (that says what is within, and what is between,  with the original covariance matrix)
+  #So factors manipulated within are correlated, those manipulated between are not.
   
-  
-  
-  
-  
-  
-  
+  sigmatrix <- sigma*sigmatrix
   
   # We perform the ANOVA using AFEX
   aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
