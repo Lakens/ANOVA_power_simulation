@@ -1,3 +1,4 @@
+#ANOVA power function; last update: 01.23.2019
 ANOVA_power <- function(design_result, alpha, nsims){
   if(missing(alpha)) {
     alpha<-0.05
@@ -95,7 +96,7 @@ ANOVA_power <- function(design_result, alpha, nsims){
       #We simulate a new y variable, melt it in long format, and add it to the df (surpressing messages)
       df$y<-suppressMessages({melt(as.data.frame(rmvnorm(n=n,
                                                          mean=mu,
-                                                         sigma=sigmatrix)))$value
+                                                         sigma=as.matrix(sigmatrix))))$value
       })
       
       # We perform the ANOVA using AFEX

@@ -1,4 +1,4 @@
-#ANOVA design function; last update: 07.25.2018
+#ANOVA design function; last update: 01.23.2019
 ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   ###############
   # 1. Specify Design and Simulation----
@@ -39,12 +39,22 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
   design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
   
+  mu2 <- mu
+  sd2 <- sd
   sigmatrix <- matrix(r, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
-  diag(sigmatrix) <- sd # replace the diagonal with the sd
+  
+  #The loop below is to avoid issues with creating the matrix associated with having a sd < r
+  while (sd2 < r) {
+    sd2 <- sd2*10
+    mu2 <- mu2*10
+  }
+  
+  diag(sigmatrix) <- sd2 # replace the diagonal with the sd
+  
   
   #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
   df <- as.data.frame(rmvnorm(n=n,
-                              mean=mu,
+                              mean=mu2,
                               sigma=sigmatrix))
   df$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
   #Melt dataframe
@@ -222,7 +232,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     
     sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
   }
-
+  
   #Now multiply the matrix we just created (that says what is within, and what is between,  with the original covariance matrix)
   #So factors manipulated within are correlated, those manipulated between are not.
   
@@ -230,8 +240,8 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   # We perform the ANOVA using AFEX
   aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                         data=df,
-                                         anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
+                                          data=df,
+                                          anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
   
   # pairwise comparisons
   pc <- suppressWarnings({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
