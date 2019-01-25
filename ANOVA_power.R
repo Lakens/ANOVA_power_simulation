@@ -110,8 +110,8 @@ ANOVA_power <- function(design_result, alpha, nsims){
                         aov_result$anova_table[[5]], #partial eta squared
                         as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
                         ifelse(as.data.frame(summary(pc))$df < n, #if df < n (means within factor)
-                               as.data.frame(summary(pc))$t.ratio/sqrt(n), #Cohen's dz for within
-                               (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(2*n))) #Cohen's d for between
+                               as.data.frame(summary(pc))$t.ratio/sqrt(n)*(1-(3/(4*(n-1)-1))), #Cohen's dz for within # g correction *(1-(3/(4*(n-1)-1)))
+                               (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(2*n)*(1-(3/(4*(2*n-2)-1))))) #Cohen's d for between # g correction *(1-(3/(4*(2*n-2)-1)))
     }
   #}) #close withProgress Block outside of Shiny
   
