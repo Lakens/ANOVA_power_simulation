@@ -1,4 +1,4 @@
-#ANOVA power function; last update: 01.23.2019
+#ANOVA power function; last update: 10.2.2019
 ANOVA_power <- function(design_result, alpha, nsims){
   if(missing(alpha)) {
     alpha<-0.05
@@ -109,7 +109,7 @@ ANOVA_power <- function(design_result, alpha, nsims){
       sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
                         aov_result$anova_table[[5]], #partial eta squared
                         as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
-                        ifelse(as.data.frame(summary(pc))$df < n, #if df < n (means within factor)
+                        ifelse(as.data.frame(summary(pc))$df == n-1, #if df = n-1 (means within factor)
                                as.data.frame(summary(pc))$t.ratio/sqrt(n)*(1-(3/(4*(n-1)-1))), #Cohen's dz for within # g correction *(1-(3/(4*(n-1)-1)))
                                (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(2*n)*(1-(3/(4*(2*n-2)-1))))) #Cohen's d for between # g correction *(1-(3/(4*(2*n-2)-1)))
     }

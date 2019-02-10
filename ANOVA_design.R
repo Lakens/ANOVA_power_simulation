@@ -1,4 +1,4 @@
-#ANOVA design function; last update: 01.23.2019
+#ANOVA design function; last update: 02.10.2019
 ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   ###############
   # 1. Specify Design and Simulation----
