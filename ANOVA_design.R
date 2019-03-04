@@ -1,4 +1,4 @@
-#ANOVA design function; last update: 02.10.2019
+#ANOVA design function; last update: March 4th, 2019
 ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   ###############
   # 1. Specify Design and Simulation----
@@ -301,11 +301,11 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   if(factors == 3){names(df_means)<-c("mu","SE",factornames[1],factornames[2],factornames[3])}
   
   if(factors == 1){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1]))}
-  if(factors == 2){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], fill = factornames[2]))}
-  if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], fill = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
+  if(factors == 2){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2]))}
+  if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
   
   meansplot = meansplot +
-    geom_bar(position = position_dodge(), stat="identity") +
+    geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preferene -- ARC
     geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
                   position = position_dodge(width=0.9), size=.6, width=.3) +
     coord_cartesian(ylim=c((.7*min(mu)), 1.2*max(mu))) +
