@@ -5,6 +5,13 @@ output: github_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 nsims <- 1000 #set number of simulations
+library(mvtnorm)
+library(afex)
+library(emmeans)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
+
 ```
 
 ## Validation of Power in Repeated Measures ANOVA
@@ -65,7 +72,7 @@ mu <- mu_from_ES(K = K, ES = ES)
 
 string = paste(K,"w",sep="")
 p_adjust = "none"
-labelnames <- c("factor1", "level1", "level2")
+labelnames <- c("speed", "fast", "slow")
 ```
 We create the within design, and run the simulation
 

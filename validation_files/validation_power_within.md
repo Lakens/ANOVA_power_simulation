@@ -62,6 +62,8 @@ ES
 mu <- mu_from_ES(K = K, ES = ES)
 
 string = paste(K,"w",sep="")
+p_adjust = "none"
+labelnames <- c("speed", "fast", "slow")
 ```
 
 We create the within design, and run the simulation
@@ -72,7 +74,8 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none")
+                   p_adjust = "none",
+                   labelnames = labelnames)
 ```
 
 ![](validation_power_within_files/figure-markdown_github/unnamed-chunk-4-1.png)
@@ -82,11 +85,11 @@ ANOVA_power(design_result, nsims = nsims)
 ```
 
     ## Power and Effect sizes for ANOVA tests
-    ##            power effect size
-    ## anova_p_a 80.507       0.216
+    ##             power effect size
+    ## anova_speed    78       0.197
     ## 
     ## Power and Effect sizes for contrasts
-    ##                             power effect size
-    ## paired_comparison_p_a1 - a2 80.51       -0.51
+    ##                                           power effect size
+    ## paired_comparison_speed_fast - speed_slow    78       -0.47
 
 The results of the simulation are indeed very close to 80.777%. Note that the current version of the program calculates Cohen's dz effect sizes for paired comparisons - which here given the correlation of 0.5 is also 0.5 for a medium effect size.

@@ -82,14 +82,15 @@ The plot below visualizes means from 1 to 8 being entered in a vector: mu = c(1,
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-ANOVA_design(string = "2b*2w*2b",
-             n = 10, 
-             mu = c(1, 2, 3, 4, 5, 6, 7, 8), 
-             sd = 1, 
-             r = 0.9, 
-             p_adjust = "none",
-             labelnames = c("factor1", "a1", "a2", "factor2", "b1", "b2", "factor3", "c1", "c2"))
+design_result <- ANOVA_design(string = "2b*2w*2b",
+                              n = 10, 
+                              mu = c(1, 2, 3, 4, 5, 6, 7, 8), 
+                              sd = 1, 
+                              r = 0.9, 
+                              p_adjust = "none",
+                              labelnames = c("factor1", "a1", "a2", "factor2", "b1", "b2", "factor3", "c1", "c2"))
 
+design_result
 ```
 
 ###specifying label names
@@ -100,6 +101,15 @@ For the 2x3 design we have been using as an example, where there are 2 factors (
 c("condition", "placebo", "medicine", "time", "time1", "time2", "time3")
 
 As you can see, you follow the order of the design (2b*3w), and first write the FACTOR label (condition) followed by the levels of that factor (placebo and medicine). Then you write the second factor name (time) followed by the three labels for each level (time1, time2, time3). Do not use spaces in the names (so not "time 1" but "time1" or "time_1").
+
+#The covariance matrix
+
+Depending on whether factors are manipulated within or between, variables are correlated, or not. The covariance matrix is:
+
+```{r matrix}
+design_result$sigmatrix
+```
+
 
 ## The ANOVA_power function
 

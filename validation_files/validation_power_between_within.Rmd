@@ -3,7 +3,16 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
+#THIS IS NOT DONE< JUST COPIED FROM BETWEEN
 knitr::opts_chunk$set(echo = TRUE)
+nsims <- 100 #set number of simulations
+library(mvtnorm)
+library(afex)
+library(emmeans)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
+
 ```
 
 ## Validation of Power in Mixed ANOVA
@@ -42,12 +51,6 @@ We install the functions:
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
 ```
-
-And set the number of simulations:
-```{r}
-nsims <- 100000 #set number of simulations
-```
-
 
 ## Three conditions, large effect size
 

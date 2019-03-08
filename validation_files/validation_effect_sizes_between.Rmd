@@ -4,7 +4,14 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 100000 #set number of simulations
+nsims <- 100 #set number of simulations
+library(mvtnorm)
+library(afex)
+library(emmeans)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
+
 ```
 
 ## Validation of effect size estimates for One-Way ANOVA
@@ -64,7 +71,8 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none")
+                   p_adjust = "none",
+                   labelnames = c("factor1", "level1", "level2", "level3"))
 
 ANOVA_power(design_result, nsims = nsims)
 
@@ -94,7 +102,8 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none")
+                   p_adjust = "none",
+                   labelnames = c("factor1", "level1", "level2", "level3", "level4"))
 
 ANOVA_power(design_result, nsims = nsims)
 
@@ -122,7 +131,8 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none")
+                   p_adjust = "none",
+                   labelnames = c("factor1", "level1", "level2"))
 
 ANOVA_power(design_result, nsims = nsims)
 

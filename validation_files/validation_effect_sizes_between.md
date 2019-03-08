@@ -58,7 +58,8 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none")
+                   p_adjust = "none",
+                   labelnames = c("factor1", "level1", "level2", "level3"))
 ```
 
 ![](validation_effect_sizes_between_files/figure-markdown_github/unnamed-chunk-4-1.png)
@@ -68,14 +69,14 @@ ANOVA_power(design_result, nsims = nsims)
 ```
 
     ## Power and Effect sizes for ANOVA tests
-    ##           power effect size
-    ## anova_p_a   100        0.01
+    ##               power effect size
+    ## anova_factor1   100        0.01
     ## 
     ## Power and Effect sizes for contrasts
-    ##                             power effect size
-    ## paired_comparison_p_a1 - a2   100       -0.09
-    ## paired_comparison_p_a1 - a3   100       -0.17
-    ## paired_comparison_p_a2 - a3   100       -0.09
+    ##                                                   power effect size
+    ## paired_comparison_factor1_level1 - factor1_level2   100       -0.12
+    ## paired_comparison_factor1_level1 - factor1_level3   100       -0.25
+    ## paired_comparison_factor1_level2 - factor1_level3   100       -0.12
 
 The resulting effect size estimate from the simulation is very close to 0.0099
 
@@ -100,7 +101,8 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none")
+                   p_adjust = "none",
+                   labelnames = c("factor1", "level1", "level2", "level3", "level4"))
 ```
 
 ![](validation_effect_sizes_between_files/figure-markdown_github/unnamed-chunk-6-1.png)
@@ -110,17 +112,17 @@ ANOVA_power(design_result, nsims = nsims)
 ```
 
     ## Power and Effect sizes for ANOVA tests
-    ##           power effect size
-    ## anova_p_a   100       0.059
+    ##               power effect size
+    ## anova_factor1   100       0.059
     ## 
     ## Power and Effect sizes for contrasts
-    ##                              power effect size
-    ## paired_comparison_p_a1 - a2   5.14        0.00
-    ## paired_comparison_p_a1 - a3 100.00       -0.35
-    ## paired_comparison_p_a1 - a4 100.00       -0.35
-    ## paired_comparison_p_a2 - a3 100.00       -0.35
-    ## paired_comparison_p_a2 - a4 100.00       -0.35
-    ## paired_comparison_p_a3 - a4   5.03        0.00
+    ##                                                   power effect size
+    ## paired_comparison_factor1_level1 - factor1_level2     1         0.0
+    ## paired_comparison_factor1_level1 - factor1_level3   100        -0.5
+    ## paired_comparison_factor1_level1 - factor1_level4   100        -0.5
+    ## paired_comparison_factor1_level2 - factor1_level3   100        -0.5
+    ## paired_comparison_factor1_level2 - factor1_level4   100        -0.5
+    ## paired_comparison_factor1_level3 - factor1_level4     3         0.0
 
 Results are very close to 0.588.
 
@@ -145,7 +147,8 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none")
+                   p_adjust = "none",
+                   labelnames = c("factor1", "level1", "level2"))
 ```
 
 ![](validation_effect_sizes_between_files/figure-markdown_github/unnamed-chunk-8-1.png)
@@ -155,11 +158,11 @@ ANOVA_power(design_result, nsims = nsims)
 ```
 
     ## Power and Effect sizes for ANOVA tests
-    ##           power effect size
-    ## anova_p_a   100       0.138
+    ##               power effect size
+    ## anova_factor1   100       0.138
     ## 
     ## Power and Effect sizes for contrasts
-    ##                             power effect size
-    ## paired_comparison_p_a1 - a2   100       -0.57
+    ##                                                   power effect size
+    ## paired_comparison_factor1_level1 - factor1_level2   100        -0.8
 
 The results are very close to is simulation should yield a small effect size (0.1379)
