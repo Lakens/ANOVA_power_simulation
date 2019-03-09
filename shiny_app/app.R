@@ -1,5 +1,5 @@
 #TEST APP
-#Added email function using sendmailR
+#Email function temporarily disabled
 #Labelnames adjusted for new format
 
 ###############
@@ -14,7 +14,7 @@ library(emmeans)
 library(ggplot2)
 library(gridExtra)
 library(reshape2)
-library(sendmailR)
+#library(sendmailR)
 
 
 # Define User Interface for simulations
@@ -24,7 +24,7 @@ ui <- fluidPage(
   #Panel to define ANOVA design
   column(4, wellPanel(  
     
-    h4("This is an alpha version of an app to calculate power for ANOVA designs through simulation. It is made by ", a("Aaron Caldwell", href="https://twitter.com/ExPhysStudent"), "and ", a("Daniel Lakens", href="https://twitter.com/Lakens"),"and we appreciate hearing any feedback you have as we develop this app."),
+    h4("This is an alpha version of an app to calculate power for ANOVA designs through simulation. It is made by ", a("Aaron Caldwell", href = "https://twitter.com/ExPhysStudent"), "and ", a("Daniel Lakens", href = "https://twitter.com/Lakens"),"and we appreciate hearing any feedback you have as we develop this app."),
     
     h4("Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a 'w' after the number for within factors, and a 'b' for between factors. Seperate factors with a * (asteriks). Thus '2b*3w' is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels."),
     
@@ -67,14 +67,15 @@ ui <- fluidPage(
     #Conditional; once design is clicked. Then settings for power simulation can be defined
     conditionalPanel("input.designBut >= 1",
                      
-                     fluidRow(
-                       div(id = "login",
-                           wellPanel( h4("If you want to send your results as an email, please enter your email address with angle brackets (<address@email.com>) and a subject line. Warning: this email may end up in your spam folder"),
-                                      textInput("to", label = "To: inlclude angle brackets < >", placeholder = "<address@email.com>"),
-                                      textInput("sub","Subject:")
-                                      
-                           )
-                       )),
+                     #Row for email input TEMPORARILY DISABLED
+                     #fluidRow(
+                     #  div(id = "login",
+                     #      wellPanel( h4("If you want to send your results as an email, please enter your email address with angle brackets (<address@email.com>) and a subject line. Warning: this email may end up in your spam folder"),
+                     #                 textInput("to", label = "To: inlclude angle brackets < >", placeholder = "<address@email.com>"),
+                     #                 textInput("sub","Subject:")
+                     #                 
+                     #      )
+                     #  )),
                      
                      sliderInput("sig",
                                  label = "Alpha Level",
@@ -84,8 +85,10 @@ ui <- fluidPage(
                                  label = "Number of Simulations",
                                  min = 100, max = 10000, value = 100, step = 100),
                      h4("Click either button below to start the simulation"),
-                     actionButton("sim", "Simulate -> Print Results"),
-                     actionButton("mailButton",label = "Simulate -> Email Results"))
+                     actionButton("sim", "Print Results of Simulation")#,
+                     #Send Results to Email Button TEMPORARILY DISABLED
+                     #actionButton("mailButton",label = "Email Results of Simulation")
+                     )
     
     
     )),
@@ -700,15 +703,15 @@ server <- function(input, output) {
   
   
   #Create set of reactive values
-  values <- reactiveValues(design_result=0, power_result=0)
+  values <- reactiveValues(design_result = 0, power_result = 0)
   
   #Produce ANOVA design
-  observeEvent(input$designBut, { values$design_result <- ANOVA_design(string = as.character(input$design),
+  observeEvent(input$designBut, {values$design_result <- ANOVA_design(string = as.character(input$design),
                                                                        n = as.numeric(input$sample_size), 
                                                                        mu = as.numeric(unlist(strsplit(input$mu, ","))), 
                                                                        labelnames = as.vector(unlist(strsplit(input$labelnames, ","))), 
                                                                        sd = as.numeric(input$sd), 
-                                                                       r= as.numeric(input$r), 
+                                                                       r = as.numeric(input$r), 
                                                                        p_adjust = as.character(input$p_adjust))
   })
   
@@ -751,7 +754,7 @@ server <- function(input, output) {
   observeEvent(input$mailButton,{
     isolate({
       
-      values$power_result <-ANOVA_power(values$design_result, 
+      values$power_result <- ANOVA_power(values$design_result, 
                                         alpha = input$sig, 
                                         nsims = input$nsims)
       values$anova_power <-  qplot(1:10, 1:10, geom = "blank") + theme_bw() + theme(line = element_blank(), text = element_blank()) +
@@ -779,7 +782,7 @@ server <- function(input, output) {
                           mime_part(values$anova_power), mime_part(values$pc_power),
                           mime_part(values$power_result$plot1), mime_part(values$design_result$meansplot))
       sendmail(values$from, input$to, input$sub, values$body,
-               control=list(smtpServer="ASPMX.L.GOOGLE.COM"))
+               control = list(smtpServer = "ASPMX.L.GOOGLE.COM"))
     })
   })
   
