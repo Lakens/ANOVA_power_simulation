@@ -53,7 +53,7 @@ source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/A
 
 We can simulate a repeated measures ANOVA with a specific alpha, sample size and effect size, to achieve a specified statistical power. We perform a power analysis in G*Power. 
 
-![](validation_power_within_files/figure-markdown_github/gpower_1.png)
+![](screenshots/gpower_1.png)
 
 We set groups to 2 for the simulation, n = 34 (which should give 80.777 power, according to the g*power program), a correlation among repeated measures of 0.5, and an alpha of 0.05. In this case, we simulate data with means -0.25  and 0.25. 
 
