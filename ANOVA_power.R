@@ -1,5 +1,8 @@
 #ANOVA power function; last update: 10.2.2019
 ANOVA_power <- function(design_result, alpha, nsims){
+  
+  round_dig <- 4 #Set digits to which you want to round the output. 
+  
   if(missing(alpha)) {
     alpha<-0.05
   }
@@ -199,18 +202,18 @@ ANOVA_power <- function(design_result, alpha, nsims){
   
   #Main effects and interactions from the ANOVA
   power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors-1))]), 2, 
-                              function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),3)))
+                              function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),round_dig)))
   es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors-1)))]), 2, 
-                           function(x) round(median(x),3)))
+                           function(x) round(median(x),round_dig)))
   
   main_results <- data.frame(power,es)
   names(main_results) = c("power","effect size")
 
   #Data summary for contrasts
   power_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]), 2, 
-                                     function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),2)))
+                                     function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),round_dig)))
   es_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+possible_pc+1):(2*(2^factors-1)+2*possible_pc)]), 2, 
-                                  function(x) round(mean(x),2)))
+                                  function(x) round(mean(x),round_dig)))
   
   
   pc_results <- data.frame(power_paired,es_paired)
