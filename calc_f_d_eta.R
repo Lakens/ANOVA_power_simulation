@@ -28,10 +28,9 @@ calc_f_d_eta <- function(mu, sd, variability){
   if(variability == "minimum"){
     k = length(mu)
     d <- (max(mu)-min(mu))/sd
-    f <- .5*d
+    f <- d*sqrt(1/(2*k))
     f2 <- f^2
     ES <- f2/(f2+1)
-    print(ES)
   }
   if(variability == "medium"){
     k = length(mu) 
@@ -39,7 +38,6 @@ calc_f_d_eta <- function(mu, sd, variability){
     f <- (d/2)*sqrt((k+1)/(3*(k-1)))
     f2 <- f^2
     ES <- f2/(f2+1)
-    print(ES)
   }
   if(variability == "maximum"){
     k = length(mu)
@@ -47,7 +45,6 @@ calc_f_d_eta <- function(mu, sd, variability){
     f <- ifelse(k %% 2 == 0, .5*d, d*(sqrt(k^2-1)/(2*k)))
     f2 <- f^2
     ES <- f2/(f2+1)
-    print(ES)
   }
   invisible(list(mu = mu,
                  sd = sd,
