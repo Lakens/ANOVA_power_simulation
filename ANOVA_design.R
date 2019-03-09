@@ -308,7 +308,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preferene -- ARC
     geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
                   position = position_dodge(width=0.9), size=.6, width=.3) +
-    coord_cartesian(ylim=c((.7*min(mu)), 1.2*max(mu))) +
+    coord_cartesian(ylim=c(min(mu)-(2*(sd/sqrt(n))), max(mu)+(2*(sd/sqrt(n))))) +
     theme_bw() + ggtitle("Means for each condition in the design")
   print(meansplot)  #should be blocked in Shiny context
   
