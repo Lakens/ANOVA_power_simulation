@@ -1,5 +1,14 @@
-#ANOVA power function; last update: 10.2.2019
+#ANOVA power function; last update: March 12th 2019
+#Using developmental version of afex devtools::install_github("singmann/afex@master")
 ANOVA_power <- function(design_result, alpha, nsims){
+  
+  #Require necessary packages
+  require(mvtnorm, quietly = TRUE)
+  require(afex, quietly = TRUE)
+  require(emmeans, quietly = TRUE)
+  require(ggplot2, quietly = TRUE)
+  require(gridExtra, quietly = TRUE)
+  require(reshape2, quietly = TRUE)
   
   round_dig <- 4 #Set digits to which you want to round the output. 
   
@@ -55,6 +64,10 @@ ANOVA_power <- function(design_result, alpha, nsims){
   
   aov_result<- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                                          data=df,
+                                         anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
+  
+  aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+                                         data=df, include_aov = FALSE, #Setting include_aov to FALSE significantly speeds up simulation
                                          anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
   
   # pairwise comparisons

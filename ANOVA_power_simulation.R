@@ -40,6 +40,8 @@ if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the leng
 ###############
 
 library(mvtnorm)
+#Using developmental version of afex 
+devtools::install_github("singmann/afex@master")
 library(afex)
 library(lsmeans)
 library(ggplot2)

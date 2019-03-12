@@ -9,6 +9,8 @@
 
 library(shiny)
 library(mvtnorm)
+#Developmental version of afex is needed for now
+devtools::install_github("singmann/afex@master", force = TRUE) 
 library(afex)
 library(emmeans)
 library(ggplot2)
@@ -39,7 +41,7 @@ ui <- fluidPage(
     
     sliderInput("sample_size",
                 label = "Sample Size per Cell",
-                min = 3, max = 200, value = 80),
+                min = 3, max = 250, value = 80),
     
     textInput(inputId = "sd", label = "Standard Deviation",
               value = 1.03),
@@ -80,7 +82,7 @@ ui <- fluidPage(
                      sliderInput("sig",
                                  label = "Alpha Level",
                                  min = 0, max = 1, value = 0.05),
-                     h4("To test out the app, keep the number of simulations to 100. To get more accurate results, increase the nummber of simulations."),
+                     h4("To test out the app, keep the number of simulations to 100. To get more accurate results, increase the number of simulations."),
                      sliderInput("nsims", 
                                  label = "Number of Simulations",
                                  min = 100, max = 10000, value = 100, step = 100),
@@ -123,8 +125,18 @@ server <- function(input, output) {
   
   v <- reactiveValues(data = NULL)
   
-  #ANOVA design function; last update: March 4th, 2019 #Remember to block plot
+  #ANOVA design function; last update: March 12th, 2019 #Remember to block plot
+  #Using developmental version of afex devtools::install_github("singmann/afex@master")
   ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
+    
+    #Require packages needed to run the function; return error if not loaded
+    require(mvtnorm, quietly = TRUE)
+    require(afex, quietly = TRUE)
+    require(emmeans, quietly = TRUE)
+    require(ggplot2, quietly = TRUE)
+    require(gridExtra, quietly = TRUE)
+    require(reshape2, quietly = TRUE)
+    
     ###############
     # 1. Specify Design and Simulation----
     ###############
@@ -401,18 +413,19 @@ server <- function(input, output) {
     
     # We perform the ANOVA using AFEX
     aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                            data=df,
+                                            data=df, include_aov = FALSE, #Set to false to speed up analysis
                                             anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
     
     # pairwise comparisons
-    pc <- suppressWarnings({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
+    pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
     
     ###############
     # 6. Create plot of means to vizualize the design ----
     ###############
     
+    #Changed to SD so that way the authors can visually check to make sure the SD matches that of the intended input -- ARC
     
-    df_means <- data.frame(mu, SE = sd / sqrt(n))
+    df_means <- data.frame(mu, SD = sd)
     for(j in 1:factors){
       df_means <- cbind(df_means, as.factor(unlist(rep(as.list(paste(labelnameslist[[j]], 
                                                                      sep="")), 
@@ -421,20 +434,25 @@ server <- function(input, output) {
       ))))
     }
     
-    if(factors == 1){names(df_means)<-c("mu","SE",factornames[1])}
-    if(factors == 2){names(df_means)<-c("mu","SE",factornames[1],factornames[2])}
-    if(factors == 3){names(df_means)<-c("mu","SE",factornames[1],factornames[2],factornames[3])}
+    if(factors == 1){names(df_means)<-c("mu","SD",factornames[1])}
+    if(factors == 2){names(df_means)<-c("mu","SD",factornames[1],factornames[2])}
+    if(factors == 3){names(df_means)<-c("mu","SD",factornames[1],factornames[2],factornames[3])}
     
     if(factors == 1){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1]))}
     if(factors == 2){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2]))}
     if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
     
+    
+
     meansplot = meansplot +
-      geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preferene -- ARC
-      geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
+      geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
+      geom_errorbar(aes(ymin = mu-SD, ymax = mu+SD), 
                     position = position_dodge(width=0.9), size=.6, width=.3) +
-      coord_cartesian(ylim=c(min(mu)-(2*(sd/sqrt(n))), max(mu)+(2*(sd/sqrt(n))))) +
+      coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
       theme_bw() + ggtitle("Means for each condition in the design")
+    
+
+    
     #print(meansplot)  #should be blocked in Shiny context
     
     # Return results in list()
@@ -461,8 +479,20 @@ server <- function(input, output) {
     invisible(force(x)) 
   } 
   
-  #ANOVA power function; last update: 04.03.2019 removed shiny blockers
+  #ANOVA power function; last update: March 12th 2019 removed shiny blockers
+  #Using developmental version of afex devtools::install_github("singmann/afex@master")
   ANOVA_power <- function(design_result, alpha, nsims){
+    
+    #Require necessary packages
+    require(mvtnorm, quietly = TRUE)
+    require(afex, quietly = TRUE)
+    require(emmeans, quietly = TRUE)
+    require(ggplot2, quietly = TRUE)
+    require(gridExtra, quietly = TRUE)
+    require(reshape2, quietly = TRUE)
+    
+    round_dig <- 4 #Set digits to which you want to round the output. 
+    
     if(missing(alpha)) {
       alpha<-0.05
     }
@@ -516,6 +546,10 @@ server <- function(input, output) {
     aov_result<- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                                            data=df,
                                            anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
+    
+    aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+                                            data=df, include_aov = FALSE, #Setting include_aov to FALSE significantly speeds up simulation
+                                            anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
     
     # pairwise comparisons
     pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust) })
@@ -576,7 +610,7 @@ server <- function(input, output) {
                                as.data.frame(summary(pc))$t.ratio/sqrt(n)*(1-(3/(4*(n-1)-1))), #Cohen's dz for within # g correction *(1-(3/(4*(n-1)-1)))
                                (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(2*n)*(1-(3/(4*(2*n-2)-1))))) #Cohen's d for between # g correction *(1-(3/(4*(2*n-2)-1)))
     }
-    }) #close withProgress ## Block outside of Shiny
+    }) #close withProgress Block outside of Shiny
     
     ############################################
     #End Simulation              ###############
@@ -662,18 +696,18 @@ server <- function(input, output) {
     
     #Main effects and interactions from the ANOVA
     power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors-1))]), 2, 
-                                function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),3)))
+                                function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),round_dig)))
     es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors-1)))]), 2, 
-                             function(x) round(median(x),3)))
+                             function(x) round(median(x),round_dig)))
     
     main_results <- data.frame(power,es)
     names(main_results) = c("power","effect size")
     
     #Data summary for contrasts
     power_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]), 2, 
-                                       function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),2)))
+                                       function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),round_dig)))
     es_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+possible_pc+1):(2*(2^factors-1)+2*possible_pc)]), 2, 
-                                    function(x) round(mean(x),2)))
+                                    function(x) round(mean(x),round_dig)))
     
     
     pc_results <- data.frame(power_paired,es_paired)
@@ -684,14 +718,14 @@ server <- function(input, output) {
     # Return Results ----
     #######################
     
-    # The section below should be blocked out when 
-    cat("Power and Effect sizes for ANOVA tests")
-    cat("\n")
-    print(main_results)
-    cat("\n")
-    cat("Power and Effect sizes for contrasts")
-    cat("\n")
-    print(pc_results)
+    # The section below should be blocked out when in Shiny
+    #cat("Power and Effect sizes for ANOVA tests")
+    #cat("\n")
+    #print(main_results)
+    #cat("\n")
+    #cat("Power and Effect sizes for contrasts")
+    #cat("\n")
+    #print(pc_results)
     
     # Return results in list()
     invisible(list(sim_data = sim_data,
