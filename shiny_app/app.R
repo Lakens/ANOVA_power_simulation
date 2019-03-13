@@ -10,13 +10,18 @@
 library(shiny)
 library(mvtnorm)
 #Developmental version of afex is needed for now
-devtools::install_github("singmann/afex@master", force = TRUE) 
+#devtools::install_github("singmann/afex@master") 
 library(afex)
 library(emmeans)
 library(ggplot2)
 library(gridExtra)
 library(reshape2)
+library(rmarkdown)
+library(knitr)
 #library(sendmailR)
+
+#install.packages("tinytex")
+#tinytex::install_tinytex() 
 
 
 # Define User Interface for simulations
@@ -90,8 +95,11 @@ ui <- fluidPage(
                      actionButton("sim", "Print Results of Simulation")#,
                      #Send Results to Email Button TEMPORARILY DISABLED
                      #actionButton("mailButton",label = "Email Results of Simulation")
-                     )
+                     ),
     
+    conditionalPanel("input.sim >=1",
+    downloadButton("report", "Download Report")
+    )
     
     )),
   
@@ -840,6 +848,37 @@ server <- function(input, output) {
     req(input$sim)
     values$power_result$pc_result},
     rownames = TRUE)
+  
+  
+  output$report <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = "report.html",
+    content = function(file) {
+      # Copy the report file to a temporary directory before processing it, in
+      # case we don't have write permissions to the current working dir (which
+      # can happen when deployed).
+      tempReport <- file.path(tempdir(), "report.Rmd")
+      file.copy("report.Rmd", tempReport, overwrite = TRUE)
+      
+      # Set up parameters to pass to Rmd document
+      params <- list(tablePC = values$power_result$pc_result,
+                     tableMain = values$power_result$main_results,
+                     pvalue_plot = values$power_result$plot1,
+                     means_plot = values$design_result$meansplot,
+                     n = values$design_result$n,
+                     padjust = values$design_result$p_adjust,
+                     model = deparse(values$design_result$frml1),
+                     design = values$design_result$string)
+      
+      # Knit the document, passing in the `params` list, and eval it in a
+      # child of the global environment (this isolates the code in the document
+      # from the code in this app).
+      rmarkdown::render(tempReport, output_file = file,
+                        params = params,
+                        envir = new.env(parent = globalenv())
+      )
+    }
+  )
   
   
 }

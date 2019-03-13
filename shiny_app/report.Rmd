@@ -1,0 +1,50 @@
+---
+title: "Simulation Results"
+output: pdf_document
+params:
+  tablePC: NA,
+  tableMain: NA,
+  pvalue_plot: NA,
+  means_plot: NA,
+  n: NA,
+  padjust: NA,
+  model: NA,
+  design: NA
+---
+
+
+
+
+Below are the results from the ANOVA simulation app. 
+
+**Study Design**
+
+`r paste(params$design)`
+
+**Model Formula** 
+
+`r paste(params$model)`
+
+The sample size was `r params$n` per cell with the following adjustment for multiple comparisons: `r params$padjust`. 
+
+A plot of the study design is below.
+
+
+```{r echo = FALSE}
+# The `params` object is available in the document.
+params$means_plot
+```
+
+The study has the following power for the main effects and interaction
+
+```{r echo = FALSE}
+knitr::kable(params$tableMain)
+
+params$pvalue_plot
+```
+
+Further, the power for multiple comparisons are included below
+
+```{r echo = FALSE}
+knitr::kable(params$tablePC)
+```

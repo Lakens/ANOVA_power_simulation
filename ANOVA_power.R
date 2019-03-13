@@ -234,7 +234,7 @@ ANOVA_power <- function(design_result, alpha, nsims){
   # Return Results ----
   #######################
   
-  # The section below should be blocked out when 
+  # The section below should be blocked in Shiny
   cat("Power and Effect sizes for ANOVA tests")
   cat("\n")
   print(main_results)
