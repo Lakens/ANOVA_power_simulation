@@ -413,7 +413,7 @@ server <- function(input, output) {
     
     # We perform the ANOVA using AFEX
     aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                            data=df, include_aov = FALSE, #Set to false to speed up analysis
+                                            data = df,
                                             anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
     
     # pairwise comparisons
