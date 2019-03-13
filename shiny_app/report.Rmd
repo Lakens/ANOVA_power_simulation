@@ -25,9 +25,7 @@ Below are the results from the ANOVA simulation app.
 
 `r paste(params$model)`
 
-The sample size was `r params$n` per cell with the following adjustment for multiple comparisons: `r params$padjust`. 
-
-A plot of the study design is below.
+The sample size was **`r params$n`** per cell with the following adjustment for multiple comparisons: **`r params$padjust`**. 
 
 
 ```{r echo = FALSE}
@@ -35,7 +33,7 @@ A plot of the study design is below.
 params$means_plot
 ```
 
-The study has the following power for the main effects and interaction
+**ANOVA Power (%) and Effect Sizes (Partial Eta Squared)**
 
 ```{r echo = FALSE}
 knitr::kable(params$tableMain)
@@ -43,8 +41,11 @@ knitr::kable(params$tableMain)
 params$pvalue_plot
 ```
 
-Further, the power for multiple comparisons are included below
+**Multiple Comparisons Power (%) and Effect Sizes (Cohen's dz)**
 
 ```{r echo = FALSE}
 knitr::kable(params$tablePC)
 ```
+
+
+

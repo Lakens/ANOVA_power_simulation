@@ -1,6 +1,11 @@
-#ANOVA design function; last update: March 12th, 2019
-#Using developmental version of afex devtools::install_github("singmann/afex@master")
+#ANOVA design function; last update: March 13th, 2019
+#Limit maximum sample size per cell
 ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
+  
+  if (n < 3 || n > 1000) {
+    error <- "Sample per cell (n) must be greater than 2 or less than 1001"
+    stop(error)
+  }
   
   #Require packages needed to run the function; return error if not loaded
   require(mvtnorm, quietly = TRUE)
@@ -286,7 +291,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   # We perform the ANOVA using AFEX
   aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                          data=df, include_aov = FALSE, #Set to false to speed up analysis
+                                          data=df, #include_aov = FALSE, #Set to false to speed up analysis; disabled for now
                                           anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
   
   # pairwise comparisons

@@ -1,5 +1,5 @@
-#ANOVA power function; last update: March 12th 2019
-#Using developmental version of afex devtools::install_github("singmann/afex@master")
+#ANOVA power function; last update: March 13th 2019
+#
 ANOVA_power <- function(design_result, alpha, nsims){
   
   #Require necessary packages

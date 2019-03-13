@@ -9,8 +9,6 @@
 
 library(shiny)
 library(mvtnorm)
-#Developmental version of afex is needed for now
-#devtools::install_github("singmann/afex@master") 
 library(afex)
 library(emmeans)
 library(ggplot2)
@@ -18,10 +16,12 @@ library(gridExtra)
 library(reshape2)
 library(rmarkdown)
 library(knitr)
-#library(sendmailR)
 
+
+#TINYTEX will need to be installed on the server
 #install.packages("tinytex")
-#tinytex::install_tinytex() 
+#tinytex::install_tinytex(force = TRUE) 
+#library(tinytex)
 
 
 # Define User Interface for simulations
@@ -74,15 +74,6 @@ ui <- fluidPage(
     #Conditional; once design is clicked. Then settings for power simulation can be defined
     conditionalPanel("input.designBut >= 1",
                      
-                     #Row for email input TEMPORARILY DISABLED
-                     #fluidRow(
-                     #  div(id = "login",
-                     #      wellPanel( h4("If you want to send your results as an email, please enter your email address with angle brackets (<address@email.com>) and a subject line. Warning: this email may end up in your spam folder"),
-                     #                 textInput("to", label = "To: inlclude angle brackets < >", placeholder = "<address@email.com>"),
-                     #                 textInput("sub","Subject:")
-                     #                 
-                     #      )
-                     #  )),
                      
                      sliderInput("sig",
                                  label = "Alpha Level",
@@ -92,9 +83,7 @@ ui <- fluidPage(
                                  label = "Number of Simulations",
                                  min = 100, max = 10000, value = 100, step = 100),
                      h4("Click either button below to start the simulation"),
-                     actionButton("sim", "Print Results of Simulation")#,
-                     #Send Results to Email Button TEMPORARILY DISABLED
-                     #actionButton("mailButton",label = "Email Results of Simulation")
+                     actionButton("sim", "Print Results of Simulation")
                      ),
     
     conditionalPanel("input.sim >=1",
@@ -133,9 +122,14 @@ server <- function(input, output) {
   
   v <- reactiveValues(data = NULL)
   
-  #ANOVA design function; last update: March 12th, 2019 #Remember to block plot
-  #Using developmental version of afex devtools::install_github("singmann/afex@master")
+  #ANOVA design function; last update: March 13th, 2019
+  #Limit maximum sample size per cell
   ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
+    
+    if (n < 3 || n > 1000) {
+      error <- "Sample per cell (n) must be greater than 2 or less than 1001"
+      stop(error)
+    }
     
     #Require packages needed to run the function; return error if not loaded
     require(mvtnorm, quietly = TRUE)
@@ -421,7 +415,7 @@ server <- function(input, output) {
     
     # We perform the ANOVA using AFEX
     aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                            data = df,
+                                            data=df, #include_aov = FALSE, #Set to false to speed up analysis; disabled for now
                                             anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
     
     # pairwise comparisons
@@ -451,15 +445,12 @@ server <- function(input, output) {
     if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
     
     
-
     meansplot = meansplot +
       geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
       geom_errorbar(aes(ymin = mu-SD, ymax = mu+SD), 
                     position = position_dodge(width=0.9), size=.6, width=.3) +
       coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
       theme_bw() + ggtitle("Means for each condition in the design")
-    
-
     
     #print(meansplot)  #should be blocked in Shiny context
     
@@ -487,8 +478,8 @@ server <- function(input, output) {
     invisible(force(x)) 
   } 
   
-  #ANOVA power function; last update: March 12th 2019 removed shiny blockers
-  #Using developmental version of afex devtools::install_github("singmann/afex@master")
+  #ANOVA power function; last update: March 13th 2019
+  #
   ANOVA_power <- function(design_result, alpha, nsims){
     
     #Require necessary packages
@@ -551,13 +542,10 @@ server <- function(input, output) {
     frml1 <- design_result$frml1 
     frml2 <- design_result$frml2
     
-    aov_result<- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                           data=df,
-                                           anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
-    
     aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                            data=df, include_aov = FALSE, #Setting include_aov to FALSE significantly speeds up simulation
+                                            data=df,
                                             anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
+    
     
     # pairwise comparisons
     pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust) })
@@ -726,7 +714,7 @@ server <- function(input, output) {
     # Return Results ----
     #######################
     
-    # The section below should be blocked out when in Shiny
+    # The section below should be blocked in Shiny
     #cat("Power and Effect sizes for ANOVA tests")
     #cat("\n")
     #print(main_results)
@@ -791,44 +779,6 @@ server <- function(input, output) {
   
   
   
-  #Run simulation as an email
-  
-  observeEvent(input$mailButton,{
-    isolate({
-      
-      values$power_result <- ANOVA_power(values$design_result, 
-                                        alpha = input$sig, 
-                                        nsims = input$nsims)
-      values$anova_power <-  qplot(1:10, 1:10, geom = "blank") + theme_bw() + theme(line = element_blank(), text = element_blank()) +
-        annotation_custom(grob = tableGrob(values$power_result$main_results))
-      
-      values$pc_power <-  qplot(1:10, 1:10, geom = "blank") + theme_bw() + theme(line = element_blank(), text = element_blank()) +
-        annotation_custom(grob = tableGrob(values$power_result$pc_results))
-      
-      #values$pc_power <- knitr::kable(values$power_result$pc_results)
-      
-      values$from <- sprintf("<sendmailR@\\%s>", Sys.info()[4])
-      values$body <- list("Attached are the results from the ANOVA simulation app. Thanks for using our app - Aaron Caldwell & Daniel Lakens",
-                          paste(" 
-                                ",
-                                "The design is set as", values$design_result$string, 
-                                " 
-                                ", 
-                                "Model formula: ", deparse(values$design_result$frml1), 
-                                " 
-                                ",
-                                "Sample size per cell n = ", values$design_result$n, 
-                                " 
-                                ",
-                                "Adjustment for multiple comparisons: ", values$design_result$p_adjust), 
-                          mime_part(values$anova_power), mime_part(values$pc_power),
-                          mime_part(values$power_result$plot1), mime_part(values$design_result$meansplot))
-      sendmail(values$from, input$to, input$sub, values$body,
-               control = list(smtpServer = "ASPMX.L.GOOGLE.COM"))
-    })
-  })
-  
-  
   #Runs simulation and saves result as reactive value
   observeEvent(input$sim, {values$power_result <- quiet(ANOVA_power(values$design_result, 
                                                              alpha = input$sig, 
@@ -849,7 +799,7 @@ server <- function(input, output) {
     values$power_result$pc_result},
     rownames = TRUE)
   
-  
+  #Create downloadable report in markdown TINYTEX NEEDS TO BE INSTALLED 
   output$report <- downloadHandler(
     # For PDF output, change this to "report.pdf"
     filename = "report.html",
