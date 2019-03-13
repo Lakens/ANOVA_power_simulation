@@ -1,5 +1,7 @@
 #ANOVA design function; last update: March 13th, 2019
 #Limit maximum sample size per cell
+#Fixed sigmatrix build for three way designs (\\word+ in for *)
+#Removed afex from this function; no longer necessary
 ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   if (n < 3 || n > 1000) {
@@ -9,7 +11,6 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   #Require packages needed to run the function; return error if not loaded
   require(mvtnorm, quietly = TRUE)
-  require(afex, quietly = TRUE)
   require(emmeans, quietly = TRUE)
   require(ggplot2, quietly = TRUE)
   require(gridExtra, quietly = TRUE)
@@ -56,7 +57,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   mu2 <- mu
   sd2 <- sd
-  sigmatrix <- matrix(r, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
+  sigmatrix_2 <- matrix(r, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
   
   #The loop below is to avoid issues with creating the matrix associated with having a sd < r
   while (sd2 < r) {
@@ -64,13 +65,13 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     mu2 <- mu2*10
   }
   
-  diag(sigmatrix) <- sd2 # replace the diagonal with the sd
+  diag(sigmatrix_2) <- sd2 # replace the diagonal with the sd
   
   
   #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
   df <- as.data.frame(rmvnorm(n=n,
                               mean=mu2,
-                              sigma=sigmatrix))
+                              sigma=sigmatrix_2))
   df$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
   #Melt dataframe
   df <- melt(df, 
@@ -261,7 +262,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     for(i2 in 1:length(design)){
       #We set each number that is within to a wildcard, so that all within subject factors are matched
       
-      if(design[i2]==1){current_factor[i2] <- "*"}
+      if(design[i2]==1){current_factor[i2] <- "\\w+"}
       
     }
     ifelse(factors == 1, 
@@ -277,7 +278,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
                   current_factor <- paste0(c(design_list_split[c(1,3,5)]),
                                            "_",
                                            current_factor, 
-                                           collapse="")))
+                                           collapse="_")))
     
     
     
@@ -288,14 +289,6 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   #So factors manipulated within are correlated, those manipulated between are not.
   
   sigmatrix <- sigma*sigmatrix
-  
-  # We perform the ANOVA using AFEX
-  aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                          data=df, #include_aov = FALSE, #Set to false to speed up analysis; disabled for now
-                                          anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
-  
-  # pairwise comparisons
-  pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
   
   ###############
   # 6. Create plot of means to vizualize the design ----
