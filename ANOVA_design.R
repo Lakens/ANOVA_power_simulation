@@ -5,7 +5,7 @@
 ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   if (n < 3 || n > 1000) {
-    error <- "Sample per cell (n) must be greater than 2 or less than 1001"
+    error <- "Sample per cell (n) must be greater than 2 and less than 1001"
     stop(error)
   }
   

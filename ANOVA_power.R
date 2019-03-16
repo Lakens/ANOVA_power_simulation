@@ -170,7 +170,7 @@ ANOVA_power <- function(design_result, alpha, nsims){
     theme(axis.line.x=element_line(size=1.2,colour=SalientLineColor)) +
     theme(axis.line.y=element_line(colour=BackgroundColor)) + 
     theme(plot.margin = unit(c(1,1,1,1), "cm"))
-  plt1
+  plt1 #Block in Shiny
   
   
   #Plot p-value distributions for simple comparisons
@@ -204,25 +204,25 @@ ANOVA_power <- function(design_result, alpha, nsims){
     theme(axis.line.x=element_line(size=1.2,colour=SalientLineColor)) +
     theme(axis.line.y=element_line(colour=BackgroundColor)) +
     theme(plot.margin = unit(c(1,1,1,1), "cm"))
-  plt2
+  plt2 #Block in Shiny
   
   ###############
   # 9. Sumary of power and effect sizes of main effects and contrasts ----
   ###############
   
   #Main effects and interactions from the ANOVA
-  power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors-1))]), 2, 
+  power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors - 1))]), 2, 
                               function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),round_dig)))
-  es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors-1)))]), 2, 
+  es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors - 1)))]), 2, 
                            function(x) round(median(x),round_dig)))
   
   main_results <- data.frame(power,es)
   names(main_results) = c("power","effect size")
 
   #Data summary for contrasts
-  power_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]), 2, 
+  power_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors - 1) + 1):(2*(2^factors - 1) + possible_pc)]), 2, 
                                      function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),round_dig)))
-  es_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+possible_pc+1):(2*(2^factors-1)+2*possible_pc)]), 2, 
+  es_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors - 1) + possible_pc + 1):(2*(2^factors - 1) + 2*possible_pc)]), 2, 
                                   function(x) round(mean(x),round_dig)))
   
   
