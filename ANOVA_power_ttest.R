@@ -1,4 +1,4 @@
- #ANOVA power function; last update: 10.2.2019
+#ANOVA power function; last update: 10.2.2019
 ANOVA_power <- function(design_result, alpha_level, nsims){
  
   effect_size_d <- function (x, y, conf.level = 0.95){ 
@@ -42,11 +42,9 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
     t_value <- m_diff/(s_diff/sqrt(N))
     p_value = 2*pt(-abs(t_value), 
                    df = df)
-    test_res <- t.test(y, x, paired = TRUE)
-    
+
     #Cohen's d_z, using s_diff as standardizer
     d_z <- t_value/sqrt(N)
-    d_z
     d_z_unb <- (1-(3/(4*(N-1)-1)))*d_z
     
     invisible(list(d_z = d_z, 
@@ -128,6 +126,12 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   #number of columns if for ANOVA results and planned comparisons, times 2 (p and es)
   sim_data <- as.data.frame(matrix(ncol = 2*(2^factors-1)+2*possible_pc, nrow = nsims))
   
+  #set up paired tests
+  df$cond <- as.character(interaction(df[,c(4,3+length(factornames))],sep="_")) #create a new condition variable combine 2 columns (interaction is a cool function!)
+  paired_tests <- combn(unique(df$cond),2)
+  paired_p <- numeric(possible_pc)
+  paired_d <- numeric(possible_pc)
+  within_between <- sigmatrix[upper.tri(sigmatrix)] #based on whether correlation is 0 or not, we can determine if we should run a paired or independent t-test
   #Dynamically create names for the data we will store
   names(sim_data) = c(paste("anova_",
                             rownames(aov_result$anova_table), 
@@ -135,11 +139,11 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
                       paste("anova_es_", 
                             rownames(aov_result$anova_table), 
                             sep=""), 
-                      paste("paired_comparison_", 
-                            pc@grid[["contrast"]], 
+                      paste("p_", 
+                            paste(paired_tests[1,],paired_tests[2,],sep="_"), 
                             sep=""), 
                       paste("d_", 
-                            pc@grid[["contrast"]], 
+                            paste(paired_tests[1,],paired_tests[2,],sep="_"), 
                             sep=""))
   
   
@@ -162,14 +166,9 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
                                             anova_table = list(es = "pes", 
                                                                p_adjust_method = p_adjust))}) #This reports PES not GES
       
-      paired_tests <- combn(levels(df$factor1),2) #get all unique combinations
-      paired_p <- numeric(possible_pc)
-      paired_d <- numeric(possible_pc)
-      within_between <- sigmatrix[upper.tri(sigmatrix)] #based on whether correlation is 0 or not, we can determine if we should run a paired or independent t-test
-      j=1
       for(j in 1:possible_pc){
-        x <- df$y[which(df$factor1==paired_tests[1,j])]
-        y <- df$y[which(df$factor1==paired_tests[2,j])]
+        x <- df$y[which(df$cond==paired_tests[1,j])]
+        y <- df$y[which(df$cond==paired_tests[2,j])]
         #this can be sped up by tweaking the functions that are loaded to only give p and dz
         ifelse(within_between[j]==0,
                t_test_res <- effect_size_d(x, y, conf.level = 1-alpha_level),

@@ -4,9 +4,6 @@ library(emmeans)
 library(ggplot2)
 library(gridExtra)
 library(reshape2)
-source("effect_size_d_independent_function.R")
-source("effect_size_d_paired_function.R")
-source("conf_limits_nct.R")
 
 nsims = 100
 K <- 3
@@ -23,6 +20,25 @@ design_result <- ANOVA_design(string = string,
                               r = r, 
                               p_adjust = "none",
                               labelnames = c("factor1", "level1", "level2", "level3"))
+
+
+nsims = 100
+mu <- c(0, 0.4, 0.4, 0.4)
+n <- 50
+sd <- 1
+r <- 0.5
+string = "2w*2b"
+alpha_level <- 0.05
+p_adjust = "none"
+labelnames = c("age", "old", "young", "color", "blue", "red")
+design_result <- ANOVA_design(string = string,
+                              n = n, 
+                              mu = mu, 
+                              sd = sd, 
+                              r = r, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
 
 round_dig <- 4 #Set digits to which you want to round the output. 
 
