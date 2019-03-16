@@ -1,5 +1,21 @@
-#ANOVA design function; last update: March 4th, 2019
+#ANOVA design function; last update: March 13th, 2019
+#Limit maximum sample size per cell
+#Fixed sigmatrix build for three way designs (\\word+ in for *)
+#Removed afex from this function; no longer necessary
 ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
+  
+  if (n < 3 || n > 1000) {
+    error <- "Sample per cell (n) must be greater than 2 or less than 1001"
+    stop(error)
+  }
+  
+  #Require packages needed to run the function; return error if not loaded
+  require(mvtnorm, quietly = TRUE)
+  require(emmeans, quietly = TRUE)
+  require(ggplot2, quietly = TRUE)
+  require(gridExtra, quietly = TRUE)
+  require(reshape2, quietly = TRUE)
+  
   ###############
   # 1. Specify Design and Simulation----
   ###############
@@ -8,7 +24,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   # Add a w after the number for within factors, and a b for between factors
   # Seperate factors with a * (asteriks)
   # Thus "2b*3w) is a design with 2 between levels, and 3 within levels
-  
+
   #Check if design an means match up - if not, throw an error and stop
   if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
   
@@ -41,7 +57,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   mu2 <- mu
   sd2 <- sd
-  sigmatrix <- matrix(r, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
+  sigmatrix_2 <- matrix(r, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
   
   #The loop below is to avoid issues with creating the matrix associated with having a sd < r
   while (sd2 < r) {
@@ -49,13 +65,13 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     mu2 <- mu2*10
   }
   
-  diag(sigmatrix) <- sd2 # replace the diagonal with the sd
+  diag(sigmatrix_2) <- sd2 # replace the diagonal with the sd
   
   
   #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
   df <- as.data.frame(rmvnorm(n=n,
                               mean=mu2,
-                              sigma=sigmatrix))
+                              sigma=sigmatrix_2))
   df$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
   #Melt dataframe
   df <- melt(df, 
@@ -246,7 +262,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     for(i2 in 1:length(design)){
       #We set each number that is within to a wildcard, so that all within subject factors are matched
       
-      if(design[i2]==1){current_factor[i2] <- "*"}
+      if(design[i2]==1){current_factor[i2] <- "\\w+"}
       
     }
     ifelse(factors == 1, 
@@ -262,7 +278,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
                   current_factor <- paste0(c(design_list_split[c(1,3,5)]),
                                            "_",
                                            current_factor, 
-                                           collapse="")))
+                                           collapse="_")))
     
     
     
@@ -274,20 +290,13 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   sigmatrix <- sigma*sigmatrix
   
-  # We perform the ANOVA using AFEX
-  aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                          data=df,
-                                          anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
-  
-  # pairwise comparisons
-  pc <- suppressWarnings({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
-  
   ###############
   # 6. Create plot of means to vizualize the design ----
   ###############
   
+  #Changed to SD so that way the authors can visually check to make sure the SD matches that of the intended input -- ARC
   
-  df_means <- data.frame(mu, SE = sd / sqrt(n))
+  df_means <- data.frame(mu, SD = sd)
   for(j in 1:factors){
     df_means <- cbind(df_means, as.factor(unlist(rep(as.list(paste(labelnameslist[[j]], 
                                                                    sep="")), 
@@ -296,20 +305,22 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     ))))
   }
   
-  if(factors == 1){names(df_means)<-c("mu","SE",factornames[1])}
-  if(factors == 2){names(df_means)<-c("mu","SE",factornames[1],factornames[2])}
-  if(factors == 3){names(df_means)<-c("mu","SE",factornames[1],factornames[2],factornames[3])}
+  if(factors == 1){names(df_means)<-c("mu","SD",factornames[1])}
+  if(factors == 2){names(df_means)<-c("mu","SD",factornames[1],factornames[2])}
+  if(factors == 3){names(df_means)<-c("mu","SD",factornames[1],factornames[2],factornames[3])}
   
   if(factors == 1){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1]))}
   if(factors == 2){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2]))}
   if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
   
+
   meansplot = meansplot +
-    geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preferene -- ARC
-    geom_errorbar(aes(ymin = mu-SE, ymax = mu+SE), 
+    geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
+    geom_errorbar(aes(ymin = mu-SD, ymax = mu+SD), 
                   position = position_dodge(width=0.9), size=.6, width=.3) +
-    coord_cartesian(ylim=c(min(mu)-(2*(sd/sqrt(n))), max(mu)+(2*(sd/sqrt(n))))) +
+    coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
     theme_bw() + ggtitle("Means for each condition in the design")
+  
   print(meansplot)  #should be blocked in Shiny context
   
   # Return results in list()

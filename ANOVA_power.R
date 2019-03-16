@@ -1,5 +1,14 @@
-#ANOVA power function; last update: 10.2.2019
+#ANOVA power function; last update: March 13th 2019
+#
 ANOVA_power <- function(design_result, alpha, nsims){
+  
+  #Require necessary packages
+  require(mvtnorm, quietly = TRUE)
+  require(afex, quietly = TRUE)
+  require(emmeans, quietly = TRUE)
+  require(ggplot2, quietly = TRUE)
+  require(gridExtra, quietly = TRUE)
+  require(reshape2, quietly = TRUE)
   
   round_dig <- 4 #Set digits to which you want to round the output. 
   
@@ -53,9 +62,10 @@ ANOVA_power <- function(design_result, alpha, nsims){
   frml1 <- design_result$frml1 
   frml2 <- design_result$frml2
   
-  aov_result<- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+  aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                                          data=df,
                                          anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
+  
   
   # pairwise comparisons
   pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust) })
@@ -224,7 +234,7 @@ ANOVA_power <- function(design_result, alpha, nsims){
   # Return Results ----
   #######################
   
-  # The section below should be blocked out when 
+  # The section below should be blocked in Shiny
   cat("Power and Effect sizes for ANOVA tests")
   cat("\n")
   print(main_results)
