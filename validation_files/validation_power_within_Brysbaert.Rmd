@@ -88,7 +88,7 @@ We install the functions:
 # Install the two functions from GitHub by running the code below:
 
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power_ttest.R")
 ```
 
 ## Reproducing Brysbaert
