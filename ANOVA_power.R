@@ -18,9 +18,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
     m_diff <- mean(y - x)
     sd_pooled <- (sqrt((((n1 - 1) * ((sd1^2))) + (n2 - 1) * ((sd2^2))) / ((n1 + n2 - 2)))) #pooled standard deviation
     #Calculate Hedges' correction. Uses gamma, unless this yields a nan (huge n), then uses approximation
-    j <- ifelse(is.na(gamma((n1 + n2 - 2)/2)/(sqrt((n1 + n2 - 2)/2) * gamma(((n1 + n2 - 2) - 1)/2))),
-                (1 - 3/(4 * (n1 + n2 - 2) - 1)), 
-                gamma((n1 + n2 - 2)/2)/(sqrt((n1 + n2 - 2)/2) * gamma(((n1 + n2 - 2) - 1)/2)))
+    j <- (1 - 3/(4 * (n1 + n2 - 2) - 1))
     t_value <- m_diff / sqrt(sd_pooled^2 / n1 + sd_pooled^2 / n2)
     p_value = 2*pt(-abs(t_value), 
                    df = df)
