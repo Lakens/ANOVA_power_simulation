@@ -1,4 +1,4 @@
-#ANOVA power function; last update: March 16 2019
+#ANOVA power function; last update: March 17 2019
 ANOVA_power <- function(design_result, alpha_level, nsims){
  
   #Require necessary packages
@@ -8,6 +8,8 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   require(ggplot2, quietly = TRUE)
   require(gridExtra, quietly = TRUE)
   require(reshape2, quietly = TRUE)
+  
+  options(scipen = 999) # 'turn off' scientific notation
   
   effect_size_d <- function(x, y, conf.level = 0.95){ 
     sd1 <- sd(x) #standard deviation of measurement 1
@@ -235,7 +237,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   BackgroundColor <- "#F0F0F0"
   
   # plot each of the p-value distributions 
-  options(scipen = 999) # 'turn off' scientific notation
+
   plt1 = ggplot(plotData, aes(x = p)) +
     scale_x_continuous(breaks = seq(0, 1, by = .1),
                        labels = seq(0, 1, by = .1)) +
@@ -290,9 +292,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
     theme(axis.line.x = element_line(size = 1.2, colour = SalientLineColor)) +
     theme(axis.line.y = element_line(colour = BackgroundColor)) +
     theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
-  plt1
-  
-  
+
   #Plot p-value distributions for simple comparisons
   # melt the data into a ggplot friendly 'long' format
   p_paired <- sim_data[(2 * (2 ^ factors - 1) + 1):(2 * (2 ^ factors - 1) + possible_pc)]
@@ -354,8 +354,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
     theme(axis.line.x = element_line(size = 1.2, colour = SalientLineColor)) +
     theme(axis.line.y = element_line(colour = BackgroundColor)) +
     theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
-  plt2
-  
+
   ###############
   # 9. Sumary of power and effect sizes of main effects and contrasts ----
   ###############
@@ -397,6 +396,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   invisible(list(sim_data = sim_data,
                  main_results = main_results,
                  pc_results = pc_results,
-                 plot1 = plt1))
+                 plot1 = plt1,
+                 plot2 = plt2))
   
 }
