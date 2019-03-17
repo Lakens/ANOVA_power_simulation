@@ -122,16 +122,22 @@ server <- function(input, output) {
   
   v <- reactiveValues(data = NULL)
   
-  #ANOVA design function; last update: March 13th, 2019
-  #Limit maximum sample size per cell
-  #Fixed sigmatrix build for three way designs (\\word+ in for *)
-  #Removed afex from this function; no longer necessary
+  #ANOVA design function; last update: March 17th, 2019
+  #Error message for labelnames length
+  #Factor order set for the meansplot
   ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     
+    #Checks to ensure information is entered correctly into function
     if (n < 3 || n > 1000) {
       error <- "Sample per cell (n) must be greater than 2 and less than 1001"
       stop(error)
     }
+    
+    if (length(labelnames) != length(as.numeric(strsplit(string, "\\D+")[[1]])) + sum(as.numeric(strsplit(string, "\\D+")[[1]]))) {
+      stop("Design (string) does not match the length of the labelnames")
+    }
+    
+    
     
     #Require packages needed to run the function; return error if not loaded
     require(mvtnorm, quietly = TRUE)
@@ -175,6 +181,7 @@ server <- function(input, output) {
     if(factors == 1){factornames <- c(factornames1)}
     if(factors == 2){factornames <- c(factornames1,factornames2)}
     if(factors == 3){factornames <- c(factornames1,factornames2,factornames3)}  
+    
     #Specify within/between factors in design: Factors that are within are 1, between 0
     design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
     design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
@@ -429,9 +436,22 @@ server <- function(input, output) {
       ))))
     }
     
-    if(factors == 1){names(df_means)<-c("mu","SD",factornames[1])}
-    if(factors == 2){names(df_means)<-c("mu","SD",factornames[1],factornames[2])}
-    if(factors == 3){names(df_means)<-c("mu","SD",factornames[1],factornames[2],factornames[3])}
+    if(factors == 1){
+      names(df_means) <- c("mu","SD",factornames[1])
+      df_means[,factornames[1]] <- ordered(df_means[,factornames[1]], levels = labelnameslist[[1]])
+    }
+    if(factors == 2){
+      names(df_means)<-c("mu","SD",factornames[1],factornames[2])
+      df_means[,factornames[1]] <- ordered(df_means[,factornames[1]], levels = labelnameslist[[1]])                   
+      df_means[,factornames[2]] <- ordered(df_means[,factornames[2]], levels = labelnameslist[[2]])                   
+    }
+    
+    if(factors == 3){
+      names(df_means)<-c("mu","SD",factornames[1],factornames[2],factornames[3])
+      df_means[,factornames[1]] <- ordered(df_means[,factornames[1]], levels = labelnameslist[[1]])
+      df_means[,factornames[2]] <- ordered(df_means[,factornames[2]], levels = labelnameslist[[2]])
+      df_means[,factornames[3]] <- ordered(df_means[,factornames[3]], levels = labelnameslist[[3]])
+    }
     
     if(factors == 1){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1]))}
     if(factors == 2){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2]))}
