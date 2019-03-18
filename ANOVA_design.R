@@ -332,9 +332,9 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     df_means[,factornames[3]] <- ordered(df_means[,factornames[3]], levels = labelnameslist[[3]])
   }
   
-  if(factors == 1){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1]))}
-  if(factors == 2){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2]))}
-  if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
+  if(factors == 1){meansplot = ggplot(df_means, aes_string(y = "mu", x = factornames[1]))}
+  if(factors == 2){meansplot = ggplot(df_means, aes_string(y = "mu", x = factornames[1], colour = factornames[2]))}
+  if(factors == 3){meansplot = ggplot(df_means, aes_string(y = "mu", x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
   
   #Set custom color palette if factor 2 has a length greater than 8
   if (factors >= 2 && length(labelnameslist[[2]]) >= 9) {
