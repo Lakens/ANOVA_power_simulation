@@ -1,4 +1,5 @@
 #ANOVA power function; last update: March 17 2019
+#Using include_aov to speed up function with large sample sizes
 ANOVA_power <- function(design_result, alpha_level, nsims){
  
   #Require necessary packages
@@ -115,11 +116,11 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   frml2 <- design_result$frml2
   
   aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                         data = df,
+                                         data = df, include_aov = FALSE,
                                          anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
   
   # pairwise comparisons
-  pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust) })
+  #pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust) })
   
   ############################################
   #Specify factors for formula ###############

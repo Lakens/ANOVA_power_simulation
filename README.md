@@ -27,8 +27,6 @@ source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/A
 ###############
 
 library(mvtnorm)
-#Developmental version of afex is needed for now
-devtools::install_github("singmann/afex@master") 
 library(afex)
 library(emmeans)
 library(ggplot2)
