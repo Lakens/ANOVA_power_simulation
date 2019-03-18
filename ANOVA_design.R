@@ -251,13 +251,14 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   }  
   cor_mat <- generate_cor_matrix(vars = vars, cors = cors)
   
-  if (length(sd) == 1) {
-    sd <- rep(sd, vars)
-  } else if (length(sd) != vars) {
-    stop("the length of sd must be 1 or vars");
+  sd_for_sigma <- sd #added to prevent changing sd which is now passed on
+  if (length(sd_for_sigma) == 1) {
+    sd_for_sigma <- rep(sd_for_sigma, vars)
+  } else if (length(sd_for_sigma) != vars) {
+    stop("the length of sd_for_sigma must be 1 or vars");
   }
   
-  sigma <- (sd %*% t(sd)) * cor_mat #Our earlier code had a bug, with SD on the diagonal. Not correct! Thanks Lisa.
+  sigma <- (sd_for_sigma %*% t(sd_for_sigma)) * cor_mat #Our earlier code had a bug, with SD on the diagonal. Not correct! Thanks Lisa.
   
   #check if code below works with more than 1 factor!
   row.names(sigma) <- design_list
@@ -336,10 +337,10 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
   
   #Set custom color palette if factor 2 has a length greater than 8
-  if (factors >= 2 & length(labelnameslist[[2]]) >= 9) {
+  #if (factors >= 2 & length(labelnameslist[[2]]) >= 9) {
     
-    colourCount = length(unique(labelnameslist[[2]]))
-    getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
+    #colourCount = length(unique(labelnameslist[[2]]))
+    #getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
     
     meansplot2 = meansplot +
       geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
@@ -347,9 +348,10 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
                     position = position_dodge(width=0.9), size=.6, width=.3) +
       coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
       theme_bw() + ggtitle("Means for each condition in the design") + 
-      scale_colour_manual(values = getPalette(colourCount)) #scale_colour_brewer(palette = "Dark2")
+      scale_colour_manual() #scale_colour_brewer(palette = "Dark2")
+      #DELETED scale_colour_manual(values = getPalette(colourCount)) #scale_colour_brewer(palette = "Dark2")
     
-  }
+  #}
   
   
   
