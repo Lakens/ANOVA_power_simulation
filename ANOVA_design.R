@@ -18,7 +18,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   #Require packages needed to run the function; return error if not loaded
   require(mvtnorm, quietly = TRUE)
-  require(emmeans, quietly = TRUE)
+  #require(emmeans, quietly = TRUE)
   require(ggplot2, quietly = TRUE)
   require(gridExtra, quietly = TRUE)
   require(reshape2, quietly = TRUE)
@@ -337,10 +337,10 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
   
   #Set custom color palette if factor 2 has a length greater than 8
-  #if (factors >= 2 & length(labelnameslist[[2]]) >= 9) {
+  if (factors >= 2 && length(labelnameslist[[2]]) >= 9) {
     
-    #colourCount = length(unique(labelnameslist[[2]]))
-    #getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
+    colourCount = length(unique(labelnameslist[[2]]))
+    getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
     
     meansplot2 = meansplot +
       geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
@@ -348,20 +348,22 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
                     position = position_dodge(width=0.9), size=.6, width=.3) +
       coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
       theme_bw() + ggtitle("Means for each condition in the design") + 
-      scale_colour_manual() #scale_colour_brewer(palette = "Dark2")
-      #DELETED scale_colour_manual(values = getPalette(colourCount)) #scale_colour_brewer(palette = "Dark2")
+     scale_colour_manual(values = getPalette(colourCount)) #scale_colour_brewer(palette = "Dark2")
     
-  #}
+  } else {
+    
+    meansplot2 = meansplot +
+      geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
+      geom_errorbar(aes(ymin = mu-SD, ymax = mu+SD), 
+                    position = position_dodge(width=0.9), size=.6, width=.3) +
+      coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
+      theme_bw() + ggtitle("Means for each condition in the design") + 
+      scale_colour_brewer(palette = "Dark2")
+  }
   
   
   
-  meansplot2 = meansplot +
-    geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
-    geom_errorbar(aes(ymin = mu-SD, ymax = mu+SD), 
-                  position = position_dodge(width=0.9), size=.6, width=.3) +
-    coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
-    theme_bw() + ggtitle("Means for each condition in the design") + 
-    scale_colour_brewer(palette = "Dark2")
+
   
   print(meansplot2)  #should be blocked in Shiny context
   
