@@ -2,6 +2,7 @@
 title: "Simulation Results"
 subtitle: "Shiny App developed by Dani&euml;l Lakens and Aaron Caldwell"
 output: pdf_document
+date: '`r format(Sys.time(), "%B %d, %Y")`'
 params:
   tablePC: NA,
   tableMain: NA,
