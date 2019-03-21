@@ -4,7 +4,7 @@ output: github_document
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 10000 #set number of simulations
+nsims <- 100000 #set number of simulations
 library(mvtnorm)
 library(afex)
 library(emmeans)
@@ -31,7 +31,7 @@ We can simulate a Two-Way ANOVA with a specific alpha, sample size and effect si
 
 ![](screenshots/gpower_5.png)
 
-For the 2way interaction, the result should be a power of 91.25% is we have a total samplesize of 46. Since we have 2 groups in the between factor that means the sample size per group is 2 (and both these groups collect 2 repeated measures). 
+For the 2-way interaction, the result should be a power of 91.25% is we have a total samplesize of 46. Since we have 2 groups in the between factor that means the sample size per group is 2 (and both these groups collect 2 repeated measures). 
 
 ```{r}
 mu <- c(-0.25, 0.25, 0.25, -0.25)

@@ -2,9 +2,9 @@
 output: github_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 100 #set number of simulations
+nsims <- 100000 #set number of simulations
 library(mvtnorm)
 library(afex)
 library(emmeans)

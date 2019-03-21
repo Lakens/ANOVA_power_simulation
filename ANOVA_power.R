@@ -103,7 +103,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   #Specify within/between factors in design: Factors that are within are 1, between 0
   design <- design_result$design
   
-  sigmatrix <- design_result$sig
+  sigmatrix <- design_result$sigmatrix
   
   #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
   df <- design_result$df
@@ -145,17 +145,17 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   ))
   
   #set up paired tests
-  
-  #Need to identify which columns from df to pull the factor names from
-  if (design_result$factors == 1) {
-    cond_col <- c(4)
-  } else if (design_result$factors == 2) {
-    cond_col <- c(4, 5)
-  } else {
-    cond_col <- c(4, 5, 6)
-  }
-  
-  df$cond <- as.character(interaction(df[, cond_col], sep = "_")) #create a new condition variable combine 2 columns (interaction is a cool function!)
+  # Moved to DESIGN
+  # #Need to identify which columns from df to pull the factor names from
+  # if (design_result$factors == 1) {
+  #   cond_col <- c(4)
+  # } else if (design_result$factors == 2) {
+  #   cond_col <- c(4, 5)
+  # } else {
+  #   cond_col <- c(4, 5, 6)
+  # }
+  # 
+  # df$cond <- as.character(interaction(df[, cond_col], sep = "_")) #create a new condition variable combine 2 columns (interaction is a cool function!)
   paired_tests <- combn(unique(df$cond),2)
   paired_p <- numeric(possible_pc)
   paired_d <- numeric(possible_pc)

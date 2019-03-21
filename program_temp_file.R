@@ -1,12 +1,12 @@
 library(MASS)
 
-design_result <- ANOVA_design(string = "2b*3w",
+design_result <- ANOVA_design(string = "2w*2w",
                               n = 80, 
-                              mu = c(1.03, 1.21, 0.98, 1.01, 1, 1), 
+                              mu = c(1.03, 1.21, 0.98, 1.01), 
                               sd = 1.03, 
                               r=0.87, 
                               p_adjust = "none",
-                              labelnames = c("age", "old", "young", "speed", "fast", "slow", "medium"))
+                              labelnames = c("age", "old", "young", "speed", "fast", "slow"))
 
 simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = 100)
 

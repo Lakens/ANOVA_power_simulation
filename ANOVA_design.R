@@ -66,10 +66,10 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   mu2 <- mu
   sd2 <- sd
-  sigmatrix_2 <- matrix(r, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
+  sigmatrix_2 <- matrix(0, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
   
   #The loop below is to avoid issues with creating the matrix associated with having a sd < r
-  while (sd2 < r) {
+  while (sd2 < min(r)) {
     sd2 <- sd2*10
     mu2 <- mu2*10
   }
@@ -122,6 +122,18 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   #Overwrite subject columns in df
   df$subject <- subject
+  #For the correlation matrix, we want the names of each possible comparison of means
+  #Need to identify which columns from df to pull the factor names from
+  if (factors == 1) {
+    cond_col <- c(4)
+  } else if (factors == 2) {
+    cond_col <- c(4, 5)
+  } else {
+    cond_col <- c(4, 5, 6)
+  }
+  
+  df$cond <- as.character(interaction(df[, cond_col], sep = "_")) #create a new condition variable combine 2 columns (interaction is a cool function!)
+  paired_tests <- combn(unique(df$cond),2)
   
   ###############
   # 3. Specify factors for formula ----
@@ -173,11 +185,6 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   #from: https://github.com/debruine/faux/blob/master/R/rnorm_multi.R
   # correlation matrix
   generate_cor_matrix  <- function(vars = 3, cors = 0, mu = 0, sd = 1) {
-    # error handling
-    if ( !is.numeric(n) || n %% 1 > 0 || n < 3 ) {
-      stop("n must be an integer > 2")
-    }
-    
     if (length(mu) == 1) {
       mu <- rep(mu, vars)
     } else if (length(mu) != vars) {
@@ -260,10 +267,6 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   sigma <- (sd_for_sigma %*% t(sd_for_sigma)) * cor_mat #Our earlier code had a bug, with SD on the diagonal. Not correct! Thanks Lisa.
   
-  #check if code below works with more than 1 factor!
-  row.names(sigma) <- design_list
-  colnames(sigma) <- design_list
-  
   #General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
   #Then for each factor in the design, if 1, set number to wildcard
   for(i1 in 1:length(design_list)){
@@ -299,6 +302,8 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   #So factors manipulated within are correlated, those manipulated between are not.
   
   sigmatrix <- sigma*sigmatrix
+  row.names(sigmatrix) <- design_list
+  colnames(sigmatrix) <- design_list
   
   ###############
   # 6. Create plot of means to vizualize the design ----
@@ -378,7 +383,8 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
                  sd = sd,
                  r = r,
                  n = n, 
-                 p_adjust = p_adjust, 
+                 p_adjust = p_adjust,
+                 cor_mat = cor_mat,
                  sigmatrix = sigmatrix,
                  string = string,
                  labelnames = labelnames,

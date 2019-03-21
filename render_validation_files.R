@@ -2,8 +2,16 @@ rmarkdown::render("validation_files/1.1_validation_power_between_1x2.Rmd")
 rmarkdown::render("validation_files/1.1_validation_power_between_1x2.md", output_format = "pdf_document")
 rmarkdown::render("validation_files/1.2_validation_power_between_1x3.Rmd")
 rmarkdown::render("validation_files/1.2_validation_power_between_1x3.md", output_format = "pdf_document")
+rmarkdown::render("validation_files/1.2_validation_power_between_Brysbaert_1x3.Rmd")
+rmarkdown::render("validation_files/1.2_validation_power_between_Brysbaert_1x3.md", output_format = "pdf_document")
 rmarkdown::render("validation_files/2.1_validation_power_within_2x1.Rmd")
 rmarkdown::render("validation_files/2.1_validation_power_within_2x1.md", output_format = "pdf_document")
+rmarkdown::render("validation_files/2.2_validation_power_within_3x1.Rmd")
+rmarkdown::render("validation_files/2.2_validation_power_within_3x1.md", output_format = "pdf_document")
+rmarkdown::render("validation_files/2.3_validation_power_within_Brysbaert_3x1.Rmd")
+rmarkdown::render("validation_files/2.3_validation_power_within_Brysbaert_3x1.md", output_format = "pdf_document")
+rmarkdown::render("validation_files/3.1_validation_power_between_within_2x2.Rmd")
+rmarkdown::render("validation_files/3.1_validation_power_between_within_2x2.md", output_format = "pdf_document")
 
 
 

@@ -101,3 +101,21 @@ sd <- 1
 var_within <- sum((mu-mean(mu))^2)/length(mu) #Variance of the within effect
 var_group <- sd^2
 f <- sqrt(var_within)/sqrt(var_group)
+
+
+# lambda in SPSS
+# Personal communication, Erdfelder:
+f <- 0.25
+k <- 1
+m <- 3
+n <- 20
+e <- 1 #non-spericity correction
+r <- 0.7
+d <- 0.5
+alpha <- 0.05
+
+df1 <- (m - 1) * e
+df2 <- (n - k) * (m - 1) * e
+
+lambda_spss = f^2 * df2
+lambda <- (n * m * f^2) / (1 - r) # lambda within
