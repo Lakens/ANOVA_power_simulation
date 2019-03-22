@@ -1,4 +1,4 @@
-#ANOVA power function; last update: March 17 2019
+#ANOVA power function; last update: March 22 2019
 #Using include_aov to speed up function with large sample sizes
 ANOVA_power <- function(design_result, alpha_level, nsims){
  
@@ -88,9 +88,6 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   
   #indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
   p_adjust <- design_result$p_adjust
-  
-  # how many studies should be simulated? 100.000 is very accurate, 10.000 reasonable accurate, 10.000 somewhat accurate
-  nsims = nsims
   
   
   ###############
@@ -384,7 +381,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   # Return Results ----
   #######################
   
-  # The section below should be blocked out when 
+  # The section below should be blocked out when in Shiny
   cat("Power and Effect sizes for ANOVA tests")
   cat("\n")
   print(main_results)

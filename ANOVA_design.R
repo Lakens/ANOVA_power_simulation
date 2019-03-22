@@ -1,7 +1,5 @@
-#ANOVA design function; last update: March 17th, 2019
-#Error message for labelnames length
-#Factor order set for the meansplot
-#Update color palette output
+#ANOVA design function; last update: March 22, 2019
+#Update output
 ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   #Checks to ensure information is entered correctly into function
@@ -300,7 +298,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   #Now multiply the matrix we just created (that says what is within, and what is between,  with the original covariance matrix)
   #So factors manipulated within are correlated, those manipulated between are not.
-  
+  cor_mat <- sigmatrix*cor_mat
   sigmatrix <- sigma*sigmatrix
   row.names(sigmatrix) <- design_list
   colnames(sigmatrix) <- design_list
