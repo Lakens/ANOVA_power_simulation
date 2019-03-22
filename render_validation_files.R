@@ -12,6 +12,8 @@ rmarkdown::render("validation_files/2.3_validation_power_within_Brysbaert_3x1.Rm
 rmarkdown::render("validation_files/2.3_validation_power_within_Brysbaert_3x1.md", output_format = "pdf_document")
 rmarkdown::render("validation_files/3.1_validation_power_between_within_2x2.Rmd")
 rmarkdown::render("validation_files/3.1_validation_power_between_within_2x2.md", output_format = "pdf_document")
+rmarkdown::render("validation_files/3.2_validation_power_between_within_2x2_Amsel.Rmd")
+rmarkdown::render("validation_files/3.2_validation_power_between_within_2x2_Amsel.md", output_format = "pdf_document")
 
 
 

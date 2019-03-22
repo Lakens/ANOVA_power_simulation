@@ -1,0 +1,89 @@
+---
+output: github_document
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+nsims <- 1000000 #set number of simulations
+library(mvtnorm)
+library(afex)
+library(emmeans)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
+
+```
+
+## Validation of Power in Mixed ANOVA
+
+We install the functions:
+
+```{r}
+# Install the two functions from GitHub by running the code below:
+
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+```
+
+## Three by three ANOVA, within-between design
+
+Potvin & Schutz (2000) simulate a wide range of repeated measure designs. The give an example of a 3x3 design, with the following correlation matrix:
+
+![](screenshots/PS2000.png)
+
+Variances were set to 1 (so all covariance matrices in their simulations were identical). In this specific example, the white fields are related to the correlation for the A main effect (these cells have the same level for B, but different levels of A). The grey cells are related to the main effect of B (the cells have the same level of A, but different levels of B). Finally, the black cells are related to the AxB interaction (they have different levels of A and B). The diagonal (all 1) relate to cells with the same levels of A and B. 
+
+```{r}
+
+r <- c(
+0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8, 0.8, 0.8, 0.8,
+0.4, 0.4, 0.4, 0.4, 0.8, 0.4, 0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8, 0.8, 0.8,
+0.4, 0.4, 0.4, 0.8, 0.8, 0.4, 0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8, 0.8,
+0.4, 0.4, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8,
+0.4, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8,
+0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8, 0.8, 0.8, 0.8, 0.4,
+0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8, 0.8, 0.8, 0.8,
+0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8, 0.8, 0.8,
+0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8, 0.8,
+0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8, 0.8,
+0.8, 0.8, 0.8, 0.8, 0.8, 0.4, 0.8,
+0.8, 0.8, 0.8, 0.8, 0.8, 0.4,
+0.8, 0.8, 0.8, 0.8, 0.8,
+0.8, 0.8, 0.8, 0.8,
+0.8, 0.8, 0.8,
+0.8, 0.8,
+0.8)
+																	1
+
+
+```
+
+
+
+We can reproduce this simulation:
+
+```{r}
+mu = c(700, 670, 670, 700) # true effects (in this case, a double dissociation)
+sigma = 150  # population standard deviation
+rho = 0.75 # correlation between repeated measures
+n <- 25
+sd <- 150
+r <- 0.75
+string = "2w*2w"
+alpha_level <- 0.05
+p_adjust = "none"
+labelnames = c("age", "old", "young", "color", "blue", "red")
+design_result <- ANOVA_design(string = string,
+                              n = n, 
+                              mu = mu, 
+                              sd = sd, 
+                              r = r, 
+                              p_adjust = p_adjust,
+
+                                                            labelnames = labelnames)
+
+simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = nsims)
+
+```
+
+We see the results of the two simulations correspond. 
