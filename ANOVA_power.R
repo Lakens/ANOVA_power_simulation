@@ -1,5 +1,4 @@
 #ANOVA power function; last update: March 22 2019
-#MANOVA output included
 ANOVA_power <- function(design_result, alpha_level, nsims){
  
   #Require necessary packages
@@ -167,9 +166,6 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
                             sep = ""), 
                       paste("d_", 
                             paste(paired_tests[1,],paired_tests[2,], sep = "_"), 
-                            sep = ""),
-                      paste("manova_",
-                            rownames(manova_result), 
                             sep = ""))
   
   
