@@ -134,12 +134,33 @@ F_critical <- qf(alpha, # critical F-vaue
 pow <- pf(qf(alpha, #power 
              df1, 
              df2, 
-             lower = FALSE), 
+             lower.tail = FALSE), 
           df1, 
           df2, 
           lambda, 
-          lower = FALSE)
+          lower.tail = FALSE)
 pow
+
+
+lambda_AB <- n * sum((mean_mat-rowMeans(mean_mat)-colMeans(mean_mat)+mean(mean_mat))^2) / variance_e_AB 
+lambda_AB
+df1 <- (m_A - 1)*(m_B - 1)  #calculate degrees of freedom 1
+df2 <- (n - k) * (m_A - 1) * (m_B - 1) #calculate degrees of freedom 2
+F_critical <- qf(alpha, # critical F-vaue
+                 df1,
+                 df2, 
+                 lower.tail=FALSE) 
+
+pow <- pf(qf(alpha, #power 
+             df1, 
+             df2, 
+             lower.tail = FALSE), 
+          df1, 
+          df2, 
+          lambda_AB, 
+          lower.tail = FALSE)
+pow
+
 
 ```
 

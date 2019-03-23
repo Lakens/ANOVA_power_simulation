@@ -269,7 +269,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   #Then for each factor in the design, if 1, set number to wildcard
   for(i1 in 1:length(design_list)){
     design_list_split <- unlist(strsplit(design_list[i1],"_"))
-    current_factor <- design_list_split[c(2,4,6)[1:length(design)]] #this creates a strong of 2, 2,4 or 2,4,6 depending on the length of the design for below
+    current_factor <- design_list_split[c(2,4,6)[1:length(design)]] #this creates a string of 2, 2,4 or 2,4,6 depending on the length of the design for below
     for(i2 in 1:length(design)){
       #We set each number that is within to a wildcard, so that all within subject factors are matched
       
