@@ -133,7 +133,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   #create empty dataframe to store simulation results
   #number of columns if for ANOVA results and planned comparisons, times 2 (p and es)
   sim_data <- as.data.frame(matrix(
-    ncol = 2 * (2 ^ factors - 1) + (2 ^ factors) + 2 * possible_pc,
+    ncol = 2 * (2 ^ factors - 1) + 2 * possible_pc,
     nrow = nsims
   ))
   
