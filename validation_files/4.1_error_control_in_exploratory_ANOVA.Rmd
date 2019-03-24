@@ -76,9 +76,17 @@ sum(apply(as.matrix(power_result$sim_data[(1:7)]), 1,
 
 The question is what we should do about this alpha inflation. It is undesirable if you perform exploratory ANOVA's and are fooled too often by Type 1 errors, which will not replicate if you try to build on them. Therefore, you need to control the Type 1 error rate. 
 
-In the simulation code, which relies on the afex package, there is the option to set p_adjust. In the simulation above, p_adjust was set to "none". This means no adjustment is mage to which p-values are considered to be significant, and the alpha level is used as it is set in the simulation (above this was 0.05). 
+In the simulation code, which relies on the afex package, there is the option to set p_adjust. In the simulation above, p_adjust was set to "none". This means no adjustment is mage to which p-values are considered to be significant, and the alpha level is used as it is set in the simulation (above this was 0.05).
 
+Afex relies on the p.adjust functon in the stats package in R (more information is available [here](https://www.rdocumentation.org/packages/stats/versions/3.1.1/topics/p.adjust)). From the package details: 
 
+*The adjustment methods include the Bonferroni correction ("bonferroni") in which the p-values are multiplied by the number of comparisons. Less conservative corrections are also included by Holm (1979) ("holm"), Hochberg (1988) ("hochberg"), Hommel (1988) ("hommel"), Benjamini & Hochberg (1995) ("BH" or its alias "fdr"), and Benjamini & Yekutieli (2001) ("BY"), respectively. A pass-through option ("none") is also included.  The first four methods are designed to give strong control of the family-wise error rate. There seems no reason to use the unmodified Bonferroni correction because it is dominated by Holm's method, which is also valid under arbitrary assumptions.*
+
+*Hochberg's and Hommel's methods are valid when the hypothesis tests are independent or when they are non-negatively associated (Sarkar, 1998; Sarkar and Chang, 1997). Hommel's method is more powerful than Hochberg's, but the difference is usually small and the Hochberg p-values are faster to compute.*
+
+*The "BH" (aka "fdr") and "BY" method of Benjamini, Hochberg, and Yekutieli control the false discovery rate, the expected proportion of false discoveries amongst the rejected hypotheses. The false discovery rate is a less stringent condition than the family-wise error rate, so these methods are more powerful than the others.*
+
+Let's re-run the simulation twith the Holm-Bonferroni correction, which is simple and require no assumptions.
 
 ```{r}
 
@@ -91,7 +99,7 @@ r <- 0
 # (note that since we simulate a between design, the correlation between variables 
 # will be 0, regardless of what you enter here, but the value must be set).
 p_adjust = "holm"
-# "none" means we do not correct for multiple comparisons
+# Changed to Holm-Bonferroni
 labelnames <- c("condition1", "a", "b", "condition2", "c", "d", "condition3", "e", "f") #
 # the label names should be in the order of the means specified above.
 
