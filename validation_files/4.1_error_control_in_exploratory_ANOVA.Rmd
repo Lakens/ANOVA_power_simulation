@@ -1,0 +1,121 @@
+---
+output: github_document
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+nsims <- 100000 #set number of simulations
+library(mvtnorm)
+library(afex)
+library(emmeans)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
+library(pwr)
+
+# Install functions from GitHub by running the code below:
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/mu_from_ES.R")
+
+```
+
+## Error Control in Exploratory ANOVA
+
+In a 2X2X2 design, an ANOVA will give the test results for three main effects, three two-way interactions, and one three-way interaction. That’s 7 statistical tests. The probability of making at least one Type 1 error in a single 2x2x2 ANOVA is 1-(0.95)^7 = 30%.
+
+
+
+```{r}
+
+string <- "2b*2b*2b"
+n <- 50
+mu <- c(20, 20, 20, 20, 20, 20, 20, 20) #All means are equal - so there is no real difference.
+# Enter means in the order that matches the labels below.
+sd <- 5
+r <- 0 
+# (note that since we simulate a between design, the correlation between variables 
+# will be 0, regardless of what you enter here, but the value must be set).
+p_adjust = "none"
+# "none" means we do not correct for multiple comparisons
+labelnames <- c("condition1", "a", "b", "condition2", "c", "d", "condition3", "e", "f") #
+# the label names should be in the order of the means specified above.
+
+design_result <- ANOVA_design(string = string,
+                   n = n, 
+                   mu = mu, 
+                   sd = sd, 
+                   r = r, 
+                   p_adjust = p_adjust,
+                   labelnames = labelnames)
+
+alpha_level <- 0.05
+#We set the alpha level at 0.05. 
+
+power_result <- ANOVA_power(design_result, alpha_level = alpha_level, nsims = nsims)
+
+```
+
+When there is no true effect, we formally do not have 'power' (which is defined as the probability of finding p < $\alpha$ if there is a true effect to be found) so the power column should be read as the 'Type 1 error rate'. Because we have saved the power simulation in the 'power_result' object, we can perform calculations on the 'sim_data' dataframe that is stored. This dataframe contains the results for the nsims simulations (e.g., 10000 rows if you ran 10000 simulations) and stores the p-values and effect size estimates for each ANOVA. The first 7 columns are the p-values for the ANOVA, first the main effects of condition 1, 2, and 3, then three two-way interactions, and finally the threeway interaction.
+
+We can calculate the number of significant results for each test (which should be 5%) by counting the number of significant p-values in each of the 7 rows:
+
+```{r}
+apply(as.matrix(power_result$sim_data[(1:7)]), 2, 
+    function(x) round(mean(ifelse(x < alpha_level, 1, 0) * 100),4))
+```
+
+This is the Type 1 error rate for each test. When we talk about error rate inflation due to multiple comparisons, we are talking about the probability that you conclude there is an effect, when there is actually no effect, when there is a significant effect for the main effect of condition 1, or condition 2, or condition 3, or for the two-way interaction between condition 1 and 2, or condition 1 and 3, or condition 2 and 3, or in the threeway interaction. 
+
+To calculate this error rate we do not just add the 7 error rates (so 7 * 5% - 35%). Instead, we calculate the probability that there will be at least one significant result in an ANOVA we perform. Some ANOVA results will have multiple significant results, just due to the Type 1 error rate (e.g., a significant result for the threeway interaction, and for the main effect of condition 1) but such an ANOVA is counted only once. Iwe calculate this percentage from our simulations, we see the number is indeed very close to 1-(0.95)^7 = 30%.  
+
+```{r}
+sum(apply(as.matrix(power_result$sim_data[(1:7)]), 1, 
+    function(x) round(mean(ifelse(x < alpha_level, 1, 0) * 100),4)) > 0)/nsims*100
+```
+
+The question is what we should do about this alpha inflation. It is undesirable if you perform exploratory ANOVA's and are fooled too often by Type 1 errors, which will not replicate if you try to build on them. Therefore, you need to control the Type 1 error rate. 
+
+In the simulation code, which relies on the afex package, there is the option to set p_adjust. In the simulation above, p_adjust was set to "none". This means no adjustment is mage to which p-values are considered to be significant, and the alpha level is used as it is set in the simulation (above this was 0.05). 
+
+
+
+```{r}
+
+string <- "2b*2b*2b"
+n <- 50
+mu <- c(20, 20, 20, 20, 20, 20, 20, 20) #All means are equal - so there is no real difference.
+# Enter means in the order that matches the labels below.
+sd <- 5
+r <- 0 
+# (note that since we simulate a between design, the correlation between variables 
+# will be 0, regardless of what you enter here, but the value must be set).
+p_adjust = "holm"
+# "none" means we do not correct for multiple comparisons
+labelnames <- c("condition1", "a", "b", "condition2", "c", "d", "condition3", "e", "f") #
+# the label names should be in the order of the means specified above.
+
+design_result <- ANOVA_design(string = string,
+                   n = n, 
+                   mu = mu, 
+                   sd = sd, 
+                   r = r, 
+                   p_adjust = p_adjust,
+                   labelnames = labelnames)
+
+alpha_level <- 0.05
+#We set the alpha level at 0.05. 
+
+power_result <- ANOVA_power(design_result, alpha_level = alpha_level, nsims = nsims)
+
+```
+
+If we now calculate the overall Type 1 error rate:
+
+
+```{r}
+sum(apply(as.matrix(power_result$sim_data[(1:7)]), 1, 
+    function(x) round(mean(ifelse(x < alpha_level, 1, 0) * 100),4)) > 0)/nsims*100
+```
+
+We see it is close to 5%. Note that error rates have variation, and even in a few thousand simulations, the error rate in the sample of studies can easily be half a percentage point higher or lower. But *in the long run* the error rate should equal the alpha level. Furthermore, note that the [Holm-bonferroni](https://en.wikipedia.org/wiki/Holm%E2%80%93Bonferroni_method) method is slightly more powerful than the Bonferroni procedure (which is simply $\alpha$ divided by the numner of tests). There are more powerful procedures to control the Type 1 error rate, which require more assumptions. For a small number of tests, they Holm-Bonferroni procedure works well. Alternative procedure to control error rates can be found in the [multcomp](https://cran.r-project.org/web/packages/multcomp/index.html) R package.  
