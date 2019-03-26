@@ -72,7 +72,7 @@ grid.arrange(p_a$p1, p_a$p2, p_a$p3, nrow = 1)
 
 The design has means 0, 0, 0, 0, with one cell increasing by 0.1, up to 0, 0, 0, 0.5. The standard deviation is set to 1. The correlation between all variables is 0.5. 
 
-```{r}
+```{r, fig.height = 10, fig.width = 7}
 
 p_a <- plot_power_2x2_within(mu = c(0,0,0,0.0), 
                       m_A = 2, 
@@ -156,7 +156,7 @@ ggplot(data=zzz, aes(x = n_vec, y = value)) +
 
 The design has means 0, 0, 0, 0, with two cells increasing by 0.1, up to 0.5, 0, 0, 0.5. The standard deviation is set to 1. The correlation between all variables is 0.5. 
 
-```{r}
+```{r, fig.height = 10, fig.width = 7}
 
 p_a <- plot_power_2x2_within(mu = c(0,0,0,0.0), 
                       m_A = 2, 
@@ -240,7 +240,7 @@ ggplot(data=zzz, aes(x = n_vec, y = value)) +
 
 The design has means 0, 0, 0, 0.3. The standard deviation is set to 1. The correlation between all variables increases from 0.5 to 0.9. 
 
-```{r}
+```{r, fig.height = 10, fig.width = 7}
 
 p_a <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
                       m_A = 2, 
@@ -321,9 +321,13 @@ ggplot(data=zzz, aes(x = n_vec, y = value)) +
 ```
 
 
+# Increasing correlation in on factor decreases power in second factor
 
+As Potvin and Schutz (2000) write: "The more important finding with respect to the effect of *r* on power relates to the effect of the correlations associated with one factor on the power of the test of the main effect of the other factor. Specifically, if the correlations among the levels of B are larger than those within the AB matrix (i.e., *r*B - *r*AB > 0.0), there is a reduction in the power for the test of the A effect (and the test on B is similarly affected by the A correlations)."
 
-```{r}
+We see this in the plots below. As the correlation of the A factor increases from 0.4 to 0.9, we see the power for the main effect of factor B decreases.
+
+```{r, fig.height = 10, fig.width = 7}
 
 p_a <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
                       m_A = 2, 

@@ -492,6 +492,22 @@ The correlation between all variables increases from 0.5 to 0.9.
 
 \includegraphics{4.4_power_curves_2x2_within_files/figure-latex/unnamed-chunk-6-1.pdf}
 
+\section{Increasing correlation in on factor decreases power in second
+factor}\label{increasing-correlation-in-on-factor-decreases-power-in-second-factor}
+
+As Potvin and Schutz (2000) write: ``The more important finding with
+respect to the effect of \emph{r} on power relates to the effect of the
+correlations associated with one factor on the power of the test of the
+main effect of the other factor. Specifically, if the correlations among
+the levels of B are larger than those within the AB matrix (i.e.,
+\emph{r}B - \emph{r}AB \textgreater{} 0.0), there is a reduction in the
+power for the test of the A effect (and the test on B is similarly
+affected by the A correlations).''
+
+We see this in the plots below. As the correlation of the A factor
+increases from 0.4 to 0.9, we see the power for the main effect of
+factor B decreases.
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{p_a <-}\StringTok{ }\KeywordTok{plot_power_2x2_within}\NormalTok{(}\DataTypeTok{mu =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{,}\FloatTok{0.3}\NormalTok{), }
