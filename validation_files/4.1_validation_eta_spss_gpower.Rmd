@@ -76,6 +76,15 @@ The results of the simulation are indeed very close to 80.16%.
 
 If we take a look at the eta-squared effect size estimate, we see it is XX.XX. This illustrates the formula $f=\sqrt{\frac{(\eta}{(1-\eta)}}$ does not hold for within designs. 
 
+From the G*power manual: 
+
+Note that the partial eta^2 given by G*Power is calculated from f according to the formula h2 = f^2/(1 + f^2) and is notidentical to the SPSS partial eta^2, which is based on sample estimates. The relation between the two is “SPSS eta^2" = eta^2N/(N + k(eta^2 􀀀 1)), where N denotes the total sample
+size, k the total number of groups in the design and eta^2 the G*Power value. Thus eta^2 0 = 0.33306806 x 108/(108 - 36 + 0.33306806 x 36) = 0.42828, which is the value given in the SPSS output.
+
+
+
+
+
 ```{r}
 
 k <- 1
