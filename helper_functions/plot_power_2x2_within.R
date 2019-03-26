@@ -1,4 +1,13 @@
 power_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alpha){
+  library(ggplot2)
+  library(gridExtra)
+  library(mvtnorm)
+  library(afex)
+  library(emmeans)
+  library(reshape2)
+  library(pwr)
+  
+  
   mean_mat <- t(matrix(mu, 
                        nrow = 2,
                        ncol = 2)) #Create a mean matrix
@@ -60,8 +69,8 @@ power_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alpha
               lower.tail = FALSE)
   
   # For the interaction
-  f_AB <- sqrt(sum(c(a1, a2, b1, b2)^2)/length(mu))/sigma #based on G*power manual page 28
-  lambda_AB <- n * sqrt(sum(c(a1, a2, b1, b2)^2)/length(mu))/ variance_e_AB 
+  f_AB <- sqrt(sum(c(a1, a2, b1, b2)^2))/sigma #based on G*power manual page 28
+  lambda_AB <- n * sqrt(sum(c(a1, a2, b1, b2)^2)/length(mu))/variance_e_AB 
   df1 <- (m_A - 1)*(m_B - 1)  #calculate degrees of freedom 1
   df2 <- (n - k) * (m_A - 1) * (m_B - 1) #calculate degrees of freedom 2
   F_critical_AB <- qf(alpha, # critical F-vaue
@@ -149,9 +158,24 @@ plot_power_2x2_within <- function(mu, m_A, m_B, sigma, rho_A, rho_B, rho_AB, alp
     theme_bw() +
     labs(x="Sample size", y = "Power Factor AB")
   
-  p_comb <- arrangeGrob(p1, p2, p3, nrow = 1)
-  
   invisible(list(p1 = p1,
                  p2 = p2,
-                 p3 = p3))
+                 p3 = p3,
+                 power_df = data.frame(paste("f = ",
+                                             round(power_res$f_A,2),
+                                             " ",
+                                             round(power_res$f_B,2),
+                                             " ", 
+                                             round(power_res$f_AB,2),
+                                             "\n",
+                                             "r = ",
+                                             rho_A,
+                                             " ",
+                                             rho_B,
+                                             " ",
+                                             rho_AB), 
+                                       n_vec, 
+                                       power_A, 
+                                       power_B, 
+                                       power_AB)))
 }
