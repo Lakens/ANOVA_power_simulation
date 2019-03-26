@@ -1,0 +1,144 @@
+---
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+nsims <- 100000 #set number of simulations
+library(mvtnorm)
+library(afex)
+library(emmeans)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
+library(pwr)
+
+# Install functions from GitHub by running the code below:
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/helper_functions/power_2x2_within.R")
+```
+
+## Power curves
+
+Power is calculated for a specific value of an effect size, alpha level, and sample size. Because you often do not know the true effect size, it often makes more sense to think of the power curve as a function of the size of the effect. Although power curves can be calculated based on simulations for any design, we will use the analytic solution to calculate the power of ANOVA designs because these calculations are much faster. 
+
+```{r}
+#2x2 design
+mu = c(0,0,0,0.5)
+m_A = 2 # 2 levels of factor A
+m_B = 2  # 2 levels of factor B
+sigma = 1 
+n = 20
+rho_A = 0.5
+rho_B = 0.5
+rho_AB = 0.5
+alpha = 0.05
+
+power_res <- power_2x2_within(mu = mu, 
+                              m_A = m_A, 
+                              m_B = m_B, 
+                              sigma = sigma, 
+                              n = n, 
+                              rho_A = rho_A, 
+                              rho_B = rho_B, 
+                              rho_AB = rho_AB, 
+                              alpha = alpha)
+
+power_res$pow_A
+power_res$pow_B
+power_res$pow_AB
+```
+
+```{r}
+n_vec <- seq(from = 2, to = max_n)
+
+power_A <- numeric(length(n_vec))
+power_B <- numeric(length(n_vec))
+power_AB <- numeric(length(n_vec))
+
+for (i in 1:length(n_vec)){
+  power_res <- power_2x2_within(mu = mu, 
+                              m_A = m_A, 
+                              m_B = m_B, 
+                              sigma = sigma, 
+                              n = n_vec[i], 
+                              rho_A = rho_A, 
+                              rho_B = rho_B, 
+                              rho_AB = rho_AB, 
+                              alpha = alpha)
+  power_A[i] <- power_res$pow_A*100
+  power_B[i] <- power_res$pow_B*100
+  power_AB[i] <- power_res$pow_AB*100
+}
+
+res_df <- data.frame(n_vec, power_A, power_B, power_AB)
+
+library(ggplot2)
+library(gridExtra)
+p1 <- ggplot(data=res_df, aes(x = n_vec, y = power_A)) +
+  geom_line( size=1.5) +
+  scale_x_continuous(limits = c(0, max(n_vec))) + 
+  scale_y_continuous(limits = c(0, 100)) +
+  theme_bw() +
+  labs(x="Sample size", y = "Power Factor A")
+
+p2 <- ggplot(data=res_df, aes(x = n_vec, y = power_AB)) +
+  geom_line( size=1.5) +
+  scale_x_continuous(limits = c(0, max(n_vec))) + 
+  scale_y_continuous(limits = c(0, 100)) +
+  theme_bw() +
+  labs(x="Sample size", y = "Power Factor B")
+
+p3 <- ggplot(data=res_df, aes(x = n_vec, y = power_AB)) +
+  geom_line( size=1.5) +
+  scale_x_continuous(limits = c(0, max(n_vec))) + 
+  scale_y_continuous(limits = c(0, 100)) +
+  theme_bw() +
+  labs(x="Sample size", y = "Power Factor AB")
+
+grid.arrange(p1, p2, p3, nrow = 1)
+```
+
+
+```{r}
+
+mu = c(0,0,0,0.5)
+m_A = 2 # 2 levels of factor A
+m_B = 2  # 2 levels of factor B
+sigma = 1 
+n = 20
+rho_A = 0.5
+rho_B = 0.5
+rho_AB = 0.5
+alpha = 0.05
+
+p_a <- plot_power_2x2_within(mu = c(0,0,0,0.5), 
+                      m_A = 2, 
+                      m_B = 2, 
+                      sigma = 1, 
+                      rho_A = 0.5, 
+                      rho_B = 0.5, 
+                      rho_AB = 0.5, 
+                      alpha = 0.05,
+                      max_n <- 50)
+
+p_b <- plot_power_2x2_within(mu = c(0,0,0,0.5), 
+                      m_A = 2, 
+                      m_B = 2, 
+                      sigma = 1, 
+                      rho_A = 0.9, 
+                      rho_B = 0.9, 
+                      rho_AB = 0.9, 
+                      alpha = 0.05,
+                      max_n <- 50)
+
+grid.arrange(p_a$p1, p_a$p2, p_a$p3, p_b$p1, p_b$p2, p_b$p3, nrow = 2)
+
+grid.arrange(p_a$p1, p_a$p2, p_a$p3, nrow = 1)
+
+
+
+
+```
+
