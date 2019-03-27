@@ -7,7 +7,7 @@ output:
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 100000 #set number of simulations
+nsims <- 100 #set number of simulations
 library(mvtnorm)
 library(afex)
 library(emmeans)
@@ -24,6 +24,96 @@ source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/A
 ## Analytic power functions
 
 For some designs it is possible to calculate power analytically, using closed functions. 
+
+# One-Way Between Subject ANOVA
+
+```{r}
+string <- "3b"
+n <- 20
+mu <- c(20, 20, 25) #All means are equal - so there is no real difference.
+# Enter means in the order that matches the labels below.
+sd <- 5
+r <- 0 
+# (note that since we simulate a between design, the correlation between variables 
+# will be 0, regardless of what you enter here, but the value must be set).
+p_adjust = "none"
+# "none" means we do not correct for multiple comparisons
+labelnames <- c("Factor_A", "a1", "a2", "a3") #
+# the label names should be in the order of the means specified above.
+
+design_result <- ANOVA_design(string = string,
+                   n = n, 
+                   mu = mu, 
+                   sd = sd, 
+                   r = r, 
+                   p_adjust = p_adjust,
+                   labelnames = labelnames)
+
+alpha_level <- 0.05 #We set the alpha level at 0.05. 
+
+power_result <- ANOVA_power(design_result, alpha_level = alpha_level, nsims = nsims)
+
+```
+
+We can also caculate power analytically.
+
+```{r}
+string <- "4b"
+n <- 60
+mu <- c(80,82,82,86)# Enter means in the order that matches the labels below.
+sd <- 10
+r <- 0 
+# (note that since we simulate a between design, the correlation between variables 
+# will be 0, regardless of what you enter here, but the value must be set).
+p_adjust = "none"
+# "none" means we do not correct for multiple comparisons
+labelnames <- c("Factor_A", "a1", "a2", "a3", "a4") #
+# the label names should be in the order of the means specified above.
+
+design_result <- ANOVA_design(string = string,
+                   n = n, 
+                   mu = mu, 
+                   sd = sd, 
+                   r = r, 
+                   p_adjust = p_adjust,
+                   labelnames = labelnames)
+
+alpha_level <- 0.05 #We set the alpha level at 0.05. 
+
+mean_mat <- t(matrix(design_result$mu, 
+                     nrow = length(mu)/design_result$factors,
+                     ncol = design_result$factors)) #Create a mean matrix
+mean_mat
+
+# USing the sweep function to remove rowmeans from the matrix
+mean_mat_res <- sweep(mean_mat,2, rowMeans(mean_mat))   
+mean_mat_res
+
+
+MS_a <- n * (sum(mean_mat_res^2)/(length(design_result$mu)-1))
+SS_A <- n * sum(mean_mat_res^2)
+MS_error <- sd^2
+SS_error <- MS_error * (n*length(design_result$mu)) 
+df1 <- length(design_result$mu)-1
+df2 <- (n*length(design_result$mu) - length(design_result$mu))
+eta_p_2 <- SS_A/(SS_A+SS_error)
+f_2 <- eta_p_2/(1-eta_p_2)
+lambda <- f_2 * n * length(design_result$mu)
+lambda
+f <- sqrt(sum(mean_mat_res^2)/length(design_result$mu))/sd #based on G*power manual page 28
+# We could also just take the sqrt(f_2) but prefer to show an alternative formula for f
+sqrt(f_2)
+F_critical <- qf(alpha_level, df1, df2, lower.tail=FALSE) # Critical F-Value
+pow <- pf(F_critical, df1, df2, lambda, lower.tail = FALSE) # power
+pow #power
+
+anova1f_4(m1=80, m2=82, m3=82, m4=86,
+          s1=10, s2=10, s3=10, s4=10, 
+          n1=60, n2=60, n3=60, n4=60,
+          alpha=.05)
+
+```
+
 
 
 # 2x2 Between Subject Interaction
@@ -74,7 +164,12 @@ b1 <- mean_mat[2,1] - (mean(mean_mat) + (mean(mean_mat[2,]) - mean(mean_mat)) + 
 b2 <- mean_mat[2,2] - (mean(mean_mat) + (mean(mean_mat[2,]) - mean(mean_mat)) + (mean(mean_mat[,2]) - mean(mean_mat)))
 c(a1, a2, b1, b2)
 
+
+
 SS_ab <- n * sum(c(a1, a2, b1, b2)^2)
+
+# General calculation of residuals for interaction.
+mean_mat_AB <- mean_mat - (mean(mean_mat) + sweep(mean_mat,2, rowMeans(mean_mat)) + sweep(mean_mat,1, colMeans(mean_mat)))
 
 ```
 
