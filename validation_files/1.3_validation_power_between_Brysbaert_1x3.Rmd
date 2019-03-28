@@ -121,7 +121,6 @@ ANOVA_power(design_result, nsims = nsims)
 
 ## Variation 1
 
-
 ```{r}
 # give sample sizes (all samples sizes are equal)
 N = 145

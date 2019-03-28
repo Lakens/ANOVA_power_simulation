@@ -1,5 +1,7 @@
 ---
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=TRUE}
@@ -113,6 +115,7 @@ f <- pwr.anova.test(n = n,
                     sig.level = alpha_level)$f
 f
 ```
+
 This sensitivity analysis shows we have 90% power in our planned design to detect effects of Cohen's f of 0.2934417. Benchmarks by Cohen (1988) for small, medium, and large Cohen's f values are 0.1, 0.25, and 0.4, which correspond to eta-squared values of small (.0099), medium (.0588), and large (.1379), in line with d = .2, .5, or .8. So, at least based on these benchmarks, we have 90% power to detect effects that are somewhat sizeable.
 
 ```{r}
@@ -120,6 +123,7 @@ f2 <- f^2
 ES <- f2/(f2+1)
 ES
 ```
+
 Expressed in eta-squared, we can detect values of eta-squared = 0.0793 or larger. 
 
 ```{r}
@@ -127,6 +131,7 @@ mu <- mu_from_ES(K = K, ES = ES)
 mu <- mu * sd
 mu
 ```
+
 We can compute a pattern of means, given a standard deviation of 6.4, that would give us an effect size of f = 0.2934, or eta-squared of 0.0793. We should be able to accomplish this is the means are -2.300104, 0.000000, and 2.300104. We can use these values to confirm the ANOVA has 90% power.
 
 ```{r}
@@ -178,3 +183,65 @@ pwr.t.test(d = d,
 
 
 ```
+
+We can also compare the results against the analytic solution by Aberson (2019).
+
+First, load the function for a 3-way ANOVA.
+
+```{r}
+anova1f_3<-function(m1=NULL,m2=NULL,m3=NULL,s1=NULL,s2=NULL,s3=NULL,n1=NULL,n2=NULL,n3=NULL,alpha=.05){
+x<-stats::rnorm(n1,m1,s1)
+X<-x
+MEAN<-m1
+SD<-s1
+Z <- (((X - mean(X, na.rm = TRUE))/stats::sd(X, na.rm = TRUE))) * SD
+y<-MEAN + Z
+group<-rep("A1",n1)
+l1<-data.frame(y, group)
+x<-stats::rnorm(n2,m2,s2)
+X<-x
+MEAN<-m2
+SD<-s2
+Z <- (((X - mean(X, na.rm = TRUE))/stats::sd(X, na.rm = TRUE))) * SD
+y<-MEAN + Z
+group<-rep("A2",n2)
+l2<-data.frame(y, group)
+x<-stats::rnorm(n3,m3,s3)
+X<-x
+MEAN<-m3
+SD<-s3
+Z <- (((X - mean(X, na.rm = TRUE))/stats::sd(X, na.rm = TRUE))) * SD
+y<-MEAN + Z
+group<-rep("A3",n3)
+l3<-data.frame(y, group)
+simdat<-rbind(l1,l2,l3)
+anova<-stats::aov(y~group, data=simdat)
+anova<-car::Anova(anova, type="III")
+SSA<-anova[2,1] #column, row
+SSwin<-anova[3,1]
+dfwin<-anova[3,2]
+dfbg<-anova[2,2]
+eta2<-SSA/(SSA+SSwin)
+f2<-eta2/(1-eta2)
+lambda<-f2*dfwin
+minusalpha<-1-alpha
+Ft<-stats::qf(minusalpha, dfbg, dfwin)
+power<-1-stats::pf(Ft, dfbg,dfwin,lambda)
+list(Power = power)}
+
+```
+
+Then we use the function to calculate power.
+
+```{r}
+#Initial example, low power
+anova1f_3(m1=24, m2=26.2, m3=26.6, s1=6.4, s2=6.4, s3=6.4, n1=50, n2=50, n3=50, alpha=.05)
+#From: Aberson, Christopher L. Applied Power Analysis for the Behavioral Sciences, 2nd Edition. 
+# $Power [1] 0.4769468
+
+#Later example, based on larger mean difference
+anova1f_3(m1=-2.300104, m2=0, m3=2.300104, s1=6.4, s2=6.4, s3=6.4, n1=50, n2=50, n3=50, alpha=.05)
+# $Power [1] 0.9000112
+```
+
+
