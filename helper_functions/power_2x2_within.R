@@ -1,4 +1,14 @@
-powerer_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alpha_level){
+power_2x2_within <- function(design_result, alpha_level = 0.05){
+  
+  mu <- design_result$mu
+  m_A <- length(design_result$labelnames[[1]])
+  m_B <- length(design_result$labelnames[[2]])
+  sigma <- design_result$sd
+  n <- design_result$n
+  rho_A <- design_result$cor_mat[1,3]
+  rho_B  <- design_result$cor_mat[1,2] 
+  rho_AB  <- design_result$cor_mat[1,4]
+  
   mean_mat <- t(matrix(mu, 
                        nrow = 2,
                        ncol = 2)) #Create a mean matrix
@@ -12,10 +22,8 @@ powerer_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alp
 
   k <- 1 #one group (because all factors are within)
 
-  m_A <- 2 #levels factor A
   variance_A <- sigma^2 * (1 - rho_A) + sigma^2 * (m_A - 1) * (rho_B - rho_AB) #Variance A
 
-  m_B <- 2 #levels factor B
   variance_B <- sigma^2 * (1 - rho_B) + sigma^2 * (m_B - 1) * (rho_A - rho_AB) #Variance B
 
   variance_AB <- sigma^2 * (1 - max(rho_A, rho_B)) - sigma^2 * (min(rho_A, rho_B) - rho_AB) #Variance AB
