@@ -7,7 +7,7 @@ output:
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 100 #set number of simulations
+nsims <- 1000 #set number of simulations
 library(mvtnorm)
 library(afex)
 library(emmeans)
@@ -19,6 +19,12 @@ library(pwr)
 # Install functions from GitHub by running the code below:
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+source("https://raw.githubusercontent.com/chrisaberson/pwr2ppl/master/R/anova1f_4.R")
+source("https://raw.githubusercontent.com/chrisaberson/pwr2ppl/master/R/anova2x2.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_oneway_between.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_twoway_between.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_2x2_within.R")
+
 ```
 
 ## Analytic power functions
@@ -28,39 +34,10 @@ For some designs it is possible to calculate power analytically, using closed fu
 # One-Way Between Subject ANOVA
 
 ```{r}
-string <- "3b"
-n <- 20
-mu <- c(20, 20, 25) #All means are equal - so there is no real difference.
-# Enter means in the order that matches the labels below.
-sd <- 5
-r <- 0 
-# (note that since we simulate a between design, the correlation between variables 
-# will be 0, regardless of what you enter here, but the value must be set).
-p_adjust = "none"
-# "none" means we do not correct for multiple comparisons
-labelnames <- c("Factor_A", "a1", "a2", "a3") #
-# the label names should be in the order of the means specified above.
-
-design_result <- ANOVA_design(string = string,
-                   n = n, 
-                   mu = mu, 
-                   sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
-                   labelnames = labelnames)
-
-alpha_level <- 0.05 #We set the alpha level at 0.05. 
-
-power_result <- ANOVA_power(design_result, alpha_level = alpha_level, nsims = nsims)
-
-```
-
-We can also caculate power analytically.
-
-```{r}
 string <- "4b"
 n <- 60
-mu <- c(80,82,82,86)# Enter means in the order that matches the labels below.
+mu <- c(80, 82, 82, 86) #All means are equal - so there is no real difference.
+# Enter means in the order that matches the labels below.
 sd <- 10
 r <- 0 
 # (note that since we simulate a between design, the correlation between variables 
@@ -78,43 +55,39 @@ design_result <- ANOVA_design(string = string,
                    p_adjust = p_adjust,
                    labelnames = labelnames)
 
-alpha_level <- 0.05 #We set the alpha level at 0.05. 
+power_result <- ANOVA_power(design_result, alpha_level = 0.05, nsims = nsims)
 
-mean_mat <- t(matrix(design_result$mu, 
-                     nrow = length(mu)/design_result$factors,
-                     ncol = design_result$factors)) #Create a mean matrix
-mean_mat
+```
 
-# USing the sweep function to remove rowmeans from the matrix
-mean_mat_res <- sweep(mean_mat,2, rowMeans(mean_mat))   
-mean_mat_res
+We can also caculate power analytically with our own function.
 
+```{r}
 
-MS_a <- n * (sum(mean_mat_res^2)/(length(design_result$mu)-1))
-SS_A <- n * sum(mean_mat_res^2)
-MS_error <- sd^2
-SS_error <- MS_error * (n*length(design_result$mu)) 
-df1 <- length(design_result$mu)-1
-df2 <- (n*length(design_result$mu) - length(design_result$mu))
-eta_p_2 <- SS_A/(SS_A+SS_error)
-f_2 <- eta_p_2/(1-eta_p_2)
-lambda <- f_2 * n * length(design_result$mu)
-lambda
-f <- sqrt(sum(mean_mat_res^2)/length(design_result$mu))/sd #based on G*power manual page 28
-# We could also just take the sqrt(f_2) but prefer to show an alternative formula for f
-sqrt(f_2)
-F_critical <- qf(alpha_level, df1, df2, lower.tail=FALSE) # Critical F-Value
-pow <- pf(F_critical, df1, df2, lambda, lower.tail = FALSE) # power
-pow #power
+power_oneway_between(design_result)$power #using default alpha level of .05
 
+```
+
+This is a generalized function for One-Way ANOVA's for any number of groups. It is in part based on code provided with the excellent book by Aberson (2019) Applied Power Analysis for the Behavioral Sciences (but Aberson's code allows for different n per condition, and different sd per condition).
+
+```{r}
 anova1f_4(m1=80, m2=82, m3=82, m4=86,
           s1=10, s2=10, s3=10, s4=10, 
           n1=60, n2=60, n3=60, n4=60,
           alpha=.05)
-
 ```
 
+We can also use the function in the pwr package. Note that we need to calculate f to use this function, which is based on the means and sd, as illustrated in the formulas above. 
 
+```{r}
+pwr.anova.test(n = 60,
+               k = 4,
+               f <- 0.2179449,
+               sig.level = 0.05)
+```
+
+Finally, G*Power provides the option to calculate f from the means, sd and n for the cells. It can then be used to calculate power.
+
+![](screenshots/gpower_13.png)
 
 # 2x2 Between Subject Interaction
 
@@ -140,61 +113,89 @@ design_result <- ANOVA_design(string = string,
                    p_adjust = p_adjust,
                    labelnames = labelnames)
 
-alpha_level <- 0.05 #We set the alpha level at 0.05. 
-
-power_result <- ANOVA_power(design_result, alpha_level = alpha_level, nsims = nsims)
+power_result <- ANOVA_power(design_result, alpha_level = 0.05, nsims = nsims)
 
 ```
-
-Mathematically the interaction effect is computed as the difference between a cell mean and the grand mean, the marginal mean in row i and the grand mean, and the marginal mean in column j and grand mean. For example, for the very hungry-banana condition this is 25 (the value in the cell) - (21.25 [the grand mean] + 1.25 [the marginal mean in row 2, 22.5, minus the grand mean of 21.25] + 1.25 [the marginal mean in column 2, 22.5, minus the grand mean of 21.25]). 25 - (21.25 + (22.5-21.25) + (22.5-21.25)) = 1.25. 
-
-We can repeat this for every cell, and get for no hunger-apple: 20 - (21.25 + (20-21.25) + (20-21.25)) = 1.25, for very hungry apple: 20 - (21.25 + (22.5-21.25) + (20-21.25)) = 1.25, and no hunger-banana: 20 - (21.25 + (20-21.25) + (22.5-21.25)) = 1.25. These values are used to calculate the sum of squares.
 
 ```{r}
-mean_mat <- t(matrix(mu, 
-                     nrow = 2,
-                     ncol = 2)) #Create a mean matrix
-rownames(mean_mat) <- c("a1", "a2")
-colnames(mean_mat) <- c("b1", "b2")
-mean_mat
 
-a1 <- mean_mat[1,1] - (mean(mean_mat) + (mean(mean_mat[1,]) - mean(mean_mat)) + (mean(mean_mat[,1]) - mean(mean_mat)))
-a2 <- mean_mat[1,2] - (mean(mean_mat) + (mean(mean_mat[1,]) - mean(mean_mat)) + (mean(mean_mat[,2]) - mean(mean_mat)))
-b1 <- mean_mat[2,1] - (mean(mean_mat) + (mean(mean_mat[2,]) - mean(mean_mat)) + (mean(mean_mat[,1]) - mean(mean_mat)))
-b2 <- mean_mat[2,2] - (mean(mean_mat) + (mean(mean_mat[2,]) - mean(mean_mat)) + (mean(mean_mat[,2]) - mean(mean_mat)))
-c(a1, a2, b1, b2)
+power_res <- power_2x2_between(design_result) #using default alphe level of .05
 
-
-
-SS_ab <- n * sum(c(a1, a2, b1, b2)^2)
-
-# General calculation of residuals for interaction.
-mean_mat_AB <- mean_mat - (mean(mean_mat) + sweep(mean_mat,2, rowMeans(mean_mat)) + sweep(mean_mat,1, colMeans(mean_mat)))
+power_res$power_A
+power_res$power_B
+power_res$power_AB
 
 ```
 
-The sum of squares is dependent on the sample size. The larger the sample size, the larger the sum of squares, and therefore (all else equal) the larger the *F*-statistic, and the smaller the *p*-value. We see from the simulations that all three tests have the same effect size, and therefore the same power. 
-
-We calculate Cohen's f following the $$f = \frac{\sigma_m}{\sigma}$$. The calculation of $\sigma_m$ depends on the design. For a 2x2 interaction it is based on the additive effect, or the residuals after removing main effects of factor A and B. 
+We can use the function by Aberson, 2019, as well. 
 
 ```{r}
-#We calculate Cohen's f following the f$\sigma_m
-f <- sqrt(sum(c(a1, a2, b1, b2)^2)/length(mu))/sd #based on G*power manual page 28
 
-#Analytic power formula for interaction
-k1 <- 2 #levels in factor 1
-k2 <- 2 #levels in factor 1
-m <- 1 #number of measurement per group (1 because between design)
-e <- 1 #non-spericity correction
-r <- 0.0 #correlation between dependent variables (0 in a between design)
-alpha <- 0.05 #alpha level for each test
-df1 <- (k1-1) * (k2-1) * e #df for effect in interaction
-df2 <- (n * (k1*k2) - (k1*k2)) * e #df_error
-lambda <- (k1*k2) * n * (m/(1 + (m - 1) * r)) * f^2 # lambda
-F_critical <- qf(alpha, df1, df2, lower.tail=FALSE) # Critical F-Value
-pow <- pf(F_critical, df1, df2, lambda, lower.tail = FALSE) # power
-pow #power
+anova2x2(m1.1=20,
+         m1.2=20,
+         m2.1=20,
+         m2.2=25, 
+         s1.1=5,
+         s1.2=5,
+         s2.1=5,
+         s2.2=5,
+         n1.1=20,
+         n1.2=20,
+         n2.1=20,
+         n2.2=20, 
+         alpha=.05, 
+         all="OFF")
+
+
 ```
+
+# 3x3 Between Subject ANOVA
+
+# 2x2 Between Subject Interaction
+
+```{r}
+string <- "3b*3b"
+n <- 20
+mu <- c(20, 20, 20, 20, 20, 20, 20, 20, 25) #All means are equal - so there is no real difference.
+# Enter means in the order that matches the labels below.
+sd <- 5
+r <- 0 
+# (note that since we simulate a between design, the correlation between variables 
+# will be 0, regardless of what you enter here, but the value must be set).
+p_adjust = "none"
+# "none" means we do not correct for multiple comparisons
+labelnames <- c("Factor_A", "a1", "a2", "a3", "Factor_B", "b1", "b2", "b3") #
+# the label names should be in the order of the means specified above.
+
+design_result <- ANOVA_design(string = string,
+                   n = n, 
+                   mu = mu, 
+                   sd = sd, 
+                   r = r, 
+                   p_adjust = p_adjust,
+                   labelnames = labelnames)
+
+power_result <- ANOVA_power(design_result, alpha_level = 0.05, nsims = nsims)
+
+```
+
+```{r}
+
+power_res <- power_twoway_between(design_result) #using default alphe level of .05
+
+power_res$power_A
+power_res$power_B
+power_res$power_AB
+
+```
+
+
+
+
+
+
+
+
 
 ## Two by two ANOVA, within design
 

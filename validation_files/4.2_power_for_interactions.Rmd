@@ -478,7 +478,6 @@ mean_mat
 
 We see that adding participants levels to a between subjects design 
 
-
 ```{r}
 nsims <- 1000 #set number of simulations
 string <- "3b*3b"

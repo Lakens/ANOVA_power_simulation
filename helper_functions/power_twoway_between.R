@@ -1,7 +1,7 @@
-power_2x2_between <- function(design_result, alpha_level=0.05){
+power_twoway_between <- function(design_result, alpha_level=0.05){
   mean_mat <- t(matrix(design_result$mu, 
-                       nrow = length(design_result$mu)/design_result$factors,
-                       ncol = design_result$factors)) #Create a mean matrix
+                       nrow = length(design_result$mu)/length(design_result$labelnames[[2]]),
+                       ncol = length(design_result$labelnames[[1]]))) #Create a mean matrix
   colnames(mean_mat) <- design_result$labelnames[[1]]
   rownames(mean_mat) <- design_result$labelnames[[2]]
   
@@ -44,7 +44,7 @@ power_2x2_between <- function(design_result, alpha_level=0.05){
   
   # For main effect B
   df1_B <- (length(design_result$labelnames[[2]]) - 1) #calculate degrees of freedom 1 - ignoring the * e sphericity correction
-  eta_p_2_A <- SS_B/(SS_B+SS_error)
+  eta_p_2_B <- SS_B/(SS_B+SS_error)
   f_2_B <- eta_p_2_B/(1-eta_p_2_B)
   Cohen_f_B <- sqrt(f_2_B)
   lambda_B <- design_result$n * length(design_result$labelnames[[2]]) * sum((colMeans(mean_mat)-mean(colMeans(mean_mat)))^2)/design_result$sd^2
@@ -64,8 +64,9 @@ power_2x2_between <- function(design_result, alpha_level=0.05){
   # For main effect AB
   df1_AB <- (length(design_result$labelnames[[1]])-1) * (length(design_result$labelnames[[2]])-1)
   eta_p_2_AB <- SS_AB/(SS_AB+SS_error)
-  Cohen_f_2_AB <- eta_p_2_AB/(1-eta_p_2_AB)
-  lambda_AB <- design_result$n * length(design_result$labelnames[[1]]) * length(design_result$labelnames[[2]]) * Cohen_f_2_AB
+  f_2_AB <- eta_p_2_AB/(1-eta_p_2_AB)
+  Cohen_f_AB <- eta_p_2_AB/(1-eta_p_2_AB)
+  lambda_AB <- design_result$n * length(design_result$labelnames[[1]]) * length(design_result$labelnames[[2]]) * Cohen_f_AB
   F_critical_AB <- qf(alpha_level, 
                       df1_AB, 
                       df2, 
