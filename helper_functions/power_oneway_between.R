@@ -17,9 +17,9 @@ power_oneway_between <- function(design_result, alpha_level=0.05){
   eta_p_2 <- SS_A/(SS_A+SS_error)
   f_2 <- eta_p_2/(1-eta_p_2)
   lambda <- f_2 * design_result$n * length(design_result$mu)
-  Cohen_f <- sqrt(sum(mean_mat_res^2)/length(design_result$mu))/sd #based on G*power manual page 28
-  # We could also just take the sqrt(f_2) but prefer to show an alternative formula for f
-  sqrt(f_2)
+  # Cohen_f <- sqrt(sum(mean_mat_res^2)/length(design_result$mu))/sd #based on G*power manual page 28
+  # We just take the sqrt(f_2) because formula above assumes maximum difference of means.
+  Cohen_f <- sqrt(f_2)
   F_critical <- qf(alpha_level, df1, df2, lower.tail=FALSE) # Critical F-Value
   power <- pf(F_critical, df1, df2, lambda, lower.tail = FALSE) # power
   

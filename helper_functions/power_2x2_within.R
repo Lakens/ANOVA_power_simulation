@@ -1,4 +1,4 @@
-power_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alpha){
+powerer_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alpha_level){
   mean_mat <- t(matrix(mu, 
                        nrow = 2,
                        ncol = 2)) #Create a mean matrix
@@ -13,25 +13,25 @@ power_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alpha
   k <- 1 #one group (because all factors are within)
 
   m_A <- 2 #levels factor A
-  variance_e_A <- sigma^2 * (1 - rho_A) + sigma^2 * (m_A - 1) * (rho_B - rho_AB) #Variance A
+  variance_A <- sigma^2 * (1 - rho_A) + sigma^2 * (m_A - 1) * (rho_B - rho_AB) #Variance A
 
   m_B <- 2 #levels factor B
-  variance_e_B <- sigma^2 * (1 - rho_B) + sigma^2 * (m_B - 1) * (rho_A - rho_AB) #Variance B
+  variance_B <- sigma^2 * (1 - rho_B) + sigma^2 * (m_B - 1) * (rho_A - rho_AB) #Variance B
 
-  variance_e_AB <- sigma^2 * (1 - max(rho_A, rho_B)) - sigma^2 * (min(rho_A, rho_B) - rho_AB) #Variance AB
+  variance_AB <- sigma^2 * (1 - max(rho_A, rho_B)) - sigma^2 * (min(rho_A, rho_B) - rho_AB) #Variance AB
 
   
   # For main effect A
   f_A <- sqrt(sum((rowMeans(mean_mat)-mean(rowMeans(mean_mat)))^2))/sigma
-  lambda_A <- n * m_A * sum((rowMeans(mean_mat)-mean(rowMeans(mean_mat)))^2)/variance_e_A 
+  lambda_A <- n * m_A * sum((rowMeans(mean_mat)-mean(rowMeans(mean_mat)))^2)/variance_A 
   df1 <- (m_A - 1) #calculate degrees of freedom 1 - ignoring the * e sphericity correction
   df2 <- (n - k) * (m_A - 1) #calculate degrees of freedom 2
-  F_critical_A <- qf(alpha, # critical F-vaue
+  F_critical_A <- qf(alpha_level, # critical F-vaue
                    df1,
                    df2, 
                    lower.tail=FALSE) 
   
-  pow_A <- pf(qf(alpha, #power 
+  power_A <- pf(qf(alpha_level, #powerer 
                  df1, 
                  df2, 
                  lower.tail = FALSE), 
@@ -42,15 +42,15 @@ power_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alpha
   
   # For main effect B
   f_B <- sqrt(sum((colMeans(mean_mat)-mean(colMeans(mean_mat)))^2))/sigma
-  lambda_B <- n * m_B * sum((colMeans(mean_mat)-mean(colMeans(mean_mat)))^2)/variance_e_B 
+  lambda_B <- n * m_B * sum((colMeans(mean_mat)-mean(colMeans(mean_mat)))^2)/variance_B 
   df1 <- (m_B - 1) #calculate degrees of freedom 1
   df2 <- (n - k) * (m_B - 1) #calculate degrees of freedom 2
-  F_critical_B <- qf(alpha, # critical F-vaue
+  F_critical_B <- qf(alpha_level, # critical F-vaue
                    df1,
                    df2, 
                    lower.tail=FALSE) 
   
-  pow_B <- pf(qf(alpha, #power 
+  power_B <- pf(qf(alpha_level, #powerer 
                  df1, 
                  df2, 
                  lower.tail = FALSE), 
@@ -60,16 +60,16 @@ power_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alpha
               lower.tail = FALSE)
   
   # For the interaction
-  f_AB <- sqrt(sum(c(a1, a2, b1, b2)^2)/length(mu))/sigma #based on G*power manual page 28
-  lambda_AB <- n * sqrt(sum(c(a1, a2, b1, b2)^2)/length(mu))/ variance_e_AB 
+  f_AB <- sqrt(sum(c(a1, a2, b1, b2)^2)/length(mu))/sigma #based on G*powerer manual page 28
+  lambda_AB <- n * sqrt(sum(c(a1, a2, b1, b2)^2)/length(mu))/ variance_AB 
   df1 <- (m_A - 1)*(m_B - 1)  #calculate degrees of freedom 1
   df2 <- (n - k) * (m_A - 1) * (m_B - 1) #calculate degrees of freedom 2
-  F_critical_AB <- qf(alpha, # critical F-vaue
+  F_critical_AB <- qf(alpha_level, # critical F-vaue
                    df1,
                    df2, 
                    lower.tail=FALSE) 
   
-  pow_AB <- pf(qf(alpha, #power 
+  power_AB <- pf(qf(alpha_level, #powerer 
                   df1, 
                   df2, 
                   lower.tail = FALSE), 
@@ -83,7 +83,7 @@ power_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alpha
                  rho_A = rho_A, 
                  rho_B = rho_B, 
                  rho_AB = rho_AB, 
-                 alpha = alpha,
+                 alpha_level = alpha_level,
                  f_A = f_A,
                  f_B = f_B,
                  f_AB = f_AB,
@@ -93,7 +93,7 @@ power_2x2_within <- function(mu, m_A, m_B, sigma, n, rho_A, rho_B, rho_AB, alpha
                  F_critical_A = F_critical_A,
                  F_critical_B = F_critical_B,
                  F_critical_AB = F_critical_AB,
-                 pow_A = pow_A,
-                 pow_B = pow_B,
-                 pow_AB = pow_AB))
+                 power_A = power_A,
+                 power_B = power_B,
+                 power_AB = power_AB))
 }
