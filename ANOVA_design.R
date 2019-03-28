@@ -385,7 +385,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
                  cor_mat = cor_mat,
                  sigmatrix = sigmatrix,
                  string = string,
-                 labelnames = labelnames,
+                 labelnames = labelnameslist,
                  factornames = factornames,
                  meansplot = meansplot2))
 }
