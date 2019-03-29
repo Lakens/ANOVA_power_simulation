@@ -20,12 +20,12 @@ plot_power_oneway_between <- function(design_result, max_n){
                                   p_adjust = p_adjust,
                                   labelnames = labelnames)
     
-    power_res <- power_oneway_between(design_result)
+    power_res <- power_oneway_within(design_result)
     
     power_A[i] <- power_res$power*100
   }
   
-  res_df <- data.frame(n_vec, power_A)
+  res_df <- data.frame(n_vec, power)
   
   library(ggplot2)
   library(gridExtra)

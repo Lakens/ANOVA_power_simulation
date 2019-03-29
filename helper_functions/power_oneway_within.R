@@ -29,7 +29,7 @@ power_oneway_within <- function(design_result, alpha_level=0.05){
   # In SPSS this is not true. In short, SPSS incorporates the correlation in f (and f^2, and partial eta-sqaured)
   # Therefore, from the code above (which equals G*Power) we can calculate the SPSS values.
   f_2_SPSS = f_2 * length(design_result$mu)/(length(design_result$mu)-1) * design_result$n/(design_result$n-1) * 1/(1-design_result$r)
-  eta_p_2_SPSS <- g_2/(1+g_2)
+  eta_p_2_SPSS <- f_2_SPSS/(1+f_2_SPSS)
   Cohen_f_SPSS <- sqrt(f_2_SPSS)
 
   F_critical <- qf(alpha_level, df1, df2, lower.tail=FALSE) # Critical F-Value
