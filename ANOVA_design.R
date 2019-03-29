@@ -15,7 +15,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   
   #Require packages needed to run the function; return error if not loaded
-  require(mvtnorm, quietly = TRUE)
+  require(MASS, quietly = TRUE)
   #require(emmeans, quietly = TRUE)
   require(ggplot2, quietly = TRUE)
   require(gridExtra, quietly = TRUE)
@@ -76,9 +76,10 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   
   #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
-  df <- as.data.frame(rmvnorm(n=n,
-                              mean=mu2,
-                              sigma=sigmatrix_2))
+  df <- as.data.frame(mvrnorm(n=n,
+                              mu=mu2,
+                              Sigma=sigmatrix_2,
+                              empirical = TRUE))
   df$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
   #Melt dataframe
   df <- melt(df, 
