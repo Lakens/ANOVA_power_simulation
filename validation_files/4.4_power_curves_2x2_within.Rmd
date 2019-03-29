@@ -25,44 +25,36 @@ Power is calculated for a specific value of an effect size, alpha level, and sam
 
 ```{r}
 #2x2 design
+
+string = "2w*2w"
 mu = c(0,0,0,0.5)
-m_A = 2 # 2 levels of factor A
-m_B = 2  # 2 levels of factor B
-sigma = 1 
-n = 20
-rho_A = 0.5
-rho_B = 0.5
-rho_AB = 0.5
-alpha = 0.05
-
-power_res <- power_2x2_within(mu = mu, 
-                              m_A = m_A, 
-                              m_B = m_B, 
-                              sigma = sigma, 
+n <- 20
+sd <- 1
+r <- 0.5
+p_adjust = "none"
+labelnames = c("A", "a1", "a2", "B", "b1", "b2")
+design_result <- ANOVA_design(string = string,
                               n = n, 
-                              rho_A = rho_A, 
-                              rho_B = rho_B, 
-                              rho_AB = rho_AB, 
-                              alpha = alpha)
+                              mu = mu, 
+                              sd = sd, 
+                              r = r, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
 
-power_res$pow_A
-power_res$pow_B
-power_res$pow_AB
+
+power_res <- power_2x2_within(design_result)
+
+power_res$power_A
+power_res$power_B
+power_res$power_AB
 ```
 
 We can make these calculations for a range of sample sizes, to get a power curve. We created a simple function that performs these calculations across a range of sample sizes (from n = 2 to max_, a variable you can specify in the function). 
 
 ```{r}
 
-p_a <- plot_power_2x2_within(mu = c(0,0,0,0.5), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
-                      max_n <- 50)
+p_a <- plot_power_2x2_within(design_result,
+                      max_n = 50)
 
 grid.arrange(p_a$p1, p_a$p2, p_a$p3, nrow = 1)
 
@@ -74,64 +66,74 @@ The design has means 0, 0, 0, 0, with one cell increasing by 0.1, up to 0, 0, 0,
 
 ```{r, fig.height = 10, fig.width = 7}
 
-p_a <- plot_power_2x2_within(mu = c(0,0,0,0.0), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+string <- "2w*2w"
+p_adjust = "none"
+labelnames = c("A", "a1", "a2", "B", "b1", "b2")
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.0), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_a <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_b <- plot_power_2x2_within(mu = c(0,0,0,0.1), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.1), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_b <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_c <- plot_power_2x2_within(mu = c(0,0,0,0.2), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.2), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_c <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_d <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_d <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_e <- plot_power_2x2_within(mu = c(0,0,0,0.4), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.4), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_e <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_f <- plot_power_2x2_within(mu = c(0,0,0,0.5), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.5), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_f <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
 # Create long format dataframe 
@@ -158,64 +160,70 @@ The design has means 0, 0, 0, 0, with two cells increasing by 0.1, up to 0.5, 0,
 
 ```{r, fig.height = 10, fig.width = 7}
 
-p_a <- plot_power_2x2_within(mu = c(0,0,0,0.0), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.0), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_a <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_b <- plot_power_2x2_within(mu = c(0.1,0,0,0.1), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0.1,0,0,0.1), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_b <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_c <- plot_power_2x2_within(mu = c(0.2,0,0,0.2), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0.2,0,0,0.2), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_c <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_d <- plot_power_2x2_within(mu = c(0.3,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0.3,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_d <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_e <- plot_power_2x2_within(mu = c(0.4,0,0,0.4), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0.4,0,0,0.4), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_e <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_f <- plot_power_2x2_within(mu = c(0.5,0,0,0.5), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0.5,0,0,0.5), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_f <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
 # Create long format dataframe 
@@ -242,64 +250,74 @@ The design has means 0, 0, 0, 0.3. The standard deviation is set to 1. The corre
 
 ```{r, fig.height = 10, fig.width = 7}
 
-p_a <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.1, 
-                      rho_B = 0.1, 
-                      rho_AB = 0.1, 
-                      alpha = 0.05,
+string <- "2w*2w"
+p_adjust = "none"
+labelnames = c("A", "a1", "a2", "B", "b1", "b2")
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.0, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_a <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_b <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.3, 
-                      rho_B = 0.3, 
-                      rho_AB = 0.3, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.1, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_b <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_c <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.3, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_c <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_d <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.7, 
-                      rho_B = 0.7, 
-                      rho_AB = 0.7, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.5, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_d <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_e <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.9, 
-                      rho_B = 0.9, 
-                      rho_AB = 0.9, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.7, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_e <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_f <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.5, 
-                      rho_AB = 0.5, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.9, 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_f <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
 # Create long format dataframe 
@@ -329,64 +347,92 @@ We see this in the plots below. As the correlation of the A factor increases fro
 
 ```{r, fig.height = 10, fig.width = 7}
 
-p_a <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.4, 
-                      rho_B = 0.4, 
-                      rho_AB = 0.4, 
-                      alpha = 0.05,
+string <- "2w*2w"
+p_adjust = "none"
+labelnames = c("A", "a1", "a2", "B", "b1", "b2")
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.4, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.4),
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_a <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_b <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.5, 
-                      rho_B = 0.4, 
-                      rho_AB = 0.4, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.5, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.5),
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_b <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_c <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.6, 
-                      rho_B = 0.4, 
-                      rho_AB = 0.4, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.6, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.6),
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_c <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_d <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.7, 
-                      rho_B = 0.4, 
-                      rho_AB = 0.4, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.7, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.7), 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_d <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_e <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.8, 
-                      rho_B = 0.4, 
-                      rho_AB = 0.4, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.8, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.8), 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_e <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
-p_f <- plot_power_2x2_within(mu = c(0,0,0,0.3), 
-                      m_A = 2, 
-                      m_B = 2, 
-                      sigma = 1, 
-                      rho_A = 0.9, 
-                      rho_B = 0.4, 
-                      rho_AB = 0.4, 
-                      alpha = 0.05,
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.9, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.9), 
+                              p_adjust = p_adjust,
+                              labelnames = labelnames)
+
+p_f <- plot_power_2x2_within(design_result,
                       max_n <- 100)
 
 # Create long format dataframe 

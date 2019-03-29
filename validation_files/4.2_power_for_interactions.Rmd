@@ -6,7 +6,7 @@ editor_options:
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 1000 #set number of simulations
+nsims <- 100000 #set number of simulations
 library(mvtnorm)
 library(afex)
 library(emmeans)
@@ -30,8 +30,8 @@ string <- "2b*2b"
 n <- 20
 mu <- c(20, 20, 20, 25) #All means are equal - so there is no real difference.
 # Enter means in the order that matches the labels below.
-sd <- 5
-r <- 0 
+sd <- 0.5
+r <- 0.9 
 # (note that since we simulate a between design, the correlation between variables 
 # will be 0, regardless of what you enter here, but the value must be set).
 p_adjust = "none"
@@ -256,7 +256,7 @@ SS_ab <- n * sum(c(a1, a2, b1, b2)^2)
 
 ```
 
-The sum of squares is dependent on the sample size. The larger the sample size, the larger the sum of squares, and therefore (all else equal) the larger the *F*-statistic, and the smaller the *p*-value. We see from the simulations that all three tests have the same effect size, and therefore the same power. 
+The sum of squares is dependent on the sample size, as can be seen in the code above. The larger the sample size, the larger the sum of squares, and therefore (all else equal) the larger the *F*-statistic, and the smaller the *p*-value. We see from the simulations that all three tests have the same effect size, and therefore the same power. 
 
 Interactions can have more power than main effects if the effect size of the interaction is larger than the effect size of the main effects. An example of this is a cross-over interaction. For example, let's take a 2x2 matrix of means with a crossover interaction: 
 
@@ -273,10 +273,9 @@ mean_mat
 Neither of the main effects is now significant, as the marginal means are 22.5 vs 22.5 for both main effects. The interaction is much stronger, however. We are testing whether the average effect of hunger on the desireability of fruit is different in the presence of bananas. Since the average effect is 0, and the effect of hunger on the desireability of bananas is 5, so the effect size is now twice as large. 
 
 ```{r}
-nsims <- 1000 #set number of simulations
 string <- "2b*2b"
-n <- 500
-mu <- c(20, 20, 20, 23) #All means are equal - so there is no real difference.
+n <- 300
+mu <- c(25, 20, 20, 25) #All means are equal - so there is no real difference.
 # Enter means in the order that matches the labels below.
 sd <- 20
 r <- 0 
@@ -299,231 +298,4 @@ alpha_level <- 0.05 #We set the alpha level at 0.05.
 
 power_result <- ANOVA_power(design_result, alpha_level = alpha_level, nsims = nsims)
 ```
-
-The calculations below reveal that if we calculate Cohen's f from the means, and tranform f to d, this pattern of means with a crossover design has the same effect size as the simple effects. In other words, the effect size of an interaction is only as large as the effect size of a simple effect if there is a complete crossover interaction. When the interaction pattern suggests a moderated interaction, the effect size becomes smaller, and power (given the same sample size) is lower. 
-
-
-# Cohen gives power tables for alpha, Cohen's f, the degrees of freedom
-# for the numerator of the F ratio (u) and the sample size (n).
-
-# For tests on interactions, u is the df for the effect, and for an interaction equals (k-1)(r-1), or (k-1)(r-1)(p-1), etc., where k, r, p are the number of levels of interacting main effects.
-
-# The df_error (or within cell) in a 2x2 design is ij(n_c-1).
-# So the levels of factor i, multiplied by the levels of factor j, multiplied by n per condition - 1
-
-# For main effects where we group over conditions, the means are computed 
-# based on on n_j = i*n_c (e.g., 3*10) observations. 
-
-# As Cohen writes:
-
-# To cope with this problem of the discrepancy in denominator (error) df
-# between the presumption of a single source of nonerror variance of one-way
-# design on which the tables are based and the varying numbers of sources of
-# nonerror variance (main effects, interactions) of factorial and other complex
-# designs, for all tests of effects in the latter, we adjust the n used for table
-# entry to
-
-n_adj <- (df_error/(u+1))+1
-
-# For example, for a 3x4 between design with n = 10 in each cell:
-
-u <- (3-1)*(4-1)
-df_error <- 3*4*(10-1)
-n_adj <- (df_error/(u+1))+1
-
-
-```{r}
-mu <- c(20,20,20,23)
-mean_mat <- t(matrix(mu, 
-                     nrow = 2,
-                     ncol = 2)) #Create a mean matrix
-rownames(mean_mat) <- c("apple", "banana")
-colnames(mean_mat) <- c("no hunger", "very hungry")
-mean_mat
-
-a1 <- mean_mat[1,1] - (mean(mean_mat) + (mean(mean_mat[1,]) - mean(mean_mat)) + (mean(mean_mat[,1]) - mean(mean_mat)))
-a2 <- mean_mat[1,2] - (mean(mean_mat) + (mean(mean_mat[1,]) - mean(mean_mat)) + (mean(mean_mat[,2]) - mean(mean_mat)))
-b1 <- mean_mat[2,1] - (mean(mean_mat) + (mean(mean_mat[2,]) - mean(mean_mat)) + (mean(mean_mat[,1]) - mean(mean_mat)))
-b2 <- mean_mat[2,2] - (mean(mean_mat) + (mean(mean_mat[2,]) - mean(mean_mat)) + (mean(mean_mat[,2]) - mean(mean_mat)))
-
-f <- sqrt(sum(c(a1, a2, b1, b2)^2)/length(mu))/sd #trying out.
-
-
-
-
-f <- sqrt(sum((mu-mean(mu))^2)/length(mu))/sd #Cohen, 1988, formula 8.2.1 and 8.2.2
-
-f <- sqrt(sum(c(a1, a2, b1, b2)^2)/length(mu))/sd #trying out.
-
-f
-d <- 2*f # because we have maximum variability and k is even, we can use Cohen, 1988 formula 8.2.12
-d
-
-#Formula used by G*Power for between design
-k <- 4
-m <- 1
-n <- 300
-e <- 1 #non-spericity correction
-r <- 0.0
-alpha <- 0.05
-
-df1 <- (1) * e #df
-df2 <- (n * k - k) * e
-
-lambda <- k * n * (m/(1 + (m - 1) * r)) * f^2 # lambda between
-F_critical <- qf(alpha,
-                 df1,
-                 df2, 
-                 lower.tail=FALSE) # F critical between
-
-pow <- pf(F_critical, 
-          df1, 
-          df2, 
-          lambda, 
-          lower.tail = FALSE) # power between
-pow
-
-
-
-
-
-
-
-mu <- c(25,20,20,25)
-f <- sqrt(sum((mu-mean(mu))^2)/length(mu))/sd #Cohen, 1988, formula 8.2.1 and 8.2.2
-f
-d <- 2*f # because we have maximum variability and k is even, we can use Cohen, 1988 formula 8.2.12
-d
-```
-
-We can extend this to higher-order interactions. 
-
-
-```{r}
-nsims <- 1000 #set number of simulations
-string <- "2b*3b"
-n <- 300
-mu <- c(20, 20, 20, 20, 20, 25) #All means are equal - so there is no real difference.
-# Enter means in the order that matches the labels below.
-sd <- 20
-r <- 0 
-# (note that since we simulate a between design, the correlation between variables 
-# will be 0, regardless of what you enter here, but the value must be set).
-p_adjust = "none"
-# "none" means we do not correct for multiple comparisons
-labelnames <- c("fruit", "apple", "banana", "hunger", "no hunger", "some hunger", "very hungry") #
-# the label names should be in the order of the means specified above.
-
-design_result <- ANOVA_design(string = string,
-                   n = n, 
-                   mu = mu, 
-                   sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
-                   labelnames = labelnames)
-
-alpha_level <- 0.05 #We set the alpha level at 0.05. 
-
-power_result <- ANOVA_power(design_result, alpha_level = alpha_level, nsims = nsims)
-
-```
-
-
-```{r}
-mean_mat <- t(matrix(mu, 
-                     nrow = 3,
-                     ncol = 2)) #Create a mean matrix
-mean_mat
-```
-
-Our main effect has reduced, because we added a condition without an effect. Bananas are only desireable for people who are very hungry, and the addition of people with some hunger just reduced the effect of fruit (marginal means 20 vs (20+20+25)/3=21.67) and the effect of hunger (20 vs 20 vs 25). 
-
-
-```{r}
-nsims <- 1000 #set number of simulations
-string <- "3b*3b"
-n <- 300
-mu <- c(20, 20, 20, 20, 20, 20, 20, 20, 25) #All means are equal - so there is no real difference.
-# Enter means in the order that matches the labels below.
-sd <- 20
-r <- 0 
-# (note that since we simulate a between design, the correlation between variables 
-# will be 0, regardless of what you enter here, but the value must be set).
-p_adjust = "none"
-# "none" means we do not correct for multiple comparisons
-labelnames <- c("fruit", "apple", "mango", "banana", "hunger", "no hunger", "some hunger", "very hungry") #
-# the label names should be in the order of the means specified above.
-
-design_result <- ANOVA_design(string = string,
-                   n = n, 
-                   mu = mu, 
-                   sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
-                   labelnames = labelnames)
-
-alpha_level <- 0.05 #We set the alpha level at 0.05. 
-
-power_result <- ANOVA_power(design_result, alpha_level = alpha_level, nsims = nsims)
-
-```
-
-
-```{r}
-mean_mat <- t(matrix(mu, 
-                     nrow = 3,
-                     ncol = 2)) #Create a mean matrix
-mean_mat
-```
-
-We see that adding participants levels to a between subjects design 
-
-```{r}
-nsims <- 1000 #set number of simulations
-string <- "3b*3b"
-n <- 300
-mu <- c(25, 20, 20, 22.5, 20, 22.5, 20, 20, 25) #All means are equal - so there is no real difference.
-# Enter means in the order that matches the labels below.
-sd <- 20
-r <- 0 
-# (note that since we simulate a between design, the correlation between variables 
-# will be 0, regardless of what you enter here, but the value must be set).
-p_adjust = "none"
-# "none" means we do not correct for multiple comparisons
-labelnames <- c("fruit", "apple", "mango", "banana", "hunger", "no hunger", "some hunger", "very hungry") #
-# the label names should be in the order of the means specified above.
-
-design_result <- ANOVA_design(string = string,
-                   n = n, 
-                   mu = mu, 
-                   sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
-                   labelnames = labelnames)
-
-alpha_level <- 0.05 #We set the alpha level at 0.05. 
-
-power_result <- ANOVA_power(design_result, alpha_level = alpha_level, nsims = nsims)
-
-```
-
-
-```{r}
-mean_mat <- t(matrix(mu, 
-                     nrow = 3,
-                     ncol = 3)) #Create a mean matrix
-rownames(mean_mat) <- c("apple", "mango", "banana")
-colnames(mean_mat) <- c("no hunger", "some hunger", "very hungry")
-mean_mat
-rowMeans(mean_mat)
-colMeans(mean_mat)
-
-```
-
-
-
-#Questions: 
-
-# Should you spread extra participants over the initial 2 groups, or add a third condition, if you expect an interaction?
-
 

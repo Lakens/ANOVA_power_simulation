@@ -1,0 +1,27 @@
+---
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+nsims <- 100000 #set number of simulations
+library(MASS)
+library(afex)
+library(emmeans)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
+library(pwr)
+
+# Install functions from GitHub by running the code below:
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_oneway_between.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_twoway_between.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_2x2_within.R")
+```
+
+## Power for Design Variations
+

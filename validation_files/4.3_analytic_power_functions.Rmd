@@ -7,7 +7,7 @@ output:
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 1000 #set number of simulations
+nsims <- 100000 #set number of simulations
 library(mvtnorm)
 library(afex)
 library(emmeans)
@@ -21,6 +21,7 @@ source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/A
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
 source("https://raw.githubusercontent.com/chrisaberson/pwr2ppl/master/R/anova1f_4.R")
 source("https://raw.githubusercontent.com/chrisaberson/pwr2ppl/master/R/anova2x2.R")
+source("https://raw.githubusercontent.com/chrisaberson/pwr2ppl/master/R/win2F.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_oneway_between.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_twoway_between.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_2x2_within.R")
@@ -244,4 +245,14 @@ power_res$power_AB
 
 ```
 
-We see the 26.9 and 64.2, and 26.9 correspond to the results of the simulation quite closely. 
+We see the 26.9 and 64.2, and 26.9 correspond to the results of the simulation quite closely. We can use the code by Abelson (2019) to produce the same results.
+
+```{r}
+win2F(m1.1=2, m2.1=1, m1.2=4, m2.2=2, 
+      s1.1=5, s2.1=5, s1.2=5, s2.2=5, 
+      r12=0.8, r13=0.5, r14=0.4, 
+               r23=0.4, r24=0.5, 
+                        r34=0.8,
+      n=20)
+```
+
