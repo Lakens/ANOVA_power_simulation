@@ -1,4 +1,4 @@
-plot_power_2x2_within <- function(design_result, max_n){
+plot_power_twoway_between <- function(design_result, max_n){
   
   string = design_result$string
   mu = design_result$mu
@@ -22,7 +22,7 @@ plot_power_2x2_within <- function(design_result, max_n){
                                   p_adjust = p_adjust,
                                   labelnames = labelnames)
     
-    power_res <- power_2x2_within(design_result)
+    power_res <- power_twoway_between(design_result)
     
     power_A[i] <- power_res$power_A*100
     power_B[i] <- power_res$power_B*100
