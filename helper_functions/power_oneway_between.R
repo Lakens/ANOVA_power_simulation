@@ -8,7 +8,7 @@ power_oneway_between <- function(design_result, alpha_level=0.05){
   # Using the sweep function to remove rowmeans from the matrix
   mean_mat_res <- sweep(mean_mat,2, rowMeans(mean_mat))   
   mean_mat_res
-  MS_a <- design_result$n * (sum(mean_mat_res^2)/(length(design_result$mu)-1))
+  MS_A <- design_result$n * (sum(mean_mat_res^2)/(length(design_result$mu)-1))
   SS_A <- design_result$n * sum(mean_mat_res^2)
   MS_error <- design_result$sd^2
   SS_error <- MS_error * (design_result$n*length(design_result$mu)) 

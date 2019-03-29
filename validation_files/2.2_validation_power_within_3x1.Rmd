@@ -110,57 +110,35 @@ The results of the simulation are indeed very close to 96.9%. We can see this is
 We can also validate this by creating the code to do a power analysis in R from scratch: 
 
 ```{r}
-# Power analysis in R
+K <- 3 #three groups
+n <- 20
+sd <- 1
+r <- 0.8
+alpha = 0.05
+f <- 0.25
+f2 <- f^2
+ES <- f2/(f2+1)
+ES
+mu <- mu_from_ES(K = K, ES = ES)
+string = paste(K,"w",sep="")
+p_adjust = "none"
+labelnames <- c("speed", "fast", "medium", "slow")
 
-#Formula used by G*Power for within design
-f <- 0.25 #Cohen's f
-k <- 1 #number of groups
-m <- 3 #number of measures
-n <- 20 #total sample size
-e <- 1 #non-spericity correction
-r <- 0.8 #correlation between dependent variables
-alpha <- 0.05 #alpha level
+design_result <- ANOVA_design(string = string,
+                   n = n, 
+                   mu = mu, 
+                   sd = sd, 
+                   r = r, 
+                   p_adjust = "none",
+                   labelnames = labelnames)
 
-df1 <- (m - 1) * e #calculate degrees of freedom 1
-df2 <- (n - k) * (m - 1) * e #calculate degrees of freedom 2
-
-lambda <- (n * m * f^2) / (1 - r) # lambda for within ANOVA
-
-F_critical <- qf(alpha, # critical F-vaue
-                 df1,
-                 df2, 
-                 lower.tail=FALSE) 
-
-pow <- pf(qf(alpha, #power 
-             df1, 
-             df2, 
-             lower.tail = FALSE), 
-          df1, 
-          df2, 
-          lambda, 
-          lower.tail = FALSE)
-pow
-
-
-lambda_AB <- n * sum((mean_mat-rowMeans(mean_mat)-colMeans(mean_mat)+mean(mean_mat))^2) / variance_e_AB 
-lambda_AB
-df1 <- (m_A - 1)*(m_B - 1)  #calculate degrees of freedom 1
-df2 <- (n - k) * (m_A - 1) * (m_B - 1) #calculate degrees of freedom 2
-F_critical <- qf(alpha, # critical F-vaue
-                 df1,
-                 df2, 
-                 lower.tail=FALSE) 
-
-pow <- pf(qf(alpha, #power 
-             df1, 
-             df2, 
-             lower.tail = FALSE), 
-          df1, 
-          df2, 
-          lambda_AB, 
-          lower.tail = FALSE)
-pow
-
-
+power_oneway_within(design_result)$power
+power_oneway_within(design_result)$eta_p_2
+power_oneway_within(design_result)$eta_p_2_SPSS
+power_oneway_within(design_result)$Cohen_f
+power_oneway_within(design_result)$Cohen_f_SPSS
 ```
 
+We can even check the calculation of Cohen's f SPSS style in GPower. We take the GPower settings as illustrated above. We click the 'Options' button, and check the radiobutton next to 'As in SPSS'. Click ok, and you will notice that the 'Corr among rep measures' field has disappeared. The correlation does not need to be entered seperately, but is incorporated in Cohen's f. The value of Cohen's f, which was 0.25, has changed into 0.7024394. This is the SPSS equivalent. The value is much larger. This value, and it's corresponding partial eta-squared, incorporate the correlation between observations. 
+
+![](screenshots/gpower_14.png)
