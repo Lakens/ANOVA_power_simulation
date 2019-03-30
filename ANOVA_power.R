@@ -110,7 +110,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   frml1 <- design_result$frml1 
   frml2 <- design_result$frml2
   
-  aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+  aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter formula 1 as designed above on the basis of the design 
                                          data = df, include_aov = FALSE,
                                          anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
   
@@ -123,32 +123,18 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   # 5. Set up dataframe for simulation results
   ###############
   
- 
-  
   #How many possible planned comparisons are there (to store p and es)
   possible_pc <- (((prod(
     as.numeric(strsplit(string, "\\D+")[[1]])
   )) ^ 2) - prod(as.numeric(strsplit(string, "\\D+")[[1]])))/2
   
   #create empty dataframe to store simulation results
-  #number of columns if for ANOVA results and planned comparisons, times 2 (p and es)
+  #number of columns for ANOVA results and planned comparisons, times 2 (p-values and effect sizes)
   sim_data <- as.data.frame(matrix(
     ncol = 2 * (2 ^ factors - 1) + 2 * possible_pc,
     nrow = nsims
   ))
   
-  #set up paired tests
-  # Moved to DESIGN
-  # #Need to identify which columns from df to pull the factor names from
-  # if (design_result$factors == 1) {
-  #   cond_col <- c(4)
-  # } else if (design_result$factors == 2) {
-  #   cond_col <- c(4, 5)
-  # } else {
-  #   cond_col <- c(4, 5, 6)
-  # }
-  # 
-  # df$cond <- as.character(interaction(df[, cond_col], sep = "_")) #create a new condition variable combine 2 columns (interaction is a cool function!)
   paired_tests <- combn(unique(df$cond),2)
   paired_p <- numeric(possible_pc)
   paired_d <- numeric(possible_pc)
