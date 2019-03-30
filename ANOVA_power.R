@@ -138,7 +138,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   paired_tests <- combn(unique(df$cond),2)
   paired_p <- numeric(possible_pc)
   paired_d <- numeric(possible_pc)
-  within_between <- sigmatrix[upper.tri(sigmatrix)] #based on whether correlation is 0 or not, we can determine if we should run a paired or independent t-test
+  within_between <- sigmatrix[lower.tri(sigmatrix)] #based on whether correlation is 0 or not, we can determine if we should run a paired or independent t-test
   
   #Dynamically create names for the data we will store
   names(sim_data) = c(paste("anova_",
