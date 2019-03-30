@@ -1,6 +1,5 @@
-#TEST APP
-#Email function temporarily disabled
-#Labelnames adjusted for new format
+#March 29 2019
+#added gsub to labelnames call to remove whitespace in vector
 
 ###############
 # Load libraries 
@@ -928,7 +927,7 @@ server <- function(input, output) {
   observeEvent(input$designBut, {values$design_result <- ANOVA_design(string = as.character(input$design),
                                                                        n = as.numeric(input$sample_size), 
                                                                        mu = as.numeric(unlist(strsplit(input$mu, ","))), 
-                                                                       labelnames = as.vector(unlist(strsplit(input$labelnames, ","))), 
+                                                                       labelnames = as.vector(unlist(strsplit(gsub("[[:space:]]", "",input$labelnames), ","))), 
                                                                        sd = as.numeric(input$sd), 
                                                                        r = as.numeric(input$r), 
                                                                        p_adjust = as.character(input$p_adjust))
