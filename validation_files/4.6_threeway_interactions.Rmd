@@ -6,15 +6,15 @@ editor_options:
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 1000 #set number of simulations
-library(mvtnorm)
-library(MASS)
-library(afex)
-library(emmeans)
-library(ggplot2)
-library(gridExtra)
-library(reshape2)
-library(pwr)
+nsims <- 100000 #set number of simulations
+library(mvtnorm, quietly = TRUE)
+library(MASS, quietly = TRUE)
+library(afex, quietly = TRUE)
+library(emmeans, quietly = TRUE)
+library(ggplot2, quietly = TRUE)
+library(gridExtra, quietly = TRUE)
+library(reshape2, quietly = TRUE)
+library(pwr, quietly = TRUE)
 
 # Install functions from GitHub by running the code below:
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
@@ -33,17 +33,17 @@ source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/h
 
 There are almost no software solutions that allow researchers to perform power anaysis for more complex designs. Through simulation, it is relatively straightforward to examine the power for designs with multiple factors with many levels. 
 
-Let's start with a 2x2x2 design with two between factors and one within factor. We collect 50 participants in the between participant conditions (so 200 participants in total). 
+Let's start with a 2x2x2 between subjects design. We collect 50 participants in each between participant condition (so 400 participants in total - 50x2x2x2). 
 
 ```{r}
-string <- "2b*2b*2w"
+string <- "2b*2b*2b"
 n <- 50
-#mu <- c(1, 1, 3, 1, 3, 3, 1, 3) 
-mu <- c(1, 1, 1, 1, 1, 1, 1, 1) 
-sd <- 5
-r <- 0.5 
+mu <- c(1, 1, 6, 1, 6, 6, 1, 6) 
+sd <- 10
+r <- 0.0
 p_adjust = "none"
-labelnames <- c("Size", "big", "small", "Color", "green", "red", "CognitiveLoad", "present", "absent") #
+labelnames <- c("Size", "big", "small", "Color", "green", "red", 
+                "CognitiveLoad", "present", "absent") #
 
 design_result <- ANOVA_design(string = string,
                    n = n, 
@@ -52,182 +52,22 @@ design_result <- ANOVA_design(string = string,
                    r = r, 
                    p_adjust = p_adjust,
                    labelnames = labelnames)
-
-design_result$sigmatrix
-
 
 # Power for the given N in the design_result
 ANOVA_power(design_result, nsims = nsims)
 
 ```
 
-We now addd a condition. Let's assume the 'light training' condition falls in between the other two means. 
+A Three-Way ANOVA builds on the same principles as a One_Way ANOVA. We look at whether the differences between groups are large, compared to the standard deviation. For the main effects we simply have 2 groups of 200 participants, and 2 means. If the population standard deviations are identical across groups, this is not in any way different from a One-Way ANOVA. Indeed, we can show this by simulating a One-Way ANOVA, where instead of 8 conditions, we have two conditions, and we average over the 4 groups of the other two factors. For example, for the main effect of size above:
 
 ```{r}
-string <- "3b"
-n <- 50
-mu <- c(80, 83, 86) #All means are equal - so there is no real difference.
-sd <- 10
-r <- 0 
-p_adjust = "none"
-labelnames <- c("Condition", "control", "light_training", "intensive_training") 
-
-design_result <- ANOVA_design(string = string,
-                   n = n, 
-                   mu = mu, 
-                   sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
-                   labelnames = labelnames)
-
-# Power for the given N in the design_result
-power_oneway_between(design_result)$power
-power_oneway_between(design_result)$Cohen_f
-power_oneway_between(design_result)$eta_p_2
-
-# Plot power curve (from 5 to 100)
-plot_power_oneway_between(design_result,
-                          max_n = 100)$p1
-
-
-```
-
-We see that adding a condition that falls between the other two means reduces our power. Let's instead assume that the 'light training' condition is not different from the control condition. In other words, the mean we add is as extreme as one of the existing means.  
-
-```{r}
-string <- "3b"
-n <- 50
-mu <- c(80, 80, 86) #All means are equal - so there is no real difference.
-sd <- 10
-r <- 0 
-p_adjust = "none"
-labelnames <- c("Condition", "control", "light_training", "intensive_training") 
-
-design_result <- ANOVA_design(string = string,
-                   n = n, 
-                   mu = mu, 
-                   sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
-                   labelnames = labelnames)
-
-# Power for the given N in the design_result
-power_oneway_between(design_result)$power
-power_oneway_between(design_result)$Cohen_f
-power_oneway_between(design_result)$eta_p_2
-
-# Plot power curve (from 5 to 100)
-plot_power_oneway_between(design_result,
-                          max_n = 100)$p1
-
-```
-
-Now power has increased. This is not always true. The power is a function of many factors in the design, incuding the effect size (Cohen's f) and the total sample size (and the degrees of freedom and number of groups). But as we will see below, as we keep adding conditions, the power will reduce, even if initially, the power might increase. 
-
-It helps to think of these different designs in terms of either partial eta-squared, or Cohen's f (the one can easily be converted into the other). 
-
-```{r}
-#Two groups
-mu <- c(80, 86)
-sd = 10
-n <- 50 #sample size per condition
-mean_mat <- t(matrix(mu, 
-                     nrow = 2,
-                     ncol = 1)) #Create a mean matrix
-
-# Using the sweep function to remove rowmeans from the matrix
-mean_mat_res <- sweep(mean_mat,2, rowMeans(mean_mat))   
-mean_mat_res
-MS_a <- n * (sum(mean_mat_res^2)/(2-1))
-MS_a
-SS_A <- n * sum(mean_mat_res^2)
-SS_A
-MS_error <- sd^2
-MS_error
-SS_error <- MS_error * (n*2) 
-SS_error
-eta_p_2 <- SS_A/(SS_A+SS_error)
-eta_p_2
-f_2 <- eta_p_2/(1-eta_p_2)
-f_2
-Cohen_f <- sqrt(f_2)
-Cohen_f
-
-#Three groups
-mu <- c(80, 83, 86)
-sd = 10
-n <- 50
-mean_mat <- t(matrix(mu, 
-                     nrow = 3,
-                     ncol = 1)) #Create a mean matrix
-
-# Using the sweep function to remove rowmeans from the matrix
-mean_mat_res <- sweep(mean_mat,2, rowMeans(mean_mat))   
-mean_mat_res
-MS_a <- n * (sum(mean_mat_res^2)/(3-1))
-MS_a
-SS_A <- n * sum(mean_mat_res^2)
-SS_A
-MS_error <- sd^2
-MS_error
-SS_error <- MS_error * (n*3) 
-SS_error
-eta_p_2 <- SS_A/(SS_A+SS_error)
-eta_p_2
-f_2 <- eta_p_2/(1-eta_p_2)
-f_2
-Cohen_f <- sqrt(f_2)
-Cohen_f
-```
-
-The SS_A or the sum of squares for the main effect, is 900 for two groups, and the SS_error for the error term is 10000. When we add a group, SS_A is 900, and the SS_error is 15000. Because the added condition falls exactly on the grand mean (83), the sum of squared for this extra group is 0. In other words, it does nothing to increase the signal that there is a difference between groups. However, the sum of squares for the error, which is a function of the total sample size, is increased, which reduces the effect size. So, adding a condition that falls on the grand mean reduces the power for the main effect of the ANOVA. Obviously, adding such a group has other benefits, such as being able to compare the two means to a new third condition. 
-
-We already saw that adding a condition that has a mean as extreme as one of the existing groups also reduces the power. Let's again do the calculations step by step when the extra group has a mean as extreme as one of the two original conditions. 
-
-```{r}
-
-#Three groups
-mu <- c(80, 80, 86)
-sd = 10
-n <- 50
-mean_mat <- t(matrix(mu, 
-                     nrow = 3,
-                     ncol = 1)) #Create a mean matrix
-
-# Using the sweep function to remove rowmeans from the matrix
-mean_mat_res <- sweep(mean_mat,2, rowMeans(mean_mat))   
-mean_mat_res
-MS_a <- n * (sum(mean_mat_res^2)/(3-1))
-MS_a
-SS_A <- n * sum(mean_mat_res^2)
-SS_A
-MS_error <- sd^2
-MS_error
-SS_error <- MS_error * (n*3) 
-SS_error
-eta_p_2 <- SS_A/(SS_A+SS_error)
-eta_p_2
-f_2 <- eta_p_2/(1-eta_p_2)
-f_2
-Cohen_f <- sqrt(f_2)
-Cohen_f
-
-```
-
-We see the sum of squares of the error stays the same - 15000 - because it is only determined by the standard error and the sample size, but not by the differences in the means. This is an increase of 5000 compared to the 2 group design. The sum of squares (the second component that determines the size of partial eta-squared) increases, which increases Cohen's f. 
-
-# Within Designs
-
-Now imagine our design described above was a within design. The means and sd remain the same. We collect 50 participants (instead of 100, or 50 per group, for the between design). Let's first assume the two samples are completely uncorrelated. 
-
-```{r}
-string <- "2w"
-n <- 50
-mu <- c(80, 86) #All means are equal - so there is no real difference.
+string <- "2b"
+n <- 200
+mu <- c(mean(c(1, 1, 6, 1)), mean(c(6, 6, 1, 6)))
 sd <- 10
 r <- 0.0
 p_adjust = "none"
-labelnames <- c("Condition", "control", "intensive_training") #
+labelnames <- c("Size", "big", "small")
 
 design_result <- ANOVA_design(string = string,
                    n = n, 
@@ -237,19 +77,24 @@ design_result <- ANOVA_design(string = string,
                    p_adjust = p_adjust,
                    labelnames = labelnames)
 
-power_oneway_within(design_result)$power
+# Power based on simulations
+ANOVA_power(design_result, nsims = nsims)
+
+# Power based on analytical solution
+power_oneway_between(design_result)$power #using default alpha level of .05
+
 ```
 
-We see power is ever so slightly less than for the between subject design. This is due to the loss in degrees of freedom, which is 2(n-1) for between designs, and n-1 for within designs. But as the correlation increases, the power advantage of within designs becomes stronger. 
+Similarly, we can create a 2 factor design where we average over the third factor, and recreate the power analysis for the Two-Way interaction. For example, we can group over the Cognitive Load condition, and look at the Size by Color Interaction:
 
 ```{r}
-string <- "3w"
-n <- 50
-mu <- c(80, 83, 86) #All means are equal - so there is no real difference.
+string <- "2b*2b"
+n <- 100
+mu <- c(mean(c(1, 1)), mean(c(6, 1)), mean(c(6, 6)), mean(c(1, 6)))
 sd <- 10
 r <- 0.0
 p_adjust = "none"
-labelnames <- c("Condition", "control", "light_training","intensive_training") #
+labelnames <- c("Size", "big", "small", "Color", "green", "red")
 
 design_result <- ANOVA_design(string = string,
                    n = n, 
@@ -259,86 +104,15 @@ design_result <- ANOVA_design(string = string,
                    p_adjust = p_adjust,
                    labelnames = labelnames)
 
-power_oneway_within(design_result)$power
-```
+# Power based on simulations
+ANOVA_power(design_result, nsims = nsims)
 
-When we add a a condition in a within design where we expect the mean to be identical to the grand mean, we again see that the power decreases. This similarly shows that adding a condition that equals the grand mean to a within subject design does not come for free, but has a power cost. 
+# Power based on analytical solution
+power_res <- power_twoway_between(design_result) #using default alpha level of .05
 
-```{r}
-n <- 30
-sd <- 10
-r <- 0.5
-p_adjust = "none"
-
-
-string <- "2w"
-mu <- c(0, 5) #All means are equal - so there is no real difference.
-labelnames <- c("Factor_A", "a1", "a2") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
-power_oneway_within(design_result)$power
-power_oneway_within(design_result)$Cohen_f
-power_oneway_within(design_result)$Cohen_f_SPSS
-power_oneway_within(design_result)$lambda
-power_oneway_within(design_result)$F_critical
-
-string <- "3w"
-mu <- c(0, 0, 5) #All means are equal - so there is no real difference.
-labelnames <- c("Factor_A", "a1", "a2", "a3") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
-power_oneway_within(design_result)$power
-power_oneway_within(design_result)$Cohen_f
-power_oneway_within(design_result)$Cohen_f_SPSS
-power_oneway_within(design_result)$lambda
-power_oneway_within(design_result)$F_critical
-
-string <- "4w"
-mu <- c(0, 0, 0, 5) #All means are equal - so there is no real difference.
-labelnames <- c("Factor_A", "a1", "a2", "a3", "a4") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
-power_oneway_within(design_result)$power
-power_oneway_within(design_result)$Cohen_f
-power_oneway_within(design_result)$Cohen_f_SPSS
-power_oneway_within(design_result)$lambda
-power_oneway_within(design_result)$F_critical
-
-string <- "5w"
-mu <- c(0, 0, 0, 0, 5) #All means are equal - so there is no real difference.
-labelnames <- c("Factor_A", "a1", "a2", "a3", "a4", "a5") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
-power_oneway_within(design_result)$power
-power_oneway_within(design_result)$Cohen_f
-power_oneway_within(design_result)$Cohen_f_SPSS
-power_oneway_within(design_result)$lambda
-power_oneway_within(design_result)$F_critical
-
-string <- "6w"
-mu <- c(0, 0, 0, 0, 0, 5) #All means are equal - so there is no real difference.
-labelnames <- c("Factor_A", "a1", "a2", "a3", "a4", "a5", "a6") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
-power_oneway_within(design_result)$power
-power_oneway_within(design_result)$Cohen_f
-power_oneway_within(design_result)$Cohen_f_SPSS
-power_oneway_within(design_result)$lambda
-power_oneway_within(design_result)$F_critical
-
-string <- "7w"
-mu <- c(0, 0, 0, 0, 0, 0, 5) #All means are equal - so there is no real difference.
-labelnames <- c("Factor_A", "a1", "a2", "a3", "a4", "a5", "a6", "a7") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
-power_oneway_within(design_result)$power
-power_oneway_within(design_result)$Cohen_f
-power_oneway_within(design_result)$Cohen_f_SPSS
-power_oneway_within(design_result)$lambda
-power_oneway_within(design_result)$F_critical
+power_res$power_A
+power_res$power_B
+power_res$power_AB
 
 ```
 
-This set of designs where we increase the number of conditions demonstrates a common pattern where the power initially increases, but then starts to decrease. Again, the exact pattern (and when the power starts to decrease) depends on the effect size and sample size. Note also that the effect size (Cohen's f) decreases as we add conditions, but the increased sample size compensates for this when calculating power. When using power analysis software such as GPower, this is important to realize. You can't just power for a medium effect size, and then keep adding conditions under the assumption that the increased power you see in the program will become a reality. Increasing the number of conditions will reduce the effect size, and therefore, adding conditions will not automatically increase power (and might even decrease it). 
-
-Overal, the effect of adding conditions with an effect close to the grand mean reduces power quite strongly, and adding conditions with means close to the extreme of the current conditions will either slightly increase of decrease power.
