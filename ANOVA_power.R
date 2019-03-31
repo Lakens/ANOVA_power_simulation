@@ -1,5 +1,5 @@
 #ANOVA power function; last update: March 22 2019
-ANOVA_power <- function(design_result, alpha_level, nsims){
+ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", nsims = 1000){
  
   #Require necessary packages
   require(mvtnorm, quietly = TRUE)
@@ -84,9 +84,6 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   
   sd <- design_result$sd #population standard deviation (currently assumes equal variances)
   r <- design_result$r # correlation between within factors (currently only 1 value can be entered)
-  
-  #indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
-  p_adjust <- design_result$p_adjust
   
   ###############
   # 2. Create Dataframe based on Design ----
@@ -380,6 +377,9 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
                  main_results = main_results,
                  pc_results = pc_results,
                  plot1 = plt1,
-                 plot2 = plt2))
+                 plot2 = plt2,
+                 p_adjust = p_adjust,
+                 nsims = nsims,
+                 alpha_level = alpha_level))
   
 }

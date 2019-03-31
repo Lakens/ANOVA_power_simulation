@@ -1,6 +1,6 @@
 #ANOVA design function; last update: March 22, 2019
 #Update output
-ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
+ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames){
   
   #Checks to ensure information is entered correctly into function
   #if (n < 3 || n > 1000) {
@@ -382,7 +382,6 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
                  sd = sd,
                  r = r,
                  n = n, 
-                 p_adjust = p_adjust,
                  cor_mat = cor_mat,
                  sigmatrix = sigmatrix,
                  string = string,
