@@ -41,7 +41,6 @@ n <- 50
 mu <- c(1, 1, 6, 1, 6, 6, 1, 6) 
 sd <- 10
 r <- 0.0
-p_adjust = "none"
 labelnames <- c("Size", "big", "small", "Color", "green", "red", 
                 "CognitiveLoad", "present", "absent") #
 
@@ -49,8 +48,6 @@ design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 # Power for the given N in the design_result
@@ -65,16 +62,12 @@ string <- "2b"
 n <- 200
 mu <- c(mean(c(1, 1, 6, 1)), mean(c(6, 6, 1, 6)))
 sd <- 10
-r <- 0.0
-p_adjust = "none"
 labelnames <- c("Size", "big", "small")
 
 design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 # Power based on simulations
@@ -92,16 +85,12 @@ string <- "2b*2b"
 n <- 100
 mu <- c(mean(c(1, 1)), mean(c(6, 1)), mean(c(6, 6)), mean(c(1, 6)))
 sd <- 10
-r <- 0.0
-p_adjust = "none"
 labelnames <- c("Size", "big", "small", "Color", "green", "red")
 
 design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 # Power based on simulations
