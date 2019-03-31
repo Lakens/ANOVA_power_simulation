@@ -5,13 +5,14 @@ output: github_document
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 nsims <- 100000 #set number of simulations
-library(mvtnorm)
-library(afex)
-library(emmeans)
-library(ggplot2)
-library(gridExtra)
-library(reshape2)
-library(pwr)
+require(mvtnorm, quietly = TRUE)
+require(MASS, quietly = TRUE)
+require(afex, quietly = TRUE)
+require(emmeans, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(gridExtra, quietly = TRUE)
+require(reshape2, quietly = TRUE)
+require(pwr, quietly = TRUE)
 
 # Install functions from GitHub by running the code below:
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
@@ -89,7 +90,6 @@ ES
 mu <- mu_from_ES(K = K, ES = ES)
 
 string = paste(K,"w",sep="")
-p_adjust = "none"
 labelnames <- c("speed", "fast", "slow")
 
 design_result <- ANOVA_design(string = string,
@@ -97,7 +97,6 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none",
                    labelnames = labelnames)
 
 alpha_level <- 0.05
@@ -124,7 +123,6 @@ ES
 mu <- mu_from_ES(K = K, ES = ES)
 
 string = paste(K,"w",sep="")
-p_adjust = "none"
 labelnames <- c("speed", "fast", "slow")
 
 design_result <- ANOVA_design(string = string,
@@ -132,7 +130,6 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none",
                    labelnames = labelnames)
 
 alpha_level <- 0.05

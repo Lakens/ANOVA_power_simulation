@@ -3,6 +3,7 @@ ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", ns
  
   #Require necessary packages
   require(mvtnorm, quietly = TRUE)
+  require(MASS, quietly = TRUE)
   require(afex, quietly = TRUE)
   require(emmeans, quietly = TRUE)
   require(ggplot2, quietly = TRUE)

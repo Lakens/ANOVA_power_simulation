@@ -7,13 +7,14 @@ editor_options:
 ```{r, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 
-library(mvtnorm)
-library(afex)
-library(emmeans)
-library(ggplot2)
-library(gridExtra)
-library(reshape2)
-library(pwr)
+require(mvtnorm, quietly = TRUE)
+require(MASS, quietly = TRUE)
+require(afex, quietly = TRUE)
+require(emmeans, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(gridExtra, quietly = TRUE)
+require(reshape2, quietly = TRUE)
+require(pwr, quietly = TRUE)
 
 # Install functions from GitHub by running the code below:
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/plot_power_2x2_within.R")
@@ -31,14 +32,12 @@ mu = c(0,0,0,0.5)
 n <- 20
 sd <- 1
 r <- 0.5
-p_adjust = "none"
 labelnames = c("A", "a1", "a2", "B", "b1", "b2")
 design_result <- ANOVA_design(string = string,
                               n = n, 
                               mu = mu, 
                               sd = sd, 
                               r = r, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 
@@ -67,7 +66,6 @@ The design has means 0, 0, 0, 0, with one cell increasing by 0.1, up to 0, 0, 0,
 ```{r, fig.height = 10, fig.width = 7}
 
 string <- "2w*2w"
-p_adjust = "none"
 labelnames = c("A", "a1", "a2", "B", "b1", "b2")
 
 design_result <- ANOVA_design(string = string,
@@ -75,7 +73,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.0), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_a <- plot_power_2x2_within(design_result,
@@ -86,7 +83,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.1), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_b <- plot_power_2x2_within(design_result,
@@ -97,7 +93,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.2), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_c <- plot_power_2x2_within(design_result,
@@ -108,7 +103,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.3), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_d <- plot_power_2x2_within(design_result,
@@ -119,7 +113,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.4), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_e <- plot_power_2x2_within(design_result,
@@ -130,7 +123,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.5), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_f <- plot_power_2x2_within(design_result,
@@ -165,7 +157,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.0), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_a <- plot_power_2x2_within(design_result,
@@ -176,7 +167,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0.1,0,0,0.1), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_b <- plot_power_2x2_within(design_result,
@@ -187,7 +177,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0.2,0,0,0.2), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_c <- plot_power_2x2_within(design_result,
@@ -198,7 +187,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0.3,0,0,0.3), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_d <- plot_power_2x2_within(design_result,
@@ -209,7 +197,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0.4,0,0,0.4), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_e <- plot_power_2x2_within(design_result,
@@ -220,7 +207,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0.5,0,0,0.5), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_f <- plot_power_2x2_within(design_result,
@@ -251,7 +237,6 @@ The design has means 0, 0, 0, 0.3. The standard deviation is set to 1. The corre
 ```{r, fig.height = 10, fig.width = 7}
 
 string <- "2w*2w"
-p_adjust = "none"
 labelnames = c("A", "a1", "a2", "B", "b1", "b2")
 
 design_result <- ANOVA_design(string = string,
@@ -259,7 +244,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.3), 
                               sd = 1, 
                               r = 0.0, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_a <- plot_power_2x2_within(design_result,
@@ -270,7 +254,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.3), 
                               sd = 1, 
                               r = 0.1, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_b <- plot_power_2x2_within(design_result,
@@ -281,7 +264,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.3), 
                               sd = 1, 
                               r = 0.3, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_c <- plot_power_2x2_within(design_result,
@@ -292,7 +274,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.3), 
                               sd = 1, 
                               r = 0.5, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_d <- plot_power_2x2_within(design_result,
@@ -303,7 +284,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.3), 
                               sd = 1, 
                               r = 0.7, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_e <- plot_power_2x2_within(design_result,
@@ -314,7 +294,6 @@ design_result <- ANOVA_design(string = string,
                               mu = c(0,0,0,0.3), 
                               sd = 1, 
                               r = 0.9, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_f <- plot_power_2x2_within(design_result,
@@ -348,7 +327,6 @@ We see this in the plots below. As the correlation of the A factor increases fro
 ```{r, fig.height = 10, fig.width = 7}
 
 string <- "2w*2w"
-p_adjust = "none"
 labelnames = c("A", "a1", "a2", "B", "b1", "b2")
 
 design_result <- ANOVA_design(string = string,
@@ -359,7 +337,6 @@ design_result <- ANOVA_design(string = string,
                                 0.4, 0.4, 0.4,
                                 0.4, 0.4,
                                 0.4),
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_a <- plot_power_2x2_within(design_result,
@@ -373,7 +350,6 @@ design_result <- ANOVA_design(string = string,
                                 0.5, 0.4, 0.4,
                                 0.4, 0.4,
                                 0.5),
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_b <- plot_power_2x2_within(design_result,
@@ -387,7 +363,6 @@ design_result <- ANOVA_design(string = string,
                                 0.6, 0.4, 0.4,
                                 0.4, 0.4,
                                 0.6),
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_c <- plot_power_2x2_within(design_result,
@@ -401,7 +376,6 @@ design_result <- ANOVA_design(string = string,
                                 0.7, 0.4, 0.4,
                                 0.4, 0.4,
                                 0.7), 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_d <- plot_power_2x2_within(design_result,
@@ -415,7 +389,6 @@ design_result <- ANOVA_design(string = string,
                                 0.8, 0.4, 0.4,
                                 0.4, 0.4,
                                 0.8), 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_e <- plot_power_2x2_within(design_result,
@@ -429,7 +402,6 @@ design_result <- ANOVA_design(string = string,
                                 0.9, 0.4, 0.4,
                                 0.4, 0.4,
                                 0.9), 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 p_f <- plot_power_2x2_within(design_result,

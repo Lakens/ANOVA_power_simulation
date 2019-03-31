@@ -7,14 +7,14 @@ editor_options:
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 nsims <- 100000 #set number of simulations
-library(mvtnorm)
-library(MASS)
-library(afex)
-library(emmeans)
-library(ggplot2)
-library(gridExtra)
-library(reshape2)
-library(pwr)
+require(mvtnorm, quietly = TRUE)
+require(MASS, quietly = TRUE)
+require(afex, quietly = TRUE)
+require(emmeans, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(gridExtra, quietly = TRUE)
+require(reshape2, quietly = TRUE)
+require(pwr, quietly = TRUE)
 
 # Install functions from GitHub by running the code below:
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
@@ -40,16 +40,12 @@ string <- "2b"
 n <- 50
 mu <- c(80, 86) #All means are equal - so there is no real difference.
 sd <- 10
-r <- 0 
-p_adjust = "none"
 labelnames <- c("Condition", "control", "intensive_training") #
 
 design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 # Power for the given N in the design_result
@@ -72,16 +68,12 @@ string <- "3b"
 n <- 50
 mu <- c(80, 83, 86) #All means are equal - so there is no real difference.
 sd <- 10
-r <- 0 
-p_adjust = "none"
 labelnames <- c("Condition", "control", "light_training", "intensive_training") 
 
 design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 # Power for the given N in the design_result
@@ -103,16 +95,12 @@ string <- "3b"
 n <- 50
 mu <- c(80, 80, 86) #All means are equal - so there is no real difference.
 sd <- 10
-r <- 0 
-p_adjust = "none"
 labelnames <- c("Condition", "control", "light_training", "intensive_training") 
 
 design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 # Power for the given N in the design_result
@@ -229,16 +217,12 @@ string <- "2w"
 n <- 50
 mu <- c(80, 86) #All means are equal - so there is no real difference.
 sd <- 10
-r <- 0.0
-p_adjust = "none"
 labelnames <- c("Condition", "control", "intensive_training") #
 
 design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 power_oneway_within(design_result)$power
@@ -251,16 +235,12 @@ string <- "3w"
 n <- 50
 mu <- c(80, 83, 86) #All means are equal - so there is no real difference.
 sd <- 10
-r <- 0.0
-p_adjust = "none"
 labelnames <- c("Condition", "control", "light_training","intensive_training") #
 
 design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 power_oneway_within(design_result)$power
@@ -272,14 +252,11 @@ When we add a a condition in a within design where we expect the mean to be iden
 n <- 30
 sd <- 10
 r <- 0.5
-p_adjust = "none"
-
 
 string <- "2w"
 mu <- c(0, 5) #All means are equal - so there is no real difference.
 labelnames <- c("Factor_A", "a1", "a2") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
+design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, labelnames = labelnames)
 power_oneway_within(design_result)$power
 power_oneway_within(design_result)$Cohen_f
 power_oneway_within(design_result)$Cohen_f_SPSS
@@ -289,8 +266,7 @@ power_oneway_within(design_result)$F_critical
 string <- "3w"
 mu <- c(0, 0, 5) #All means are equal - so there is no real difference.
 labelnames <- c("Factor_A", "a1", "a2", "a3") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
+design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, labelnames = labelnames)
 power_oneway_within(design_result)$power
 power_oneway_within(design_result)$Cohen_f
 power_oneway_within(design_result)$Cohen_f_SPSS
@@ -300,8 +276,7 @@ power_oneway_within(design_result)$F_critical
 string <- "4w"
 mu <- c(0, 0, 0, 5) #All means are equal - so there is no real difference.
 labelnames <- c("Factor_A", "a1", "a2", "a3", "a4") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
+design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, labelnames = labelnames)
 power_oneway_within(design_result)$power
 power_oneway_within(design_result)$Cohen_f
 power_oneway_within(design_result)$Cohen_f_SPSS
@@ -311,8 +286,7 @@ power_oneway_within(design_result)$F_critical
 string <- "5w"
 mu <- c(0, 0, 0, 0, 5) #All means are equal - so there is no real difference.
 labelnames <- c("Factor_A", "a1", "a2", "a3", "a4", "a5") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
+design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, labelnames = labelnames)
 power_oneway_within(design_result)$power
 power_oneway_within(design_result)$Cohen_f
 power_oneway_within(design_result)$Cohen_f_SPSS
@@ -322,8 +296,7 @@ power_oneway_within(design_result)$F_critical
 string <- "6w"
 mu <- c(0, 0, 0, 0, 0, 5) #All means are equal - so there is no real difference.
 labelnames <- c("Factor_A", "a1", "a2", "a3", "a4", "a5", "a6") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
+design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, labelnames = labelnames)
 power_oneway_within(design_result)$power
 power_oneway_within(design_result)$Cohen_f
 power_oneway_within(design_result)$Cohen_f_SPSS
@@ -333,8 +306,7 @@ power_oneway_within(design_result)$F_critical
 string <- "7w"
 mu <- c(0, 0, 0, 0, 0, 0, 5) #All means are equal - so there is no real difference.
 labelnames <- c("Factor_A", "a1", "a2", "a3", "a4", "a5", "a6", "a7") #
-design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, 
-                   p_adjust = p_adjust, labelnames = labelnames)
+design_result <- ANOVA_design(string = string, n = n, mu = mu, sd = sd, r = r, labelnames = labelnames)
 power_oneway_within(design_result)$power
 power_oneway_within(design_result)$Cohen_f
 power_oneway_within(design_result)$Cohen_f_SPSS

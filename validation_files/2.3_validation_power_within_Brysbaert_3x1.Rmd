@@ -5,12 +5,14 @@ output: github_document
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 nsims <- 100000 #set number of simulations
-library(mvtnorm)
-library(afex)
-library(emmeans)
-library(ggplot2)
-library(gridExtra)
-library(reshape2)
+require(mvtnorm, quietly = TRUE)
+require(MASS, quietly = TRUE)
+require(afex, quietly = TRUE)
+require(emmeans, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(gridExtra, quietly = TRUE)
+require(reshape2, quietly = TRUE)
+require(pwr, quietly = TRUE)
 
 ```
 
@@ -103,7 +105,6 @@ n <- 75
 mu <- c(0, 0.4, 0.4)
 sd <- 1
 r <- 0.5
-p_adjust = "none"
 labelnames <- c("speed", "fast", "medium", "slow")
 
 ```
@@ -115,9 +116,7 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none",
-
-                                      labelnames = labelnames)
+                   labelnames = labelnames)
 
 ANOVA_power(design_result, nsims = nsims)
 
@@ -220,7 +219,6 @@ n <- 75
 mu <- c(0, 0.4, 0.4)
 sd <- 1
 r <- 0.6
-p_adjust = "none"
 labelnames <- c("speed", "fast", "medium", "slow")
 
 ```
@@ -232,9 +230,7 @@ design_result <- ANOVA_design(string = string,
                    mu = mu, 
                    sd = sd, 
                    r = r, 
-                   p_adjust = "none",
-
-                                      labelnames = labelnames)
+                   labelnames = labelnames)
 
 ANOVA_power(design_result, nsims = nsims)
 

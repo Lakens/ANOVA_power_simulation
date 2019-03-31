@@ -7,13 +7,14 @@ editor_options:
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 nsims <- 100000 #set number of simulations
-library(mvtnorm)
-library(afex)
-library(emmeans)
-library(ggplot2)
-library(gridExtra)
-library(reshape2)
-library(pwr)
+require(mvtnorm, quietly = TRUE)
+require(MASS, quietly = TRUE)
+require(afex, quietly = TRUE)
+require(emmeans, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(gridExtra, quietly = TRUE)
+require(reshape2, quietly = TRUE)
+require(pwr, quietly = TRUE)
 
 # Install functions from GitHub by running the code below:
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
@@ -31,11 +32,6 @@ n <- 20
 mu <- c(20, 20, 20, 25) #All means are equal - so there is no real difference.
 # Enter means in the order that matches the labels below.
 sd <- 0.5
-r <- 0.9 
-# (note that since we simulate a between design, the correlation between variables 
-# will be 0, regardless of what you enter here, but the value must be set).
-p_adjust = "none"
-# "none" means we do not correct for multiple comparisons
 labelnames <- c("fruit", "apple", "banana", "hunger", "no hunger", "very hungry") #
 # the label names should be in the order of the means specified above.
 
@@ -43,10 +39,7 @@ design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
-
 ```
 
 We can reproduce the simulations in the Data Colada blog post, using the original code.
@@ -164,11 +157,6 @@ n <- 150
 mu <- c(20, 20, 20, 25) #All means are equal - so there is no real difference.
 # Enter means in the order that matches the labels below.
 sd <- 20
-r <- 0 
-# (note that since we simulate a between design, the correlation between variables 
-# will be 0, regardless of what you enter here, but the value must be set).
-p_adjust = "none"
-# "none" means we do not correct for multiple comparisons
 labelnames <- c("fruit", "apple", "banana", "hunger", "no hunger", "very hungry") #
 # the label names should be in the order of the means specified above.
 
@@ -176,8 +164,6 @@ design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 alpha_level <- 0.05 #We set the alpha level at 0.05. 
@@ -194,11 +180,6 @@ n <- 300
 mu <- c(20, 20, 20, 25) #All means are equal - so there is no real difference.
 # Enter means in the order that matches the labels below.
 sd <- 20
-r <- 0 
-# (note that since we simulate a between design, the correlation between variables 
-# will be 0, regardless of what you enter here, but the value must be set).
-p_adjust = "none"
-# "none" means we do not correct for multiple comparisons
 labelnames <- c("fruit", "apple", "banana", "hunger", "no hunger", "very hungry") #
 # the label names should be in the order of the means specified above.
 
@@ -206,8 +187,6 @@ design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 alpha_level <- 0.05 #We set the alpha level at 0.05. 
@@ -278,11 +257,6 @@ n <- 300
 mu <- c(25, 20, 20, 25) #All means are equal - so there is no real difference.
 # Enter means in the order that matches the labels below.
 sd <- 20
-r <- 0 
-# (note that since we simulate a between design, the correlation between variables 
-# will be 0, regardless of what you enter here, but the value must be set).
-p_adjust = "none"
-# "none" means we do not correct for multiple comparisons
 labelnames <- c("fruit", "apple", "banana", "hunger", "no hunger", "very hungry") #
 # the label names should be in the order of the means specified above.
 
@@ -290,8 +264,6 @@ design_result <- ANOVA_design(string = string,
                    n = n, 
                    mu = mu, 
                    sd = sd, 
-                   r = r, 
-                   p_adjust = p_adjust,
                    labelnames = labelnames)
 
 alpha_level <- 0.05 #We set the alpha level at 0.05. 

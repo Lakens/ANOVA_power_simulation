@@ -7,13 +7,14 @@ editor_options:
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 nsims <- 100000 #set number of simulations
-library(mvtnorm)
-library(afex)
-library(emmeans)
-library(ggplot2)
-library(gridExtra)
-library(reshape2)
-
+require(mvtnorm, quietly = TRUE)
+require(MASS, quietly = TRUE)
+require(afex, quietly = TRUE)
+require(emmeans, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(gridExtra, quietly = TRUE)
+require(reshape2, quietly = TRUE)
+require(pwr, quietly = TRUE)
 ```
 
 ## Validation of Power in Mixed ANOVA
@@ -65,14 +66,12 @@ r <- c(
 
 string = "2w*2w"
 alpha_level <- 0.05
-p_adjust = "none"
 labelnames = c("A", "a1", "a2", "B", "b1", "b2")
 design_result <- ANOVA_design(string = string,
                               n = n, 
                               mu = mu, 
                               sd = sd, 
                               r = r, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = 1000)
@@ -207,14 +206,12 @@ r <- c(
 
 string = "2w*2w"
 alpha_level <- 0.05
-p_adjust = "none"
 labelnames = c("A", "a1", "a2", "B", "b1", "b2")
 design_result <- ANOVA_design(string = string,
                               n = n, 
                               mu = mu, 
                               sd = sd, 
                               r = r, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = 1000)
@@ -307,7 +304,6 @@ r <- c(
 
 string = "2w*2w"
 alpha_level <- 0.05
-p_adjust = "none"
 labelnames = c("A", "a1", "a2", "B", "b1", "b2")
 
 k <- 1 #one group (because all factors are within)
@@ -389,14 +385,12 @@ r <- c(
 
 string = "2w*2w"
 alpha_level <- 0.05
-p_adjust = "none"
 labelnames = c("A", "a1", "a2", "B", "b1", "b2")
 design_result <- ANOVA_design(string = string,
                               n = n, 
                               mu = mu, 
                               sd = sd, 
                               r = r, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = 1000)
@@ -484,14 +478,12 @@ r <- c(
 
 string = "2w*2w"
 alpha_level <- 0.05
-p_adjust = "none"
 labelnames = c("A", "a1", "a2", "B", "b1", "b2")
 design_result <- ANOVA_design(string = string,
                               n = n, 
                               mu = mu, 
                               sd = sd, 
                               r = r, 
-                              p_adjust = p_adjust,
                               labelnames = labelnames)
 
 simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = 1000)
