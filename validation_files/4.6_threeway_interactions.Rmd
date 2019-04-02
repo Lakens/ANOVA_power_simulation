@@ -6,7 +6,7 @@ editor_options:
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 100000 #set number of simulations
+nsims <- 5000 #set number of simulations
 library(mvtnorm, quietly = TRUE)
 library(MASS, quietly = TRUE)
 library(afex, quietly = TRUE)
@@ -38,7 +38,7 @@ Let's start with a 2x2x2 between subjects design. We collect 50 participants in 
 ```{r}
 string <- "2b*2b*2b"
 n <- 50
-mu <- c(1, 1, 6, 1, 6, 6, 1, 6) 
+mu <- c(2, 2, 6, 1, 6, 6, 1, 8) 
 sd <- 10
 r <- 0.0
 labelnames <- c("Size", "big", "small", "Color", "green", "red", 
@@ -53,9 +53,48 @@ design_result <- ANOVA_design(string = string,
 # Power for the given N in the design_result
 ANOVA_power(design_result, nsims = nsims)
 
+#Analytical power calculation
+power_analytic <- power_threeway_between(design_result)
+
+power_analytic$power_A
+power_analytic$power_B
+power_analytic$power_C
+power_analytic$power_AB
+power_analytic$power_AC
+power_analytic$power_BC
+power_analytic$power_ABC
+
+power_analytic$eta_p_2_A
+power_analytic$eta_p_2_B
+power_analytic$eta_p_2_C
+power_analytic$eta_p_2_AB
+power_analytic$eta_p_2_AC
+power_analytic$eta_p_2_BC
+power_analytic$eta_p_2_ABC
+
+# Power and Effect sizes for ANOVA tests
+#                               power effect size
+# anova_Gender                   5.18      0.0051
+# anova_Country                 91.26      0.1139
+# anova_Position                 8.52      0.0068
+# anova_Gender:Country          10.70      0.0084
+# anova_Gender:Position         68.32      0.0640
+# anova_Country:Position         8.74      0.0070
+# anova_Gender:Country:Position 98.56      0.1684
+
+# Power and Effect sizes for ANOVA tests
+#                                power effect size
+# anova_Size                     70.78      0.0159
+# anova_Color                     4.96      0.0011
+# anova_CognitiveLoad             8.28      0.0016
+# anova_Size:Color               34.24      0.0061
+# anova_Size:CognitiveLoad       84.56      0.0224
+# anova_Color:CognitiveLoad       8.22      0.0014
+# anova_Size:Color:CognitiveLoad 84.40      0.0224
+
 ```
 
-A Three-Way ANOVA builds on the same principles as a One_Way ANOVA. We look at whether the differences between groups are large, compared to the standard deviation. For the main effects we simply have 2 groups of 200 participants, and 2 means. If the population standard deviations are identical across groups, this is not in any way different from a One-Way ANOVA. Indeed, we can show this by simulating a One-Way ANOVA, where instead of 8 conditions, we have two conditions, and we average over the 4 groups of the other two factors. For example, for the main effect of size above:
+A Three-Way ANOVA builds on the same principles as a One_Way ANOVA. We look at whether the differences between groups are large, compared to the standard deviation. For the main effects we simply have 2 groups of 200 participants, and 2 means. If the population standard deviations are identical across groups, this is not in any way different from a One-Way ANOVA. Indeed, we can show this by simulating a One-Way ANOVA, where instead of 8 conditions, we have two conditions, and we average over the 4 groups of the other two factors. For example, for the main effect of size above can be computed analytically. There might be a small difference in the degrees of freedom of the two tests, or it is just random variation (And it will disappear when repeating the simulation 1000.000 times instead of 100.000. 
 
 ```{r}
 string <- "2b"
@@ -102,6 +141,47 @@ power_res <- power_twoway_between(design_result) #using default alpha level of .
 power_res$power_A
 power_res$power_B
 power_res$power_AB
+
+```
+
+
+
+```{r}
+string <- "2b*2b*2b"
+n <- 50
+mu <- c(5, 3, 2, 6, 1, 4, 3, 1) 
+sd <- 10
+r <- 0.0
+labelnames <- c("Size", "big", "small", "Color", "green", "red", 
+                "CognitiveLoad", "present", "absent") #
+
+design_result <- ANOVA_design(string = string,
+                   n = n, 
+                   mu = mu, 
+                   sd = sd, 
+                   labelnames = labelnames)
+
+# Power for the given N in the design_result
+ANOVA_power(design_result, nsims = nsims)
+
+#Analytical power calculation
+power_analytic <- power_threeway_between(design_result)
+
+power_analytic$power_A
+power_analytic$power_B
+power_analytic$power_C
+power_analytic$power_AB
+power_analytic$power_AC
+power_analytic$power_BC
+power_analytic$power_ABC
+
+power_analytic$eta_p_2_A
+power_analytic$eta_p_2_B
+power_analytic$eta_p_2_C
+power_analytic$eta_p_2_AB
+power_analytic$eta_p_2_AC
+power_analytic$eta_p_2_BC
+power_analytic$eta_p_2_ABC
 
 ```
 

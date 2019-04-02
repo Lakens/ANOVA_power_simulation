@@ -271,3 +271,13 @@ alpha_level <- 0.05 #We set the alpha level at 0.05.
 power_result <- ANOVA_power(design_result, alpha_level = alpha_level, nsims = nsims)
 ```
 
+We can also reproduce the power analysis using the anlytic function:
+
+```{r}
+power_analytic <- power_twoway_between(design_result)
+
+power_analytic$power_A
+power_analytic$power_B
+power_analytic$power_AB
+```
+

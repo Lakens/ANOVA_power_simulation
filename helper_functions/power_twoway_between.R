@@ -20,65 +20,32 @@ power_twoway_between <- function(design_result, alpha_level=0.05){
   SS_error <- MS_error * (design_result$n*length(design_result$mu)) 
 
   # For main effect A
-  df1_A <- (length(design_result$labelnames[[1]]) - 1) #calculate degrees of freedom 1 - ignoring the * e sphericity correction
-  df2 <- (design_result$n*length(design_result$mu) - length(design_result$mu))
+  df_A <- (length(design_result$labelnames[[1]]) - 1) #calculate degrees of freedom 1 - ignoring the * e sphericity correction
+  df_B <- (length(design_result$labelnames[[2]]) - 1) #calculate degrees of freedom 1 - ignoring the * e sphericity correction
+  df_AB <- (length(design_result$labelnames[[1]])-1) * (length(design_result$labelnames[[2]])-1)
+  df_error <- (design_result$n*length(design_result$mu) - length(design_result$mu))
+
   eta_p_2_A <- SS_A/(SS_A+SS_error)
-  f_2_A <- eta_p_2_A/(1-eta_p_2_A)
-  # f_A <- sqrt(sum((rowMeans(mean_mat) - mean(mean_mat))^2)/length(design_result$labelnames[[1]]))/design_result$sd 
-  # Based on Cohen, 8.2.2, p275. But this works only when means are miximally different. 
-  # Therefore we just take the square root for f_2_A
-  Cohen_f_A <- sqrt(f_2_A)
-  lambda_A <- design_result$n * length(design_result$labelnames[[1]]) * sum((rowMeans(mean_mat)-mean(rowMeans(mean_mat)))^2)/design_result$sd^2
-  F_critical_A <- qf(alpha_level, # critical F-vaue
-                     df1_A,
-                     df2, 
-                     lower.tail=FALSE) 
-  power_A <- pf(qf(alpha_level, #powerer 
-                   df1_A, 
-                   df2, 
-                   lower.tail = FALSE), 
-                df1_A, 
-                df2, 
-                lambda_A, 
-                lower.tail = FALSE)
-  
-  # For main effect B
-  df1_B <- (length(design_result$labelnames[[2]]) - 1) #calculate degrees of freedom 1 - ignoring the * e sphericity correction
   eta_p_2_B <- SS_B/(SS_B+SS_error)
+  eta_p_2_AB <- SS_AB/(SS_AB+SS_error)
+
+  f_2_A <- eta_p_2_A/(1-eta_p_2_A)
+  Cohen_f_A <- sqrt(f_2_A)
   f_2_B <- eta_p_2_B/(1-eta_p_2_B)
   Cohen_f_B <- sqrt(f_2_B)
-  lambda_B <- design_result$n * length(design_result$labelnames[[2]]) * sum((colMeans(mean_mat)-mean(colMeans(mean_mat)))^2)/design_result$sd^2
-  F_critical_B <- qf(alpha_level, # critical F-vaue
-                     df1_B,
-                     df2, 
-                     lower.tail=FALSE) 
-  power_B <- pf(qf(alpha_level, #powerer 
-                   df1_B, 
-                   df2, 
-                   lower.tail = FALSE), 
-                df1_B, 
-                df2, 
-                lambda_B, 
-                lower.tail = FALSE)
-  
-  # For main effect AB
-  df1_AB <- (length(design_result$labelnames[[1]])-1) * (length(design_result$labelnames[[2]])-1)
-  eta_p_2_AB <- SS_AB/(SS_AB+SS_error)
   f_2_AB <- eta_p_2_AB/(1-eta_p_2_AB)
   Cohen_f_AB <- eta_p_2_AB/(1-eta_p_2_AB)
+  
+  lambda_A <- design_result$n * length(design_result$labelnames[[1]]) * sum((rowMeans(mean_mat)-mean(rowMeans(mean_mat)))^2)/design_result$sd^2
+  lambda_B <- design_result$n * length(design_result$labelnames[[2]]) * sum((colMeans(mean_mat)-mean(colMeans(mean_mat)))^2)/design_result$sd^2
   lambda_AB <- design_result$n * length(design_result$labelnames[[1]]) * length(design_result$labelnames[[2]]) * Cohen_f_AB
-  F_critical_AB <- qf(alpha_level, 
-                      df1_AB, 
-                      df2, 
-                      lower.tail=FALSE) # Critical F-Value
-  power_AB <- pf(qf(alpha_level, #powerer 
-                   df1_AB, 
-                   df2, 
-                   lower.tail = FALSE), 
-                df1_AB, 
-                df2, 
-                lambda_AB, 
-                lower.tail = FALSE)
+  
+  F_critical_A <- qf(alpha_level, df_A, df_error, lower.tail=FALSE) 
+  power_A <- pf(F_critical_A, df_A, df_error, lambda_A, lower.tail = FALSE)
+  F_critical_B <- qf(alpha_level, df_B, df_error, lower.tail=FALSE) 
+  power_B <- pf(F_critical_B, df_B, df_error, lambda_B, lower.tail = FALSE)
+  F_critical_AB <- qf(alpha_level, df_AB, df_error, lower.tail=FALSE) 
+  power_AB <- pf(F_critical_AB, df_AB, df_error, lambda_AB, lower.tail = FALSE)
 
   invisible(list(mu = design_result$n,
                  sigma = design_result$sd,
@@ -99,10 +66,10 @@ power_twoway_between <- function(design_result, alpha_level=0.05){
                  power_A = power_A,
                  power_B = power_B,
                  power_AB = power_AB,
-                 df1_A = df1_A,
-                 df1_B = df1_B,
-                 df1_AB = df1_AB,
-                 df2 = df2,
+                 df_A = df_A,
+                 df_B = df_B,
+                 df_AB = df_AB,
+                 df_error = df_error,
                  eta_p_2_A = eta_p_2_A,
                  eta_p_2_B = eta_p_2_B,
                  eta_p_2_AB = eta_p_2_AB,
