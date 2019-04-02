@@ -43,7 +43,7 @@ power_threeway_between <- function(design_result, alpha_level=0.05){
   
   df_ABC <- (length(design_result$labelnames[[1]]) - 1) * (length(design_result$labelnames[[2]]) - 1) * (length(design_result$labelnames[[3]]) - 1)
   
-  df_error <- (n * length(design_result$mu)) - (length(design_result$labelnames[[1]])) * (length(design_result$labelnames[[2]])) * (length(design_result$labelnames[[3]]))
+  df_error <- (design_result$n * length(design_result$mu)) - (length(design_result$labelnames[[1]])) * (length(design_result$labelnames[[2]])) * (length(design_result$labelnames[[3]]))
   df_total <- df_error + df_A + df_B + df_C + df_AB + df_AC + df_BC + df_ABC
   
   # Calculate sum of squares
