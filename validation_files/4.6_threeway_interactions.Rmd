@@ -6,7 +6,7 @@ editor_options:
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 1000 #set number of simulations
+nsims <- 100000 #set number of simulations
 library(mvtnorm, quietly = TRUE)
 library(MASS, quietly = TRUE)
 library(afex, quietly = TRUE)
@@ -20,14 +20,8 @@ library(pwr, quietly = TRUE)
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_oneway_between.R")
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_oneway_within.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_twoway_between.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_threeway_between.R")
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_2x2_within.R")
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/plot_power_oneway_between.R")
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/plot_power_oneway_within.R")
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/plot_power_twoway_between.R")
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/plot_power_2x2_within.R")
 ```
 
 ## Power for Three-way Interactions
@@ -108,8 +102,6 @@ ANOVA_power(design_result, nsims = nsims)
 
 # Power based on analytical solution
 power_oneway_between(design_result)$power #using default alpha level of .05
-
-
 
 ```
 

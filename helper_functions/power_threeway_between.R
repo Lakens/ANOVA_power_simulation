@@ -86,19 +86,19 @@ power_threeway_between <- function(design_result, alpha_level=0.05){
   
   #Calculate eta-squared
   
-  eta_p_2_A <- SS_A/(SS_A+SS_error)
+  eta_p_2_A <- SS_A/(SS_A+SS_total)
   eta_p_2_A
-  eta_p_2_B <- SS_B/(SS_B+SS_error)
+  eta_p_2_B <- SS_B/(SS_B+SS_total)
   eta_p_2_B
-  eta_p_2_C <- SS_C/(SS_C+SS_error)
+  eta_p_2_C <- SS_C/(SS_C+SS_total)
   eta_p_2_C
-  eta_p_2_AB <- SS_AB/(SS_AB+SS_error)
+  eta_p_2_AB <- SS_AB/(SS_AB+SS_total)
   eta_p_2_AB
-  eta_p_2_AC <- SS_AC/(SS_AC+SS_error)
+  eta_p_2_AC <- SS_AC/(SS_AC+SS_total)
   eta_p_2_AC
-  eta_p_2_BC <- SS_BC/(SS_BC+SS_error)
+  eta_p_2_BC <- SS_BC/(SS_BC+SS_total)
   eta_p_2_BC
-  eta_p_2_ABC <- SS_ABC/(SS_ABC+SS_error)
+  eta_p_2_ABC <- SS_ABC/(SS_ABC+SS_total)
   eta_p_2_ABC
   
   # Cohen f and squared
