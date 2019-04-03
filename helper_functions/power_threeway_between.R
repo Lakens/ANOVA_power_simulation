@@ -78,12 +78,12 @@ power_threeway_between <- function(design_result, alpha_level=0.05){
   MS_total <- design_result$sd^2
   SS_total <- MS_total * df_total
   
-  SS_error <- SS_total - SS_A - SS_B - SS_C - SS_AB - SS_AC - SS_BC - SS_ABC
-  MS_error <- SS_error/df_error
-    
   SS_ABC_between <- design_result$n * sum((design_result$mu - mean(design_result$mu))^2)
   SS_ABC <- SS_ABC_between - SS_A - SS_B - SS_C - SS_AB - SS_AC - SS_BC
 
+  SS_error <- SS_total - SS_A - SS_B - SS_C - SS_AB - SS_AC - SS_BC - SS_ABC
+  MS_error <- SS_error/df_error
+  
   #Calculate eta-squared
   
   eta_p_2_A <- SS_A/(SS_A+SS_error)
@@ -213,6 +213,6 @@ power_threeway_between <- function(design_result, alpha_level=0.05){
                  eta_p_2_AC = eta_p_2_AC,
                  eta_p_2_BC = eta_p_2_BC,
                  eta_p_2_ABC = eta_p_2_ABC,
-                 mean_mat = mean_mat))
+                 mean_mat = mu_array))
 }
 

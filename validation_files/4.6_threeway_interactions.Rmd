@@ -6,7 +6,7 @@ editor_options:
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-nsims <- 5000 #set number of simulations
+nsims <- 1000 #set number of simulations
 library(mvtnorm, quietly = TRUE)
 library(MASS, quietly = TRUE)
 library(afex, quietly = TRUE)
@@ -22,6 +22,7 @@ source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/A
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_oneway_between.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_oneway_within.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_twoway_between.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_threeway_between.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_2x2_within.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/plot_power_oneway_between.R")
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/plot_power_oneway_within.R")
@@ -36,21 +37,19 @@ There are almost no software solutions that allow researchers to perform power a
 Let's start with a 2x2x2 between subjects design. We collect 50 participants in each between participant condition (so 400 participants in total - 50x2x2x2). 
 
 ```{r}
-string <- "2b*2b*2b"
-n <- 50
-mu <- c(2, 2, 6, 1, 6, 6, 1, 8) 
-sd <- 10
-r <- 0.0
-labelnames <- c("Size", "big", "small", "Color", "green", "red", 
-                "CognitiveLoad", "present", "absent") #
+# With 2x2x2 designs, the names for paired comparisons can become very long. 
+# So here I abbreviate terms: Size, Color, and Cognitive Load, have values:
+# b = big, s = small, g = green, r = red, pres = present, abs = absent.  
+labelnames <- c("Size", "b", "s", "Color", "g", "r", 
+                "Load", "pres", "abs") #
 
-design_result <- ANOVA_design(string = string,
-                   n = n, 
-                   mu = mu, 
-                   sd = sd, 
-                   labelnames = labelnames)
+design_result <- ANOVA_design(string = "2b*2b*2b", #describe the design
+                              n = 50, #sample size per group 
+                              mu = c(2, 2, 6, 1, 6, 6, 1, 8), #pattern of means
+                              sd = 10, #standard deviation
+                              labelnames = labelnames) #names of labels
 
-# Power for the given N in the design_result
+# Power based on simulations
 ANOVA_power(design_result, nsims = nsims)
 
 #Analytical power calculation
@@ -72,34 +71,29 @@ power_analytic$eta_p_2_AC
 power_analytic$eta_p_2_BC
 power_analytic$eta_p_2_ABC
 
-# Power and Effect sizes for ANOVA tests
-#                               power effect size
-# anova_Gender                   5.18      0.0051
-# anova_Country                 91.26      0.1139
-# anova_Position                 8.52      0.0068
-# anova_Gender:Country          10.70      0.0084
-# anova_Gender:Position         68.32      0.0640
-# anova_Country:Position         8.74      0.0070
-# anova_Gender:Country:Position 98.56      0.1684
-
-# Power and Effect sizes for ANOVA tests
-#                                power effect size
-# anova_Size                     70.78      0.0159
-# anova_Color                     4.96      0.0011
-# anova_CognitiveLoad             8.28      0.0016
-# anova_Size:Color               34.24      0.0061
-# anova_Size:CognitiveLoad       84.56      0.0224
-# anova_Color:CognitiveLoad       8.22      0.0014
-# anova_Size:Color:CognitiveLoad 84.40      0.0224
-
 ```
+
+We can also confirm the power analysis in GPower. GPower allows you to compute the power for a three-way interaction - if you know the Cohen's f value to enter. Cohen's f is calculated based on the means for the interaction, the sum of squares of the effect, and the sum of squares of the errors. This is quite a challenge by hand, but we can simulate the results, or use the analytical solution we programmed to get Cohen's f for the pattern of means that we specified. 
+
+```{r}
+# The power for the AC interaction (Size x Load) is 0.873535. 
+power_analytic$power_AC
+# We can enter the Cohen's f for this interaction. 
+power_analytic$Cohen_f_AC
+# We can double check the calculated lambda
+power_analytic$lambda_AC
+# We can double check the critical F value
+power_analytic$F_critical_AC
+```
+
+![](screenshots/gpower_8.png)
 
 A Three-Way ANOVA builds on the same principles as a One_Way ANOVA. We look at whether the differences between groups are large, compared to the standard deviation. For the main effects we simply have 2 groups of 200 participants, and 2 means. If the population standard deviations are identical across groups, this is not in any way different from a One-Way ANOVA. Indeed, we can show this by simulating a One-Way ANOVA, where instead of 8 conditions, we have two conditions, and we average over the 4 groups of the other two factors. For example, for the main effect of size above can be computed analytically. There might be a small difference in the degrees of freedom of the two tests, or it is just random variation (And it will disappear when repeating the simulation 1000.000 times instead of 100.000. 
 
 ```{r}
 string <- "2b"
 n <- 200
-mu <- c(mean(c(1, 1, 6, 1)), mean(c(6, 6, 1, 6)))
+mu <- c(mean(c(2, 2, 6, 1)), mean(c(6, 6, 1, 8)))
 sd <- 10
 labelnames <- c("Size", "big", "small")
 
@@ -114,6 +108,8 @@ ANOVA_power(design_result, nsims = nsims)
 
 # Power based on analytical solution
 power_oneway_between(design_result)$power #using default alpha level of .05
+
+
 
 ```
 
