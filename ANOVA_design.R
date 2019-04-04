@@ -79,7 +79,7 @@ ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames){
   df <- as.data.frame(mvrnorm(n=n,
                               mu=mu2,
                               Sigma=sigmatrix_2,
-                              empirical = TRUE))
+                              empirical = FALSE))
   df$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
   #Melt dataframe
   df <- melt(df, 
