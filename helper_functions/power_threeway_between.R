@@ -84,21 +84,22 @@ power_threeway_between <- function(design_result, alpha_level=0.05){
   SS_error <- SS_total - SS_A - SS_B - SS_C - SS_AB - SS_AC - SS_BC - SS_ABC
   MS_error <- SS_error/df_error
   
-  #Calculate eta-squared
-  
-  eta_p_2_A <- SS_A/(SS_A+SS_total)
+  # Calculate eta-squared
+  # Note we are using df_total calculating SS_total. eta_p_2 is  SS_A/(SS_A + SS_total)
+  # But ss_total is based on df_total, but we need the total sample size instead. 
+  eta_p_2_A <- SS_A/(SS_A + (MS_total * design_result$n * length(design_result$mu)))
   eta_p_2_A
-  eta_p_2_B <- SS_B/(SS_B+SS_total)
+  eta_p_2_B <- SS_B/(SS_B + (MS_total * design_result$n * length(design_result$mu)))
   eta_p_2_B
-  eta_p_2_C <- SS_C/(SS_C+SS_total)
+  eta_p_2_C <- SS_C/(SS_C + (MS_total * design_result$n * length(design_result$mu)))
   eta_p_2_C
-  eta_p_2_AB <- SS_AB/(SS_AB+SS_total)
+  eta_p_2_AB <- SS_AB/(SS_AB + (MS_total * design_result$n * length(design_result$mu)))
   eta_p_2_AB
-  eta_p_2_AC <- SS_AC/(SS_AC+SS_total)
+  eta_p_2_AC <- SS_AC/(SS_AC + (MS_total * design_result$n * length(design_result$mu)))
   eta_p_2_AC
-  eta_p_2_BC <- SS_BC/(SS_BC+SS_total)
+  eta_p_2_BC <- SS_BC/(SS_BC + (MS_total * design_result$n * length(design_result$mu)))
   eta_p_2_BC
-  eta_p_2_ABC <- SS_ABC/(SS_ABC+SS_total)
+  eta_p_2_ABC <- SS_ABC/(SS_ABC + (MS_total * design_result$n * length(design_result$mu)))
   eta_p_2_ABC
   
   # Cohen f and squared
