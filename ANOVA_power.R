@@ -346,7 +346,7 @@ ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", ns
                            function(x) round(median(x),round_dig)))
   
   main_results <- data.frame(power,es)
-  names(main_results) = c("power","effect size")
+  names(main_results) = c("power","effect_size")
   
 
   
@@ -358,7 +358,7 @@ ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", ns
                                   function(x) round(mean(x),round_dig)))
   
   pc_results <- data.frame(power_paired, es_paired)
-  names(pc_results) = c("power","effect size")
+  names(pc_results) = c("power","effect_size")
   
   #######################
   # Return Results ----
