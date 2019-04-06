@@ -34,7 +34,7 @@ power_twoway_between <- function(design_result, alpha_level=0.05){
   f_2_B <- eta_p_2_B/(1-eta_p_2_B)
   Cohen_f_B <- sqrt(f_2_B)
   f_2_AB <- eta_p_2_AB/(1-eta_p_2_AB)
-  Cohen_f_AB <- eta_p_2_AB/(1-eta_p_2_AB)
+  Cohen_f_AB <- sqrt(f_2_AB)
   
   lambda_A <- design_result$n * length(design_result$labelnames[[1]]) * sum((rowMeans(mean_mat)-mean(rowMeans(mean_mat)))^2)/design_result$sd^2
   lambda_B <- design_result$n * length(design_result$labelnames[[2]]) * sum((colMeans(mean_mat)-mean(colMeans(mean_mat)))^2)/design_result$sd^2
