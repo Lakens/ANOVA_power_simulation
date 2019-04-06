@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9.6100 64-bit) (preloaded format=pdflatex 2016.12.15)  6 APR 2019 16:41
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9.6100 64-bit) (preloaded format=pdflatex 2016.12.15)  6 APR 2019 22:37
 entering extended mode
 **./0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs.tex
 (0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs.tex
@@ -1177,7 +1177,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 [4]
 <0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-l
-atex/d-plot-1.pdf, id=49, 505.89pt x 289.08pt>
+atex/d-plot-1.pdf, id=53, 505.89pt x 289.08pt>
 File: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
 ure-latex/d-plot-1.pdf Graphic file (type pdf)
 
@@ -1188,7 +1188,7 @@ A_Designs_files/figure-latex/d-plot-1.pdf used on input line 236.
 (pdftex.def)             Requested size: 469.76265pt x 268.43579pt.
 
 <0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-l
-atex/eta-plot-1.pdf, id=50, 505.89pt x 289.08pt>
+atex/eta-plot-1.pdf, id=54, 505.89pt x 289.08pt>
 File: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
 ure-latex/eta-plot-1.pdf Graphic file (type pdf)
 
@@ -1198,27 +1198,38 @@ Package pdftex.def Info: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOV
 A_Designs_files/figure-latex/eta-plot-1.pdf used on input line 244.
 (pdftex.def)             Requested size: 469.76265pt x 268.43579pt.
 [5] [6 <./0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files
-/figure-latex/d-plot-1.pdf>]
-Underfull \vbox (badness 3250) has occurred while \output is active []
+/figure-latex/d-plot-1.pdf>] [7 <./0.1_Simulation_Based_Power_Analysis_For_Fact
+orial_ANOVA_Designs_files/figure-latex/eta-plot-1.pdf>] [8]
+<0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-l
+atex/sim_1_design-1.pdf, id=101, 469.755pt x 325.215pt>
+File: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
+ure-latex/sim_1_design-1.pdf Graphic file (type pdf)
 
-[7 <./0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
-ure-latex/eta-plot-1.pdf>] [8] AED endfloat: Processing end Figures and Tables 
-[9]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 333.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 333.
+<use 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figu
+re-latex/sim_1_design-1.pdf>
+Package pdftex.def Info: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOV
+A_Designs_files/figure-latex/sim_1_design-1.pdf used on input line 347.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+[9 <./0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
+ure-latex/sim_1_design-1.pdf>]
+Underfull \vbox (badness 4752) has occurred while \output is active []
+
+[10] [11] AED endfloat: Processing end Figures and Tables [12]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 438.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 438.
 (0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 333.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 333.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 438.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 438.
 Package rerunfilecheck Info: File `0.1_Simulation_Based_Power_Analysis_For_Fact
 orial_ANOVA_Designs.out' has not changed.
-(rerunfilecheck)             Checksum: E1B32E71FA60995BFF7BA5A1CFA5AAF6;1199.
+(rerunfilecheck)             Checksum: 4C99C5FB690FBD4F730C8377331A5AF1;1562.
  ) 
 Here is how much of TeX's memory you used:
- 15636 strings out of 493333
- 231021 string characters out of 3139190
- 346395 words of memory out of 3000000
- 18821 multiletter control sequences out of 15000+200000
- 50300 words of font info for 77 fonts, out of 3000000 for 9000
+ 15654 strings out of 493333
+ 231645 string characters out of 3139190
+ 346479 words of memory out of 3000000
+ 18827 multiletter control sequences out of 15000+200000
+ 50611 words of font info for 80 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  43i,11n,47p,852b,460s stack positions out of 5000i,500n,10000p,200000b,50000s
 {C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-rm.enc}{C:/Program Files/M
@@ -1235,9 +1246,9 @@ pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmss8.pfb><C:/Program Fi
 les/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb><C:/Program Files/MiKTeX 2.9/fo
 nts/type1/public/lm/lmsy8.pfb>
 Output written on 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Desig
-ns.pdf (9 pages, 335303 bytes).
+ns.pdf (12 pages, 350291 bytes).
 PDF statistics:
- 153 PDF objects out of 1000 (max. 8388607)
- 25 named destinations out of 1000 (max. 500000)
- 6195 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 180 PDF objects out of 1000 (max. 8388607)
+ 31 named destinations out of 1000 (max. 500000)
+ 6208 words of extra memory for PDF output out of 10000 (max. 10000000)
 

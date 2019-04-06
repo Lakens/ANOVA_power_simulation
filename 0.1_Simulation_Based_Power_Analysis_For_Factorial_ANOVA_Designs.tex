@@ -256,11 +256,13 @@ can also use the group means to calculate the variance of the difference
 between the two means \((m_1 - m_2)^2\). The \emph{F}-test is used to
 compute the ratio of the between group variance and the within group
 variance, and the between group variance can be used to compare more
-than two means. The second relationship between a \emph{t}-test and a
-\emph{F}-test for two groups is that the effect size for an ANOVA,
-Cohen's f, is half the size of the effect size for standardized mean
-differences, Cohen's d, of \(f = \frac{1}{2}d\). Cohen's d is calculated
-by dividing the difference between means by the standard deviation, or
+than two means. An \emph{F}-value of 1 means the two variances are equal
+(as is expected when the null-hypothesis is true) and Cohen's f and
+\(\eta_p^2\) would be zero. Second, for two groups the effect size for
+an ANOVA, Cohen's f, is half the size of the effect size for
+standardized mean differences, Cohen's d, or \(f = \frac{1}{2}d\).
+Cohen's d is calculated by dividing the difference between means by the
+standard deviation, or
 
 \begin{equation}
 d = \frac{m_1-m_2}{\sigma}.
@@ -305,11 +307,114 @@ and Cohen's f can be converted into partial eta-squared:
 \eta_p^2 = \sqrt{\frac{f^2}{f^2+1}}
 \end{equation}
 
-In the example above, \(\eta_p^2 = 0.25^2/(0.25^2+1) = 0.0588\).
+In the example above, \(\eta_p^2 = 0.25^2/(0.25^2+1) = 0.0588\). To
+calculate the statistical power assuming a specific true effect size we
+need the noncentrality parameter of the distribution. In both Figure
+\ref{fig:d-plot} and Figure \ref{fig:eta-plot} we see examples of the
+non-central \emph{t}distribution and non-central \emph{F}distribution,
+or the shape of the expected test statistics when there is a true
+effect. Power calculations rely on the nonceptrality parameter (often
+referred to as \(\lambda\)). Based on lambda (which specifies the shape
+of the expected distribution) and the critical test statistic (which
+specified the the part of the distribution that is more extreme than the
+test statistic needed for a statistically significant test result) we
+can calculate how often, in the long run, we can expect test results
+that will be statistically significant.
 
-Because Cohen's f is calculated based on the sum of squares, the value
-is always positive, just as the \emph{F}-value for an ANOVA is always
-positive.
+\section{Simulating Statistical Power for Different Factorial
+Designs}\label{simulating-statistical-power-for-different-factorial-designs}
+
+We have created R code and a Shiny app that simulate factorial ANOVA
+designs. At the core, the code generates data for each condition in the
+design, performs the test, and calculates the percentage of significant
+results and average effect size of all main effects and interactions, as
+well as all simple effects. It requires specifying the design of the
+study in a string of numbers (for the levels in each factor) and letters
+(a \enquote{b} for between factors or \enquote{w} for within factors).
+Our initial study above is a \enquote{2b} or two level between subject
+design. For ease of interpreting the simulation results, the factors and
+levels can be named (for our example, Condtion, cheerful, sad). The
+planned sample size should be specified, which is 70 participants in
+each between subjects condition. The means for each condition should be
+specified (0 and 1), as well as the standard deviation (2). For within
+designs the correlation between variables should be specified. With
+these variables specified, the design is set up for the simulation. For
+a visual confirmation of the input, a figure is created that displays
+the means.
+
+\begin{figure}
+\centering
+\includegraphics{0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-latex/sim_1_design-1.pdf}
+\caption{(\#fig:sim\_1\_design)Means for each condition in the design.}
+\end{figure}
+
+The results of a simulation study will vary each time the simulation is
+performed (but can be made reproducible by specifying a \enquote{seed}
+number). Results become more stable, the more simulations are performed,
+but the simulations also take longer. The functions that performs the
+simulation requires specifying the number of simulations, the alpha
+level for the tests, and any adjustment for multiple comparisons for the
+ANOVA. If 100.000 simulations are performed in R with a seed set to 2019
+(these settings will be used for all simulation results in this
+manuscript), we see the statistical power (based on the percentage of
+\emph{p} \textless{} \(\alpha\) results) is 81.50 and the average effect
+size is 0.06. The simulation also provides the results for the simple
+effects, based on \emph{t}-tests comparing each group. Since there are
+only two groups in this example, the results for the statistical power
+are identical, but the effect size is -0.50, which is the effect size in
+Cohen's d. Now the basic idea behind the simulation is clear, we can
+start exploring how changing the experimental design influences our
+power. We will first examine what happens if we add a third condition to
+the design. Let's assume we expect the neutral voice condition to fall
+either between the cheerful and sad conditions, or perhaps to be equal
+to the cheerful condition (based on the idea that the sad voice leads to
+less enjoyment, but the cheerful voice does not lead to more enjoyment).
+The design now has 3 between subject conditions, and we can explore what
+happens if we would collect 70 participants in each condition.
+
+If we assume the mean falls exactly between between the cheerful and sad
+conditions the simulations show the statistical power for our design is
+reduced to 81.50, and the effect size is -0.50. If we assume the mean
+the mean is equal to the cheerful condition, the power increases.
+Compared to the two group design, three things have changed. First, an
+additional group was added to the design, which increases the numerator
+degrees of freedom, which makes the non-central \emph{F}-distribution
+more similar to the central \emph{F}-distribution, and reduces the
+statistical power. Second, the total sample size is 50\% larger, which
+increases the statistical power. Third, the effect size has decreased,
+which reduces the statistical power. The exact effect of these three
+changes on the statistical power is difficult to predict. The most
+important conclusion based on these simuations is that when the design
+is changed, one can not assume the effect size remains unchanged.
+
+What happens if we would perform the second study as a
+within-participants design? Instead of collecting three groups of
+participants, we only collect one group, and let this group evaluate the
+cheerful, neutral, and sad voice assistants. The sample size needed in a
+within-design (NW), relative to the sample needed in between-design
+(NB), is (from Maxwell \& Delaney, 2004, p.~562, formula 47):
+
+\begin{equation}
+N_{W}=\frac{N_{B}(1-\rho)}{a}
+\end{equation}
+
+Here \emph{a} is the number of within-subject levels, \(\rho\) is the
+correlation between the measurements, and the formula assumes normal
+distributions and compound symmetry, and ignores the difference in
+degrees of freedom between the two types of tests, so is a rough (but
+useful) approximation.
+
+We need to be able to estimate the correlation between the dependent
+variables we can expect. Ideally, this estimate will be based on data
+from previous experiments. If we plan to collect 70 participants, and
+assume the correlation between all dependent variables is 0.5, the power
+for the repeated-measures ANOVA is . Note that simulation studies allow
+for great flexibility, and the Shiny app also allows researchers to
+enter a correlation matrix specifying the expected correlation between
+each individual pair of measurements, instead of assuming the
+correlations between dependent variables are identical for all pairs.
+
+str(power\_result)
 
 \newpage
 
