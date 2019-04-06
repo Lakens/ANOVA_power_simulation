@@ -1,0 +1,224 @@
+---
+title             : "Simulation-Based Power-Analysis for Factorial ANOVA Designs"
+shorttitle        : "ANOVA Power"
+
+author: 
+  - name          : "Dani&euml;l Lakens"
+    affiliation   : "1"
+    corresponding : yes
+    address       : "ATLAS 9.402, 5600 MB, Eindhoven, The Netherlands"
+    email         : "D.Lakens@tue.nl"
+  - name          : "Aaron Caldwell"
+    affiliation   : "2"
+
+affiliation:
+  - id            : "1"
+    institution   : "Eindhoven University of Technology, The Netherlands"
+  - id            : "2"
+    institution   : "Department of Health, Human Performance and Recreation, University of Arkansas, USA"
+
+author_note: |
+  All code used to create this manuscript is provided in an OSF repository at https://osf.io/xxxxx/.
+
+abstract: |
+  Researchers need to design informative studies. When the goal of an experiment is to test a hypothesis based on a frequentist hypothesis test it is important to justify the sample size based on the statistical power of the study. However, researchers are faced with challenges when they try to calculate power for factorial ANOVA designs. First, current software solutions are limited as they do not allow power analyses for more complex designs involving multiple within factors. Second, they require partial eta-squared or Cohen's f as input, which are not the most intuitive way to specify predicted effects in an ANOVA, and do not generalize to different experimental designs. We have created R functions and an online Shiny app that performs simulations for ANOVA designs for up to three factors with an unlimited number of levels. Predicted effects are entered by specifying means, standard deviations, and correlations (for within factors). The simulation provides a-priori power analyses for all effects in the ANOVA, and all simple comparisons. No other software is currently available that allows researchers to so easily perform power analyses for a wide range of ANOVA designs. The app plots *p*-value distributions for all tests, and allows researchers to select a range of options to correct for multiple comparisons. This tutorial will teach researchers how to perform power analysis for ANOVA designs, and through simulations illustrate important factors that determine the statistical power of factorial ANOVA designs. 
+  
+keywords          : "power analysis, ANOVA, hypothesis test, sample size justification"
+wordcount         : "5000"
+
+bibliography      : ["anova_power.bib"]
+
+figsintext        : yes
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+lineno            : yes
+mask              : no
+
+class             : "man"
+output            : papaja::apa6_pdf
+---
+
+```{r load_packages, include=FALSE}
+library("papaja")
+require(MASS, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(gridExtra, quietly = TRUE)
+require(reshape2, quietly = TRUE)
+require(RColorBrewer, quietly = TRUE)
+```
+Statistical power is the probability of observing a statistically signficant result, given a specified effect size, and assuming there is a true effect. 
+When a researcher aims to analyze a study based on an analysis of variance (ANOVA), the sample size of the study should be justified based on the statistical power of the test. 
+A study has low power to detect effects the researcher is interested in has a high Type 2 error rate, and leads to a high probability of saying there is no effect, when there actually is a true effect to be found. 
+Whereas power analyses for simple comparisons are relatively easy to perform, an a-priori power analysis for factorial ANOVA designs is a challenge. 
+Available software solutions do not provide easy options for more complex designs (e.g., a 2x2x2 design, where the first factor is manipulated between participants, and the last two factors are manipulated within participants). 
+Popular software solutions such as G\*power require participants to enter their predictions as Cohen's f or partial eta squared, which are not the most intuitive ways to specify a hypothesized pattern of results, and which do not generalize to different experimental designs.
+
+Here, we demonstrate how to perform power analyses for factorial ANOVA designs based on simulations. 
+We provide R code and a Shiny app that can be used to calculate the statistical power based on a predicted pattern of means, standard deviations, and correlations (for within factors). 
+Simulating studies, and calculating their *p*-values and effect sizes, are a useful way to gain a better understanding of the factors that determine the statistical power of hypothesis tests. 
+After providing an introduction to statistical power in general, and for the *F*-test specifically, we will demonstrate how the power of factorial ANOVA designs depends on the pattern of means across conditions, the number of factors and levels, and the sample size. 
+We will also illustrate the importance of controlling Type 1 error rates in exploratory ANOVA's, and the importance to design studies that have high power for main effects and interactions in an ANOVA, but also for follow-up tests for simple effects.
+
+#Factors That Determine Power in ANOVA Designs
+
+You perform a study in which participants interact with an artificial voice assistant who sounds either cheerful or sad.
+You measure how much 70 participants in each condition enjoy interacting with the voice assistant on a line marking scale (coded continously from -5 to 5) and observe a mean of 0 in the sad condition, and a means of 1 in the cheerful condition, with an estimated standard deviation of 2.
+After submitting your manuscript for publications, reviewers ask you to add a study with a neutral control condition to examine whether cheerful voices increase, or sad voices decrease enjoyment (or both). 
+Depending on what the mean in the neutral condition is, which sample size would you need to have a high powered study for the expected pattern or means? 
+A collaborator suggests to switch from a between design to a within design, to more efficiently collect the data.
+Which consequence will this switching to a within-subject design have on the sample size planning?
+Because the effect size in the first study could be considered 'medium' based on the benchmarks by @cohen_statistical_1988, does it make sense to plan for a 'medium' effect size in either the between of within ANOVA design?
+And if you justify the sample size based on the ANOVA, will the study also have sufficient statistical power for the simple effects (or vice versa)?
+
+Performing simulation studies is an excellent way to develop intuitions about these questions. 
+The power in ANOVA designs depends on the pattern of means, the number of groups, the standard deviation, the correlation between dependent measures, the alpha level, and the sample size.
+After these factors have been specified, a simulation study can be perform to run the planned statistical test on generated data many times, and summarize the results.
+Where analytic power solutions exists in software such as G\*Power for ANOVA designs with up to one within-subject factor, simulation studies are more flexible (and can for example be used to see what happens in a 3x3x3 within-subject desing).
+
+#Statistical Power When Comparing Differences Among Group Means
+
+Let's consider the initial study we described above, where two group means are compared. 
+We can test the difference between two means with a *t*-test of a one-way single factor ANOVA, and the two tests are mathematically equivalent. 
+Figure \ref{fig:d-plot} and Figure \ref{fig:eta-plot} visualize the distribution of Cohen's d and partial eta-squared that should be observed when there is no effect (grey curves) and when the observed difference between means equals the true effect.
+In both figures the light grey areas under the curve mark the observed results that would lead to a Type 1 error (observing a statistically significant result if the null-hypothesis is true) and the dark grey areas under the curve marks the observed effect sizes that would lead to a Type 2 error.
+An observed effect is statistically significant if the observed effect size is larger than the critical value.
+Critical values are often expressed as *t*-values or *F*-values, but can be expressed as effect sizes (Cohen's d and partial eta-squared), and any observed effect size larger than the critical effect size will be statistically significant.
+The goal of power analysis is to choose a sample size so that the probability of observing a statistically significant effect for a specified effect size reaches a desired probability.
+In both Figures, 83.5% of the expected effect sizes, if the true effect size is d = 0.5 or $\eta_p^2$ = 0.0588 and 70 participants in each condition are collected, will be more extreme than the critical effect size (which is d = 0.334 or $\eta_p^2$ = 0.028). 
+
+```{r d-plot, fig.width=7, fig.height=4, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="Distribution of Cohen's d under the null-hypothesis (grey curve) and alternative hypothesis assuming d = 0.5 (black curve). Note that"}
+    N <- 70
+    d <- 0.5
+    p_upper<-.05
+    p_lower<-0
+    ymax<-25 #Maximum value y-scale (only for p-curve)
+    
+    ncp<-(d*sqrt(N/2)) #Calculate non-centrality parameter d
+    low_x<--1
+    high_x<-1.5
+
+    #calc d-distribution
+    x=seq(low_x,high_x,length=10000) #create x values
+    d_dist<-dt(x*sqrt(N/2),df=(N*2)-2, ncp = ncp)*sqrt(N/2) #calculate distribution of d based on t-distribution
+    #Set max Y for graph
+    y_max<-max(d_dist)+1
+    #create plot
+    par(bg = "white")
+    plot(-10,xlim=c(low_x,high_x), ylim=c(0,y_max), xlab=substitute(paste("Cohen's ", delta)), ylab="Density",main="")
+    axis(side = 1, at = seq(low_x,high_x,0.1), labels = FALSE)
+    lines(x,d_dist,col='black',type='l', lwd=2)
+    #add d = 0 line
+    d_dist<-dt(x*sqrt(N/2),df=(N*2)-2, ncp = 0)*sqrt(N/2)
+    lines(x,d_dist,col='grey',type='l', lwd=2)
+    #Add Type 1 error rate right
+    crit_d<-abs(qt(p_upper/2, (N*2)-2))/sqrt(N/2)
+    y=seq(crit_d,10,length=10000) 
+    z<-(dt(y*sqrt(N/2),df=(N*2)-2)*sqrt(N/2)) #determine upperbounds polygon
+    polygon(c(crit_d,y,10),c(0,z,0),col="lightgrey")
+    #Add Type 1 error rate left
+    crit_d<--abs(qt(p_upper/2, (N*2)-2))/sqrt(N/2)
+    y=seq(-10, crit_d, length=10000) 
+    z<-(dt(y*sqrt(N/2),df=(N*2)-2)*sqrt(N/2)) #determine upperbounds polygon
+    polygon(c(y,crit_d,crit_d),c(z,0,0),col="lightgrey")
+    #Add Type 2 error rate
+    crit_d<-abs(qt(p_upper/2, (N*2)-2))/sqrt(N/2)
+    y=seq(-10,crit_d,length=10000) 
+    z<-(dt(y*sqrt(N/2),df=(N*2)-2, ncp=ncp)*sqrt(N/2)) #determine upperbounds polygon
+    polygon(c(y,crit_d,crit_d),c(0,z,0),col="darkgrey")
+    segments(crit_d, 0, crit_d, y_max-0.8, col= 'black', lwd=2, lty = "dashed")
+    segments(-crit_d, 0, -crit_d, y_max-0.8, col= 'black', lwd=2, lty = "dashed")
+```
+
+```{r eta-plot, fig.width=7, fig.height=4, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="Distribution of eta-squared under the null-hypothesis (grey curve) and alternative hypothesis assuming partial eta-squared = 0.0588 (black curve)."}
+    N<-70
+    J<-3
+    eta_pop<-0.0588
+    alpha<-.05
+    xmax<-.2
+    ymax<-.6
+    
+    xmin <- 0
+    #Calculations
+    df1 <- J-1
+    df2 <- J*(N - 1)
+    Ntot = N*J
+    ncp = Ntot/(1/eta_pop-1)
+    crit_f <- qf(1 - alpha, df1, df2)
+    
+    x=seq(xmin,xmax,length=1000)
+    #F-value function
+    eta_pop_dist <- function(x) df((x*df2)/(df1-x*df1), df1, df2, ncp)
+    par(bg = "white")
+    plot(-10,xlab=substitute(paste(eta[p]^2)), ylab="Density", axes=FALSE,
+         main = "", xlim=c(0,xmax),  ylim=c(0, ymax))
+    #title in shiny app: main=substitute(paste("distribution for ",eta[p]^2 == eta_pop," for ",J," groups and ", N, " observations per group."
+    axis(side=1, at=seq(0,xmax, 0.02), labels=seq(0,xmax, 0.02))
+    axis(side=2)
+    ncp<-0 #set ncp to 0 to plot the F distribution for null effect.
+    eta_pop_crit<-(crit_f*df1)/(crit_f*df1+df2)
+    
+    curve(eta_pop_dist, 0.00000000001, 1, n=10000, col="grey", lwd=2, add=TRUE)
+    x=seq(eta_pop_crit,xmax,length=10000) 
+    z<-df((x*df2)/(df1-x*df1), df1, df2) #determine upperbounds polygon
+    polygon(c(eta_pop_crit,x,1),c(0,z,0),col="darkgray") #draw polygon
+    #Add Type 2 error rate
+    ncp = Ntot/(1/eta_pop-1)
+    curve(eta_pop_dist, 0.00000000001, 1, n=10000, col="black", lwd=2, add=TRUE)
+    y=seq(0.00000000001,eta_pop_crit,length=10000) 
+    z<-df((y*df2)/(df1-y*df1), df1, df2, ncp) #determine upperbounds polygon
+    polygon(c(y,eta_pop_crit,eta_pop_crit),c(0,z,0),col="lightgray")
+    segments(eta_pop_crit, 0, eta_pop_crit, ymax-0.03, col= 'black', lwd=2, lty = "dashed")
+    
+```
+
+
+
+Two relationships between the *t*-test and the *F*-test when comparing two means are worth pointing out. 
+First, $F = t^2$, or the *F*-value equals the *t*-value, squared.
+Whereas we typically think of a *t*-test as the difference between means, the relationship between the *t*-test and *F*-test reveals that we can also use the group means to calculate the variance of the difference between the two means $(m_1 - m_2)^2$.
+The *F*-test is used to compute the ratio of the between group variance and the within group variance, and the between group variance can be used to compare more than two means.
+An *F*-value of 1 means the two variances are equal (as is expected when the null-hypothesis is true) and Cohen's f and $\eta_p^2$ would be zero. 
+Second, for two groups the effect size for an ANOVA, Cohen's f, is half the size of the effect size for standardized mean differences, Cohen's d, or $f = \frac{1}{2}d$. 
+Cohen's d is calculated by dividing the difference between means by the standard deviation, or 
+\begin{equation}
+d = \frac{m_1-m_2}{\sigma}.
+\end{equation}
+If we have two groups with means of 1 and 2, and the standard deviation is 2, Cohen's d is (2-1)/2, or 0.5.
+Cohen's f is the standard deviation of the population means divided by the population standard deviation [@cohen_statistical_1988], or: 
+\begin{equation}
+f = \frac{\sigma _{ m }}{\sigma}
+\end{equation}
+where for equal sample sizes,
+\begin{equation}
+\sigma _{ m } = \sqrt { \frac { \sum_ { i = 1 } ^ { k } ( m _ { i } - m ) ^ { 2 } } { k } }.
+\end{equation}
+Because Cohen's f is an essential part of power power analyses for factorial ANOVA designs, it is worth illustrating how it is calculated in an example.
+If we again take two means of 1 and 2, and a standard deviation of 2, the grand mean is 1.5. 
+We subtract each condition mean from the grand mean, take the square, calculate the sum of squares, divide it by two, and take the square root. 
+$\sigma_m = \sqrt{\frac{(1-1.5)^2+(2-1.5)^2}{2}} = \sqrt{\frac{0.25+0.25}{2}} = 0.5$, and $f = \frac{0.5}{2} = 0.25.$
+We see Cohen's f is half as large as Cohen's d.
+Power analyses for ANOVA are based on Cohen's f, but popular power anaysis software such as G\*Power [@faul_gpower_2007] also allows researchers to specify the effect size as partial eta-squared ($\eta_p^2$).
+Partial eta-squared can be converted into Cohen's f: 
+\begin{equation}
+f = \sqrt{\frac{\eta_p^2}{1-\eta_p^2}}
+\end{equation}
+and Cohen's f can be converted into partial eta-squared:
+\begin{equation}
+\eta_p^2 = \sqrt{\frac{f^2}{f^2+1}}
+\end{equation}
+In the example above, $\eta_p^2 = 0.25^2/(0.25^2+1) = 0.0588$. 
+To calculate the statistical power assuming a specific true effect size we need the noncentrality parameter of the distribution. 
+In both Figure \ref{fig:d-plot} and Figure \ref{fig:eta-plot} we see examples of the non-central *t*distribution and non-central *F*distribution, or the shape of the expected test statistics when there is a true effect.
+Power calculations rely on the nonceptrality parameter (often referred to as $\lambda$).
+Based on lambda (which specifies the shape of the expected distribution) and the critical test statistic (which specified the the part of the distribution that is more extreme than the test statistic needed for a statistically significant test result) we can calculate how often, in the long run, we can expect test results that will be statistically significant. 
+
+
+
+
+\newpage
+
+# References
+
+\setlength{\parindent}{-0.5in}
+\setlength{\leftskip}{0.5in}
