@@ -24,7 +24,8 @@ abstract: |
   Researchers need to design informative studies. When the goal of an experiment is to test a hypothesis based on a frequentist hypothesis test it is important to justify the sample size based on the statistical power of the study. However, researchers are faced with challenges when they try to calculate power for factorial ANOVA designs. First, current software solutions are limited as they do not allow power analyses for more complex designs involving multiple within factors. Second, they require partial eta-squared or Cohen's f as input, which are not the most intuitive way to specify predicted effects in an ANOVA, and do not generalize to different experimental designs. We have created R functions and an online Shiny app that performs simulations for ANOVA designs for up to three factors with an unlimited number of levels. Predicted effects are entered by specifying means, standard deviations, and correlations (for within factors). The simulation provides a-priori power analyses for all effects in the ANOVA, and all simple comparisons. No other software is currently available that allows researchers to so easily perform power analyses for a wide range of ANOVA designs. The app plots *p*-value distributions for all tests, and allows researchers to select a range of options to correct for multiple comparisons. This tutorial will teach researchers how to perform power analysis for ANOVA designs, and through simulations illustrate important factors that determine the statistical power of factorial ANOVA designs. 
   
 keywords          : "power analysis, ANOVA, hypothesis test, sample size justification"
-wordcount         : "5000"
+wordcount         : Main text contains `r wordcountaddin::word_count("0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs.Rmd")` words.
+
 
 bibliography      : ["anova_power.bib"]
 
@@ -59,6 +60,7 @@ source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/h
 wordcountaddin::word_count("0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs.Rmd")
 
 ```
+
 Statistical power is the probability of observing a statistically signficant result, given a specified effect size, and assuming there is a true effect. 
 When a researcher aims to analyze a study based on an analysis of variance (ANOVA), the sample size of the study should be justified based on the statistical power of the test. 
 A study has low power to detect effects the researcher is interested in has a high Type 2 error rate, and leads to a high probability of saying there is no effect, when there actually is a true effect to be found.
@@ -88,7 +90,9 @@ Performing simulation studies is an excellent way to develop intuitions about th
 The power in ANOVA designs depends on the pattern of means, the number of groups, the standard deviation, the correlation between dependent measures, the alpha level, and the sample size.
 After these factors have been specified, a simulation study can be perform to run the planned statistical test on generated data many times, and summarize the results.
 Where analytic power solutions exists in software such as G\*Power for ANOVA designs with up to one within-subject factor, simulation studies are more flexible (and can for example be used to see what happens in a 3x3x3 within-subject design).
+
 #Statistical Power When Comparing Differences Among Group Means
+
 Let's consider the initial study we described above, where two group means are compared. 
 We can test the difference between two means with a *t*-test of a one-way single factor ANOVA, and the two tests are mathematically equivalent. 
 Figure \ref{fig:d-plot} and Figure \ref{fig:eta-plot} visualize the distribution of Cohen's d and partial eta-squared that should be observed when there is no effect (grey curves) and when the observed difference between means equals the true effect.
@@ -286,7 +290,7 @@ What happens if we would perform the second study as a within-participants desig
 Instead of collecting three groups of participants, we only collect one group, and let this group evaluate the cheerful, neutral, and sad voice assistants.
 The sample size needed in a within-design (NW), relative to the sample needed in between-design (NB), is (from Maxwell & Delaney, 2004, p. 562, formula 47): 
 \begin{equation}
-N_{W}=\frac{N_{B}(1-\rho)}{a}
+N_{W}=\frac{N_{B}(1-\rho)}{a} \label{eq:within_n}
 \end{equation}
 Here *a* is the number of within-subject levels, $\rho$ is the correlation between the measurements, and the formula assumes normal distributions and compound symmetry, and ignores the difference in degrees of freedom between the two types of tests, so it is a rough (but useful) approximation.
 Whenever the correlation between dependent measures is positive, the sample size that is needed in a within-participants condition will be smaller than the requires sample size for a between-participants condition.
@@ -305,7 +309,7 @@ Ideally, this estimate will be based on data from previous experiments.
 If we plan to collect 80 participants, and assume the correlation between all dependent variables is 0.5, the power for the repeated-measures ANOVA is `r power_result_within_1$main_results$power`.
 Note that simulation studies allow for great flexibility, and the Shiny app also allows researchers to enter a correlation matrix specifying the expected correlation between each individual pair of measurements, instead of assuming the correlations between dependent variables are identical for all pairs.
 
-#Power for Interactions and Simple Effects
+#Power for Interactions
 
 The effect size for an ANOVA design depends on the pattern of means.
 Let's assume the researcher aims to perform a follow-up test to examine the effect of a second factor on the enjoyment of interacting with an artificial voice assistant. 
@@ -377,6 +381,41 @@ The same effect size can represent very different patterns of means depending on
 Instead, it might be more intuitive to think about the pattern of means that you expect, and compute the corresponding Cohen's f. 
 
 #Power for Within Designs
+
+Whereas in an independent *t*-test the two measurements are uncorrelated, in a within design the observations are correlated. 
+This has an effect on the standard deviation of the difference scores. 
+In turn, because the standardized effect size is the mean difference divided by the standard deviation of the difference scores, the correlation has an effect on the standardized mean difference in a within design, referred to as Cohen's $d_z$ (because it is the effect size of the difference score between x and y, z). The relation is:
+\begin{equation}
+\sigma_{z}=\sigma\sqrt{2(1-\rho)}
+\end{equation}
+Therefore, the relation between $d_z$ and d is $\sqrt{2(1-\rho)}$. 
+As Cohen (1988) writes: "In other words, a given difference between population means for matched (dependent) samples is standardized by a value which is $\sqrt{2(1-\rho)}$ as large as would be the case were they independent. 
+If we enter a correlation of 0.5 in the formula, we get $\sqrt{2(0.5)}=1$. 
+In other words, when the correlation is 0.5, d = $d_z$. When there is a strong correlation between dependent variables, for example *r* = 0.9, we get $d=d_{z}\sqrt{2(1-0.9)}$, and a $d_z$ of 1 in a within design is equivaent to a d = 0.45 in a between design. 
+Reversely, $d_{z}=\frac{d}{\sqrt{2(1-r)}}$, so with a *r* = 0.9, a d of 1 would be a $d_z$ = 2.24. 
+Some consider this increase in $d_z$ compared to d when observations are strongly correlated an 'inflation' when effect sizes are estimated, but since the reduction in the standard deviation of the difference scores due to the correlation makes it easier to distinguish signal from noise in a hypothesis test, Cohen's $d_z$ is the effect size used in power analyses. 
+
+There is no equivalent Cohen's $f_z$ for a within subject ANOVA, as there is a Cohen's $d_z$ for a dependent *t*-test. Instead, the value for lambda ($\lambda$) is adjusted based on the correlation. In a between-participants one-way ANOVA lambda is calculated as:
+\begin{equation}
+\lambda = f^2 \times N
+\end{equation}
+where f is Cohen's d and N is the total sample size. For a one-way within-participant design lambda is multiplied by *u*, a correction for the correlation between dependent measures, calculated as:
+\begin{equation}
+u = \frac{k}{1-\rho}
+\end{equation}
+where k is the number of levels of the within-participant factor, and $\rho$ is the correlation between dependent variables.
+If the correlation is 0, Equation \@ref(eq:within_n) shows that the required sample size is reduced only because each participants contributes multiple measurements, so for two groups the required sample size is halved.
+If the correlation is larger than zero, both for the dependent *t*-test as for the repeated measures ANOVA, the required sample size to achieve a desired level of statistical power decreases as the correlation increases.
+Note that in the simulation, the correlation can be specified for each pair of measurements, but in the formula the correlation is assumed to be the same for all pairs.
+
+
+
+
+
+
+
+
+#Power for simple comparisons
 
 One feature of the simulation is that it provides the statistical power for all tests that can be performed is calculated, including simple effects. Throughout the examples above, as long as the means are 1 and 0, all simple effects either compare means that are identical (and thus only Type 1 errors are observed) or that have an effect size of d = 0.5 (for between designs).
 

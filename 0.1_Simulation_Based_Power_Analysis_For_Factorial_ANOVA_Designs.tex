@@ -71,7 +71,7 @@
 \affiliation{
 \vspace{0.5cm}
 \textsuperscript{1} Eindhoven University of Technology, The Netherlands\\\textsuperscript{2} Department of Health, Human Performance and Recreation, University of Arkansas, USA}
-\keywords{power analysis, ANOVA, hypothesis test, sample size justification\newline\indent Word count: 5000}
+\keywords{power analysis, ANOVA, hypothesis test, sample size justification\newline\indent Word count: Main text contains 4099 words.}
 \usepackage{csquotes}
 \usepackage{upgreek}
 \captionsetup{font=singlespacing,justification=justified}
@@ -140,17 +140,19 @@ analysis of variance (ANOVA), the sample size of the study should be
 justified based on the statistical power of the test. A study has low
 power to detect effects the researcher is interested in has a high Type
 2 error rate, and leads to a high probability of saying there is no
-effect, when there actually is a true effect to be found. Whereas power
-analyses for simple comparisons are relatively easy to perform, an
-a-priori power analysis for factorial ANOVA designs is a challenge.
-Available software solutions do not provide easy options for more
-complex designs (e.g., a 2x2x2 design, where the first factor is
-manipulated between participants, and the last two factors are
-manipulated within participants). Popular software solutions such as
-G*power require participants to enter their predictions as Cohen's f or
-partial eta squared, which are not the most intuitive ways to specify a
-hypothesized pattern of results, and which do not generalize to
-different experimental designs.
+effect, when there actually is a true effect to be found. Several
+excellent resources exist that explain power analyses, including books
+(Aberson, 2019; Cohen, 1988), general reviews (Maxwell, Kelley, \&
+Rausch, 2008), and practical primers Whereas power analyses for simple
+comparisons are relatively easy to perform, an a-priori power analysis
+for factorial ANOVA designs is a challenge. Available software solutions
+do not provide easy options for more complex designs (e.g., a 2x2x2
+design, where the first factor is manipulated between participants, and
+the last two factors are manipulated within participants). Popular
+software solutions such as G*power require participants to enter their
+predictions as Cohen's f or partial eta squared, which are not the most
+intuitive ways to specify a hypothesized pattern of results, and which
+do not generalize to different experimental designs.
 
 Here, we demonstrate how to perform power analyses for factorial ANOVA
 designs based on simulations. We provide R code and a Shiny app that can
@@ -201,31 +203,35 @@ run the planned statistical test on generated data many times, and
 summarize the results. Where analytic power solutions exists in software
 such as G*Power for ANOVA designs with up to one within-subject factor,
 simulation studies are more flexible (and can for example be used to see
-what happens in a 3x3x3 within-subject design). \#Statistical Power When
-Comparing Differences Among Group Means Let's consider the initial study
-we described above, where two group means are compared. We can test the
-difference between two means with a \emph{t}-test of a one-way single
-factor ANOVA, and the two tests are mathematically equivalent. Figure
-\ref{fig:d-plot} and Figure \ref{fig:eta-plot} visualize the
-distribution of Cohen's d and partial eta-squared that should be
-observed when there is no effect (grey curves) and when the observed
-difference between means equals the true effect. In both figures the
-light grey areas under the curve mark the observed results that would
-lead to a Type 1 error (observing a statistically significant result if
-the null-hypothesis is true) and the dark grey areas under the curve
-marks the observed effect sizes that would lead to a Type 2 error. An
-observed effect is statistically significant if the observed effect size
-is larger than the critical value. Critical values are often expressed
-as \emph{t}-values or \emph{F}-values, but can be expressed as effect
-sizes (Cohen's d and partial eta-squared), and any observed effect size
-larger than the critical effect size will be statistically significant.
-The goal of power analysis is to choose a sample size so that the
-probability of observing a statistically significant effect for a
-specified effect size reaches a desired probability. In both Figures,
-88.16\% of the expected effect sizes, if the true effect size is d = 0.5
-or \(\eta_p^2\) = 0.0588 and 80 participants in each condition are
-collected, will be more extreme than the critical effect size (which is
-d = 0.312 or \(\eta_p^2\) = 0.024).
+what happens in a 3x3x3 within-subject design).
+
+\section{Statistical Power When Comparing Differences Among Group
+Means}\label{statistical-power-when-comparing-differences-among-group-means}
+
+Let's consider the initial study we described above, where two group
+means are compared. We can test the difference between two means with a
+\emph{t}-test of a one-way single factor ANOVA, and the two tests are
+mathematically equivalent. Figure \ref{fig:d-plot} and Figure
+\ref{fig:eta-plot} visualize the distribution of Cohen's d and partial
+eta-squared that should be observed when there is no effect (grey
+curves) and when the observed difference between means equals the true
+effect. In both figures the light grey areas under the curve mark the
+observed results that would lead to a Type 1 error (observing a
+statistically significant result if the null-hypothesis is true) and the
+dark grey areas under the curve marks the observed effect sizes that
+would lead to a Type 2 error. An observed effect is statistically
+significant if the observed effect size is larger than the critical
+value. Critical values are often expressed as \emph{t}-values or
+\emph{F}-values, but can be expressed as effect sizes (Cohen's d and
+partial eta-squared), and any observed effect size larger than the
+critical effect size will be statistically significant. The goal of
+power analysis is to choose a sample size so that the probability of
+observing a statistically significant effect for a specified effect size
+reaches a desired probability. In both Figures, 88.16\% of the expected
+effect sizes, if the true effect size is d = 0.5 or \(\eta_p^2\) =
+0.0588 and 80 participants in each condition are collected, will be more
+extreme than the critical effect size (which is d = 0.312 or
+\(\eta_p^2\) = 0.024).
 
 \begin{figure}
 \centering
@@ -392,7 +398,7 @@ within-design (NW), relative to the sample needed in between-design
 (NB), is (from Maxwell \& Delaney, 2004, p.~562, formula 47):
 
 \begin{equation}
-N_{W}=\frac{N_{B}(1-\rho)}{a}
+N_{W}=\frac{N_{B}(1-\rho)}{a} \label{eq:within_n}
 \end{equation}
 
 Here \emph{a} is the number of within-subject levels, \(\rho\) is the
@@ -414,8 +420,7 @@ to enter a correlation matrix specifying the expected correlation
 between each individual pair of measurements, instead of assuming the
 correlations between dependent variables are identical for all pairs.
 
-\section{Power for Interactions and Simple
-Effects}\label{power-for-interactions-and-simple-effects}
+\section{Power for Interactions}\label{power-for-interactions}
 
 The effect size for an ANOVA design depends on the pattern of means.
 Let's assume the researcher aims to perform a follow-up test to examine
@@ -495,11 +500,76 @@ interaction, or in a 2x2x2 interaction compared to a 2x2 interaction.
 For this reason, it is not very intuitive to start a power analysis
 based on an assumption of the effect size. The same effect size can
 represent very different patterns of means depending on the type of
-interaction and the number of factors. Instead, it might be more
-intuitive to think about the pattern of means that you expect, and
-compute the corresponding Cohen's f.
+interaction and the number of factors (see also Perugini, Gallucci, and
+Costantini (2018)). Instead, it might be more intuitive to think about
+the pattern of means that you expect, and compute the corresponding
+Cohen's f.
 
 \section{Power for Within Designs}\label{power-for-within-designs}
+
+Whereas in an independent \emph{t}-test the two measurements are
+uncorrelated, in a within design the observations are correlated. This
+has an effect on the standard deviation of the difference scores. In
+turn, because the standardized effect size is the mean difference
+divided by the standard deviation of the difference scores, the
+correlation has an effect on the standardized mean difference in a
+within design, referred to as Cohen's \(d_z\) (because it is the effect
+size of the difference score between x and y, z). The relation is:
+
+\begin{equation}
+\sigma_{z}=\sigma\sqrt{2(1-\rho)}
+\end{equation}
+
+Therefore, the relation between \(d_z\) and d is \(\sqrt{2(1-\rho)}\).
+As Cohen (1988) writes: ``In other words, a given difference between
+population means for matched (dependent) samples is standardized by a
+value which is \(\sqrt{2(1-\rho)}\) as large as would be the case were
+they independent. If we enter a correlation of 0.5 in the formula, we
+get \(\sqrt{2(0.5)}=1\). In other words, when the correlation is 0.5, d
+= \(d_z\). When there is a strong correlation between dependent
+variables, for example \emph{r} = 0.9, we get
+\(d=d_{z}\sqrt{2(1-0.9)}\), and a \(d_z\) of 1 in a within design is
+equivaent to a d = 0.45 in a between design. Reversely,
+\(d_{z}=\frac{d}{\sqrt{2(1-r)}}\), so with a \emph{r} = 0.9, a d of 1
+would be a \(d_z\) = 2.24. Some consider this increase in \(d_z\)
+compared to d when observations are strongly correlated an
+\enquote{inflation} when effect sizes are estimated, but since the
+reduction in the standard deviation of the difference scores due to the
+correlation makes it easier to distinguish signal from noise in a
+hypothesis test, Cohen's \(d_z\) is the effect size used in power
+analyses.
+
+There is no equivalent Cohen's \(f_z\) for a within subject ANOVA, as
+there is a Cohen's \(d_z\) for a dependent \emph{t}-test. Instead, the
+value for lambda (\(\lambda\)) is adjusted based on the correlation. In
+a between-participants one-way ANOVA lambda is calculated as:
+
+\begin{equation}
+\lambda = f^2 \times N
+\end{equation}
+
+where f is Cohen's d and N is the total sample size. For a one-way
+within-participant design lambda is multiplied by \emph{u}, a correction
+for the correlation between dependent measures, calculated as:
+
+\begin{equation}
+u = \frac{k}{1-\rho}
+\end{equation}
+
+where k is the number of levels of the within-participant factor, and
+\(\rho\) is the correlation between dependent variables. If the
+correlation is 0, Equation @ref(eq:within\_n) shows that the required
+sample size is reduced only because each participants contributes
+multiple measurements, so for two groups the required sample size is
+halved. If the correlation is larger than zero, both for the dependent
+\emph{t}-test as for the repeated measures ANOVA, the required sample
+size to achieve a desired level of statistical power decreases as the
+correlation increases. Note that in the simulation, the correlation can
+be specified for each pair of measurements, but in the formula the
+correlation is assumed to be the same for all pairs.
+
+\section{Power for simple
+comparisons}\label{power-for-simple-comparisons}
 
 One feature of the simulation is that it provides the statistical power
 for all tests that can be performed is calculated, including simple
@@ -515,6 +585,10 @@ only Type 1 errors are observed) or that have an effect size of d = 0.5
 \setlength{\parindent}{-0.5in} \setlength{\leftskip}{0.5in}
 
 \hypertarget{refs}{}
+\hypertarget{ref-aberson_applied_2019}{}
+Aberson, C. L. (2019). \emph{Applied Power Analysis for the Behavioral
+Sciences: 2nd Edition} (2 edition.). New York: Routledge.
+
 \hypertarget{ref-cohen_statistical_1988}{}
 Cohen, J. (1988). \emph{Statistical power analysis for the behavioral
 sciences} (2nd ed.). Hillsdale, N.J: L. Erlbaum Associates.
@@ -529,6 +603,18 @@ doi:\href{https://doi.org/10.3758/BF03193146}{10.3758/BF03193146}
 \hypertarget{ref-giner-sorolla_powering_2018}{}
 Giner-Sorolla, R. (2018, January). Powering Your Interaction.
 \emph{Approaching Significance}.
+
+\hypertarget{ref-maxwell_sample_2008}{}
+Maxwell, S. E., Kelley, K., \& Rausch, J. R. (2008). Sample Size
+Planning for Statistical Power and Accuracy in Parameter Estimation.
+\emph{Annual Review of Psychology}, \emph{59}(1), 537--563.
+doi:\href{https://doi.org/10.1146/annurev.psych.59.103006.093735}{10.1146/annurev.psych.59.103006.093735}
+
+\hypertarget{ref-perugini_practical_2018}{}
+Perugini, M., Gallucci, M., \& Costantini, G. (2018). A Practical Primer
+To Power Analysis for Simple Experimental Designs. \emph{International
+Review of Social Psychology}, \emph{31}(1), 20.
+doi:\href{https://doi.org/10.5334/irsp.181}{10.5334/irsp.181}
 
 \hypertarget{ref-simonsohn_no-way_2014}{}
 Simonsohn, U. (2014, March). No-way Interactions. \emph{Data Colada}.
