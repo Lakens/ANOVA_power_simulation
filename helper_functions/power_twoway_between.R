@@ -38,7 +38,7 @@ power_twoway_between <- function(design_result, alpha_level=0.05){
   
   lambda_A <- design_result$n * length(design_result$labelnames[[1]]) * sum((rowMeans(mean_mat)-mean(rowMeans(mean_mat)))^2)/design_result$sd^2
   lambda_B <- design_result$n * length(design_result$labelnames[[2]]) * sum((colMeans(mean_mat)-mean(colMeans(mean_mat)))^2)/design_result$sd^2
-  lambda_AB <- design_result$n * length(design_result$labelnames[[1]]) * length(design_result$labelnames[[2]]) * Cohen_f_AB
+  lambda_AB <- design_result$n * length(design_result$labelnames[[1]]) * length(design_result$labelnames[[2]]) * f_2_AB
   
   F_critical_A <- qf(alpha_level, df_A, df_error, lower.tail=FALSE) 
   power_A <- pf(F_critical_A, df_A, df_error, lambda_A, lower.tail = FALSE)
