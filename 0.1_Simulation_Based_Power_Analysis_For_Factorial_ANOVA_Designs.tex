@@ -173,7 +173,7 @@ Designs}\label{factors-that-determine-power-in-anova-designs}
 
 You perform a study in which participants interact with an artificial
 voice assistant who sounds either cheerful or sad. You measure how much
-70 participants in each condition enjoy interacting with the voice
+80 participants in each condition enjoy interacting with the voice
 assistant on a line marking scale (coded continously from -5 to 5) and
 observe a mean of 0 in the sad condition, and a means of 1 in the
 cheerful condition, with an estimated standard deviation of 2. After
@@ -201,42 +201,38 @@ run the planned statistical test on generated data many times, and
 summarize the results. Where analytic power solutions exists in software
 such as G*Power for ANOVA designs with up to one within-subject factor,
 simulation studies are more flexible (and can for example be used to see
-what happens in a 3x3x3 within-subject desing).
-
-\section{Statistical Power When Comparing Differences Among Group
-Means}\label{statistical-power-when-comparing-differences-among-group-means}
-
-Let's consider the initial study we described above, where two group
-means are compared. We can test the difference between two means with a
-\emph{t}-test of a one-way single factor ANOVA, and the two tests are
-mathematically equivalent. Figure \ref{fig:d-plot} and Figure
-\ref{fig:eta-plot} visualize the distribution of Cohen's d and partial
-eta-squared that should be observed when there is no effect (grey
-curves) and when the observed difference between means equals the true
-effect. In both figures the light grey areas under the curve mark the
-observed results that would lead to a Type 1 error (observing a
-statistically significant result if the null-hypothesis is true) and the
-dark grey areas under the curve marks the observed effect sizes that
-would lead to a Type 2 error. An observed effect is statistically
-significant if the observed effect size is larger than the critical
-value. Critical values are often expressed as \emph{t}-values or
-\emph{F}-values, but can be expressed as effect sizes (Cohen's d and
-partial eta-squared), and any observed effect size larger than the
-critical effect size will be statistically significant. The goal of
-power analysis is to choose a sample size so that the probability of
-observing a statistically significant effect for a specified effect size
-reaches a desired probability. In both Figures, 83.5\% of the expected
-effect sizes, if the true effect size is d = 0.5 or \(\eta_p^2\) =
-0.0588 and 70 participants in each condition are collected, will be more
-extreme than the critical effect size (which is d = 0.334 or
-\(\eta_p^2\) = 0.028).
+what happens in a 3x3x3 within-subject design). \#Statistical Power When
+Comparing Differences Among Group Means Let's consider the initial study
+we described above, where two group means are compared. We can test the
+difference between two means with a \emph{t}-test of a one-way single
+factor ANOVA, and the two tests are mathematically equivalent. Figure
+\ref{fig:d-plot} and Figure \ref{fig:eta-plot} visualize the
+distribution of Cohen's d and partial eta-squared that should be
+observed when there is no effect (grey curves) and when the observed
+difference between means equals the true effect. In both figures the
+light grey areas under the curve mark the observed results that would
+lead to a Type 1 error (observing a statistically significant result if
+the null-hypothesis is true) and the dark grey areas under the curve
+marks the observed effect sizes that would lead to a Type 2 error. An
+observed effect is statistically significant if the observed effect size
+is larger than the critical value. Critical values are often expressed
+as \emph{t}-values or \emph{F}-values, but can be expressed as effect
+sizes (Cohen's d and partial eta-squared), and any observed effect size
+larger than the critical effect size will be statistically significant.
+The goal of power analysis is to choose a sample size so that the
+probability of observing a statistically significant effect for a
+specified effect size reaches a desired probability. In both Figures,
+88.16\% of the expected effect sizes, if the true effect size is d = 0.5
+or \(\eta_p^2\) = 0.0588 and 80 participants in each condition are
+collected, will be more extreme than the critical effect size (which is
+d = 0.312 or \(\eta_p^2\) = 0.024).
 
 \begin{figure}
 \centering
 \includegraphics{0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-latex/d-plot-1.pdf}
 \caption{\label{fig:d-plot}Distribution of Cohen's d under the
 null-hypothesis (grey curve) and alternative hypothesis assuming d = 0.5
-(black curve). Note that}
+(black curve).}
 \end{figure}
 
 \begin{figure}
@@ -311,15 +307,15 @@ In the example above, \(\eta_p^2 = 0.25^2/(0.25^2+1) = 0.0588\). To
 calculate the statistical power assuming a specific true effect size we
 need the noncentrality parameter of the distribution. In both Figure
 \ref{fig:d-plot} and Figure \ref{fig:eta-plot} we see examples of the
-non-central \emph{t}distribution and non-central \emph{F}distribution,
+non-central \emph{t}-distribution and non-central \emph{F}-distribution,
 or the shape of the expected test statistics when there is a true
 effect. Power calculations rely on the nonceptrality parameter (often
-referred to as \(\lambda\)). Based on lambda (which specifies the shape
-of the expected distribution) and the critical test statistic (which
-specified the the part of the distribution that is more extreme than the
-test statistic needed for a statistically significant test result) we
-can calculate how often, in the long run, we can expect test results
-that will be statistically significant.
+referred to as lambda, or \(\lambda\)). Based on \(\lambda\) (which
+specifies the shape of the expected distribution) and the critical test
+statistic (which specifies the part of the distribution that is more
+extreme than the test statistic needed for a statistically significant
+test result) we can calculate how often, in the long run, we can expect
+test results that will be statistically significant.
 
 \section{Simulating Statistical Power for Different Factorial
 Designs}\label{simulating-statistical-power-for-different-factorial-designs}
@@ -334,18 +330,19 @@ study in a string of numbers (for the levels in each factor) and letters
 Our initial study above is a \enquote{2b} or two level between subject
 design. For ease of interpreting the simulation results, the factors and
 levels can be named (for our example, Condtion, cheerful, sad). The
-planned sample size should be specified, which is 70 participants in
+planned sample size should be specified, which is 80 participants in
 each between subjects condition. The means for each condition should be
 specified (0 and 1), as well as the standard deviation (2). For within
 designs the correlation between variables should be specified. With
 these variables specified, the design is set up for the simulation. For
 a visual confirmation of the input, a figure is created that displays
-the means.
+the means (see Figure \ref{fig:means-plot}).
 
 \begin{figure}
 \centering
-\includegraphics{0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-latex/sim_1_design-1.pdf}
-\caption{(\#fig:sim\_1\_design)Means for each condition in the design.}
+\includegraphics{0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-latex/mean-plot-1.pdf}
+\caption{\label{fig:mean-plot}Vizualization for the expected means and
+confidence intervals for each condition.}
 \end{figure}
 
 The results of a simulation study will vary each time the simulation is
@@ -357,11 +354,11 @@ level for the tests, and any adjustment for multiple comparisons for the
 ANOVA. If 100.000 simulations are performed in R with a seed set to 2019
 (these settings will be used for all simulation results in this
 manuscript), we see the statistical power (based on the percentage of
-\emph{p} \textless{} \(\alpha\) results) is 81.50 and the average effect
-size is 0.06. The simulation also provides the results for the simple
+\emph{p} \textless{} \(\alpha\) results) is 80 and the average effect
+size is 0.05. The simulation also provides the results for the simple
 effects, based on \emph{t}-tests comparing each group. Since there are
 only two groups in this example, the results for the statistical power
-are identical, but the effect size is -0.50, which is the effect size in
+are identical, but the effect size is -0.45, which is the effect size in
 Cohen's d. Now the basic idea behind the simulation is clear, we can
 start exploring how changing the experimental design influences our
 power. We will first examine what happens if we add a third condition to
@@ -370,12 +367,12 @@ either between the cheerful and sad conditions, or perhaps to be equal
 to the cheerful condition (based on the idea that the sad voice leads to
 less enjoyment, but the cheerful voice does not lead to more enjoyment).
 The design now has 3 between subject conditions, and we can explore what
-happens if we would collect 70 participants in each condition.
+happens if we would collect 80 participants in each condition.
 
 If we assume the mean falls exactly between between the cheerful and sad
 conditions the simulations show the statistical power for our design is
-reduced to 81.50, and the effect size is -0.50. If we assume the mean
-the mean is equal to the cheerful condition, the power increases.
+reduced to 70, and the effect size is 0.06. If we assume the mean the
+mean is equal to the cheerful condition, the power increases to 100.
 Compared to the two group design, three things have changed. First, an
 additional group was added to the design, which increases the numerator
 degrees of freedom, which makes the non-central \emph{F}-distribution
@@ -401,20 +398,115 @@ N_{W}=\frac{N_{B}(1-\rho)}{a}
 Here \emph{a} is the number of within-subject levels, \(\rho\) is the
 correlation between the measurements, and the formula assumes normal
 distributions and compound symmetry, and ignores the difference in
-degrees of freedom between the two types of tests, so is a rough (but
-useful) approximation.
+degrees of freedom between the two types of tests, so it is a rough (but
+useful) approximation. Whenever the correlation between dependent
+measures is positive, the sample size that is needed in a
+within-participants condition will be smaller than the requires sample
+size for a between-participants condition.
 
 We need to be able to estimate the correlation between the dependent
 variables we can expect. Ideally, this estimate will be based on data
-from previous experiments. If we plan to collect 70 participants, and
+from previous experiments. If we plan to collect 80 participants, and
 assume the correlation between all dependent variables is 0.5, the power
-for the repeated-measures ANOVA is . Note that simulation studies allow
-for great flexibility, and the Shiny app also allows researchers to
-enter a correlation matrix specifying the expected correlation between
-each individual pair of measurements, instead of assuming the
+for the repeated-measures ANOVA is 100. Note that simulation studies
+allow for great flexibility, and the Shiny app also allows researchers
+to enter a correlation matrix specifying the expected correlation
+between each individual pair of measurements, instead of assuming the
 correlations between dependent variables are identical for all pairs.
 
-str(power\_result)
+\section{Power for Interactions and Simple
+Effects}\label{power-for-interactions-and-simple-effects}
+
+The effect size for an ANOVA design depends on the pattern of means.
+Let's assume the researcher aims to perform a follow-up test to examine
+the effect of a second factor on the enjoyment of interacting with an
+artificial voice assistant. In addition to making the voice sound
+cheerful or sad, a second factor is introduced by making the voice sound
+more robotic compared to the default human-like voice. Different
+patterns of results could be expected. Either the same effect is
+observed for robotic voices, or no effect is observed for robotic
+voices, or the opposite effect is observed for robotic voices (a
+\enquote{Marvin-the-Depressed-Robot-Effect}). In the first case, we will
+only observe a main effect of voice, but in the other two scenarios
+there is an interaction effect between human-likeness of the voice and
+the emotional tone of the voice. We can start by simulating the power
+for a cross-over interaction for a 2x2 between-participant design with
+80 participants in each group.
+
+\begin{figure}
+\centering
+\includegraphics{0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-latex/mean-plot_2-1.pdf}
+\caption{(\#fig:mean-plot\_2)Expected means and confidence intervals for
+each of the four conditions.}
+\end{figure}
+
+Mathematically the interaction effect is computed as the cell mean minus
+the sum of the grand mean, the marginal mean in row i minus the grand
+mean, and the marginal mean in column j minus grand mean. For example,
+for the cheerful human-like voice condition this is 1 (the value in the
+cell) - (0.5 {[}the grand mean{]} + 0.5 {[}the cell mean minus the
+marginal mean in row 1, 0.5{]} + 0.5 {[}the cell mean minus the marginal
+mean in column 2, 0.5{]}). 1 - (0.5 + (0.5) + (0.5)) = -0.5. Completing
+this for all four cells gives the values -0.5, 0.5, 0.5, -0.5. Cohen's f
+is then
+\(f = \frac { \sqrt { \frac { -0.5^2 + 0.5^2 + 0.5 + -0.5^2 } { 4 } }}{ 2 } = 0.25\).
+Cohen's f for the 2x2 design is the same as for the two-group design,
+but we have collected twice as many people in total (4 times 80).
+Simulations show we have would have exactly the same power for a
+cross-over (or sometimes called \enquote{disordinal}) interaction is we
+halved the sample size per group from 80 to 40. Main effects in an ANOVA
+are based on the mean averaged over the other factors (e.g., the main
+effect of human-like versus robot-like voice, irrespective of whether it
+is cheerful or sad). The interaction effect, which can be contrast coded
+as 1, -1, -1, 1, is similarly a test of whether the effects are
+non-additive based on the scores in each cell, where the null-hypothesis
+of no additive effect can be rejected if the deviation expected when
+effects in each cell would be purely additive can be rejected. The key
+insight here is that the total sample size determines the power (cf.
+Westfall (2015)).
+
+We can also examine what the statistical power would be if the pattern
+of results indicated that there was no difference in interacting with a
+cheerful of sad conversational agent with a robot voice. In this case,
+we expect an \enquote{ordinal} interaction (the means for the human-like
+voice are never lower than the means for the robot-like voice, and thus
+there is no cross-over effect). The pattern of means is now 1, 0, 0, 0.
+As has been pointed out (Giner-Sorolla, 2018; Simonsohn, 2014) these
+designs require larger samples to have the same power to detect the
+interaction compared to the two-group comparison. The reason for this is
+that the effect size is only half as large, with Cohen's f = 0.125
+(compared to 0.25 in the cross-over interaction). To achieve the same
+power as for the two-group comparison, a total sample size of 635 is
+required, almost four times as large as the sample size for the
+two-group comparison.
+
+The power in the 2x2 ordinal interaction where only one cell mean
+differs from the other three cell means is identical to the power we
+would have if the single mean was twice as far from the remaining means
+(for a pattern of means of 2, 0, 0, 0). Similarly, if we would examine a
+2x2x2 interaction where only one cell differs from the other means,
+Cohen's f would be 0.25 only when the pattern of means is 4, 0, 0, 0, 0,
+0, 0, 0 across the eight cells.\\
+The key insight here is that the effect size, and thus the power, for
+interactions in ANOVA designs depends on the pattern of the means. A
+\enquote{medium} effect size translates into a much more extreme pattern
+of means in an ordinal interaction than in a disordinal (crossover)
+interaction, or in a 2x2x2 interaction compared to a 2x2 interaction.
+For this reason, it is not very intuitive to start a power analysis
+based on an assumption of the effect size. The same effect size can
+represent very different patterns of means depending on the type of
+interaction and the number of factors. Instead, it might be more
+intuitive to think about the pattern of means that you expect, and
+compute the corresponding Cohen's f.
+
+\section{Power for Within Designs}\label{power-for-within-designs}
+
+One feature of the simulation is that it provides the statistical power
+for all tests that can be performed is calculated, including simple
+effects. Throughout the examples above, as long as the means are 1 and
+0, all simple effects either compare means that are identical (and thus
+only Type 1 errors are observed) or that have an effect size of d = 0.5
+(for between designs).
 
 \newpage
 
@@ -433,6 +525,17 @@ flexible statistical power analysis program for the social, behavioral,
 and biomedical sciences. \emph{Behavior Research Methods}, \emph{39}(2),
 175--191.
 doi:\href{https://doi.org/10.3758/BF03193146}{10.3758/BF03193146}
+
+\hypertarget{ref-giner-sorolla_powering_2018}{}
+Giner-Sorolla, R. (2018, January). Powering Your Interaction.
+\emph{Approaching Significance}.
+
+\hypertarget{ref-simonsohn_no-way_2014}{}
+Simonsohn, U. (2014, March). No-way Interactions. \emph{Data Colada}.
+
+\hypertarget{ref-westfall_think_2015}{}
+Westfall, J. (2015, May). Think about total N, not n per cell.
+\emph{Cookie Scientist}.
 
 
 \end{document}
