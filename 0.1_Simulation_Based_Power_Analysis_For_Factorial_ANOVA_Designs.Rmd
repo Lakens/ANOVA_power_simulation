@@ -63,9 +63,7 @@ A study that has low power to detect effects the researcher is interested in has
 Several excellent resources exist that explain power analyses, including books [@aberson_applied_2019; @cohen_statistical_1988], general reviews [@maxwell_sample_2008], and practical primers [@brysbaert_how_nodate; @perugini_practical_2018]. 
 Whereas power analyses for simple comparisons are relatively easy to perform, an a-priori power analysis for factorial ANOVA designs is a challenge. 
 Available software solutions do not provide easy options for more complex designs (e.g., a 2x2x2 design, where the first factor is manipulated between participants, and the last two factors are manipulated within participants). 
-Popular software solutions such as G\*power require participants to enter their predictions as Cohen's f or partial eta squared ($\eta_p^2$), which are not the most intuitive way to specify a hypothesized pattern of results, and do not generalize to different experimental designs.
-
-Here, we demonstrate how to perform power analyses for factorial ANOVA designs based on simulations. 
+Popular software solutions such as G\*power require participants to enter their predictions as Cohen's f or partial eta squared ($\eta_p^2$), which are not the most intuitive way to specify a hypothesized pattern of results, and do not generalize to different experimental designs. Here, we demonstrate how to perform power analyses for factorial ANOVA designs based on simulations. 
 We provide R code and a Shiny app that can be used to calculate the statistical power based on a predicted pattern of means, standard deviations, and correlations (for within factors). 
 Simulating studies, and calculating their *p*-values and effect sizes, are a useful way to gain a better understanding of the factors that determine the statistical power of hypothesis tests. 
 After providing an introduction to statistical power in general, and for the *F*-test specifically, we will demonstrate how the power of factorial ANOVA designs depends on the pattern of means across conditions, the number of factors and levels, and the sample size. 
@@ -460,13 +458,16 @@ If one is really interested in all possible comparisons, but wants to control th
 
 Statistical power is the probability of, in the long run, observing a *p*-value smaller than the alpha level.
 One intuitive way to illustrate this concept is to plot the distribution of *p*-values for all simulations.
-The simulation code automatically stores plots for p-value distributions for each simulation, both for the ANOVA results, as for the independent comparisons.
+The simulation code automatically stores plots for *p*-value distributions for each simulation, both for the ANOVA results, as for the independent comparisons.
 In Figure \ref{fig:p-plot} we see that from `r nsims` simulations that are performed, more fall below the alpha level for the tests in the top and bottom *p*-value distributions, indicating greater statistical power.
 For the two tests in the middle *p*-value distributions, we see that *p*-value are uniformly distributed because there is no true effect, and thus we only see Type 1 errors. 
 
 ```{r p-plot, fig.width=7, fig.height=10, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="Distribution of p-values for 6 independent comparisons between four conditions of a 2x2 mixed ANOVA"}
 power_result$plot2
 ```
+
+# Conclusion
+
 
 
 \newpage

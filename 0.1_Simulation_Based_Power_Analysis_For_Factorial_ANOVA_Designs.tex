@@ -71,7 +71,7 @@
 \affiliation{
 \vspace{0.5cm}
 \textsuperscript{1} Eindhoven University of Technology, The Netherlands\\\textsuperscript{2} Department of Health, Human Performance and Recreation, University of Arkansas, USA}
-\keywords{power analysis, ANOVA, hypothesis test, sample size justification\newline\indent Word count: Main text contains 4654 words.}
+\keywords{power analysis, ANOVA, hypothesis test, sample size justification\newline\indent Word count: Main text contains 5144 words.}
 \usepackage{csquotes}
 \usepackage{upgreek}
 \captionsetup{font=singlespacing,justification=justified}
@@ -225,16 +225,16 @@ For a visual confirmation of the input, a figure is created that displays the me
 
 The results of a simulation study will vary each time the simulation is performed (but can be made reproducible by specifying a \enquote{seed} number).
 Results become more stable, the more simulations are performed, but the simulations also take longer. The functions that performs the simulation requires specifying the number of simulations, the alpha level for the tests, and any adjustment for multiple comparisons for the ANOVA.
-If 100.000 simulations are performed in R with a seed set to 2019 (these settings will be used for all simulation results in this manuscript), we see the statistical power (based on the percentage of \emph{p} \textless{} \(\alpha\) results) is 90 and the average effect size is 0.08.
+If 100.000 simulations are performed in R with a seed set to 2019 (these settings will be used for all simulation results in this manuscript), we see the statistical power (based on the percentage of \emph{p} \textless{} \(\alpha\) results) is 88.03 and the average effect size is 0.06.
 The simulation also provides the results for the simple effects, based on \emph{t}-tests comparing each group.
-Since there are only two groups in this example, the results for the statistical power are identical, but the effect size is -0.57, which is the effect size in Cohen's d.~
+Since there are only two groups in this example, the results for the statistical power are identical, but the effect size is -0.50, which is the effect size in Cohen's d.~
 Now the basic idea behind the simulation is clear, we can start exploring how changing the experimental design influences our power.
 We will first examine what happens if we add a third condition to the design.
 Let's assume we expect the neutral voice condition to fall either between the cheerful and sad conditions, or perhaps to be equal to the cheerful condition (based on the idea that the sad voice leads to less enjoyment, but the cheerful voice does not lead to more enjoyment).
 The design now has 3 between subject conditions, and we can explore what happens if we would collect 80 participants in each condition.
 
-If we assume the mean falls exactly between between the cheerful and sad conditions the simulations show the statistical power for our design is reduced to 70, and the effect size is 0.03.
-If we assume the mean the mean is equal to the cheerful condition, the power increases to 90.
+If we assume the mean falls exactly between between the cheerful and sad conditions the simulations show the statistical power for our design is reduced to 81.71, and the effect size is 0.05.
+If we assume the mean the mean is equal to the cheerful condition, the power increases to 91.57.
 Compared to the two group design, three things have changed.
 First, an additional group was added to the design, which increases the numerator degrees of freedom, which makes the non-central \emph{F}-distribution more similar to the central \emph{F}-distribution, and reduces the statistical power.
 Second, the total sample size is 50\% larger, which increases the statistical power.
@@ -253,7 +253,7 @@ Whenever the correlation between dependent measures is positive, the sample size
 
 We need to be able to estimate the correlation between the dependent variables we can expect.
 Ideally, this estimate will be based on data from previous experiments.
-If we plan to collect 80 participants, and assume the correlation between all dependent variables is 0.5, the power for the repeated-measures ANOVA is 100.
+If we plan to collect 80 participants, and assume the correlation between all dependent variables is 0.5, the power for the repeated-measures ANOVA is 98.29.
 Note that simulation studies allow for great flexibility, and the Shiny app also allows researchers to enter a correlation matrix specifying the expected correlation between each individual pair of measurements, instead of assuming the correlations between dependent variables are identical for all pairs.
 
 \hypertarget{power-for-interactions}{%
@@ -326,7 +326,7 @@ Note that in the simulation, the correlation can be specified for each pair of m
 
 Cohen's f is identical in within and between designs.
 However, Equation \eqref{eq:eta-to-f} and \eqref{eq:f-to-eta} no longer hold when measurements are correlated.
-The average effect size for a between design with 80 participants in each condition, means of 1, 0.5, and 0, and a standard deviation of 2 was 0.03, while the estimated effect size increased to 0.12 with a correlation of 0.7 between dependent measurements.
+The average effect size for a between design with 80 participants in each condition, means of 1, 0.5, and 0, and a standard deviation of 2 was 0.05, while the estimated effect size increased to 0.12 with a correlation of 0.7 between dependent measurements.
 The default settings in G*Power expect an f or \(\eta_p^2\) that does not incorporate the correlation, while the correlation is incorporated in the output of software package such as SPSS.
 For a one-way within design, Cohen's f can be converted into Cohen's f as SPSS provides it through:
 \begin{equation}
@@ -349,17 +349,44 @@ Nevertheless, in our anecdotal experience evaluating sample size justifications 
 We hope that providing a complete overview of the tests a researcher might be interested in will prevent this.
 Furthermore, researchers need to take the correlation between dependent measures into account (e.g., enter Cohen's \(d_z\) instead of d), which the simulation does automatically.
 
-For example, comsider a 2x2 mixed ANOVA with 2 levels manipulated within and two between, with a predicted crossover interaction (means 1, 0, 0, 1), a standard deviation of 2, a correlation between dependent observations of 0.7, and 20 participants per between subjects condition.
+For example, consider a 2x2 mixed ANOVA with 2 levels manipulated within and two between, with a predicted crossover interaction (means 1, 0, 0, 1), a standard deviation of 2, a correlation between dependent observations of 0.7, and 20 participants per between subjects condition.
 Although the power for the cross-over interaction is high (\texttt{power\_result\$main\_results\$power{[}3{]}}\%), the power for the independent between subject comparisons where there is a difference is only \texttt{power\_result\$pc\_results\$power{[}2{]}}\%, while the power for correlated between subjects effects is \texttt{power\_result\$pc\_results\$power{[}1{]}}\%.
-Sometimes the interaction in the ANOVA will have more power than the independent comparisons (i.e., in the case of a cross-over interaction) and sometimes the power for the interacction will be lower than independent comparisons.
+Sometimes the interaction in the ANOVA will have more power than the independent comparisons (i.e., in the case of a cross-over interaction) and sometimes the power for the interaction will be lower than the poewr for independent comparisons.
+It is always important to check if you have adequate power for all tests you plan to perform.
 
 \hypertarget{type-1-error-control-in-exploratory-anovas}{%
 \section{Type 1 Error Control in Exploratory ANOVA's}\label{type-1-error-control-in-exploratory-anovas}}
 
-In a 2x2x2 design, an ANOVA will give the test results for three main effects, three two-way interactions, and one three-way interaction. That's 7 statistical tests. The probability of making at least one Type 1 error in a single 2x2x2 ANOVA is \(1-(0.95)^7\) = 30\%.
+In a 2x2x2 design, an ANOVA will give the test results for three main effects, three two-way interactions, and one three-way interaction.
+Because seven statistical tests are performed, the probability of making at least one Type 1 error in a single exploratory 2x2x2 ANOVA is \(1-(0.95)^7\) = 30\%.
+It is therefore important to control error rates when performing multiple comparisons (Cramer et al., 2014).
+Several techniques to control error rates exist, of which the best known is the Bonferroni adjustment.
+The Holm procedure is slightly more powerful than the Bonferroni adjustment, without requiring additional assumptions (for other approaches, see Bretz, Hothorn, and Westfall (2011)).
+By specifying the adjustment for multiple comparisons in the simulation it is possible to make sure that you will not conclude there is an effect in any of the tests more often than a desired overall Type 1 error rate.
+Because the adjustment for multiple comparisons lowers the alpha level, it also lowers the statistical power.
+When designing a study where you will perform multiple comparisons, it is important to take into account the corrected alpha level when determining the required sample size, both for the ANOVA tests, as for the independent comparisons.
 
-\hypertarget{p-value-dsitributions}{%
-\section{P-value dsitributions}\label{p-value-dsitributions}}
+If we revisited the 2x2 mixed ANOVA discussed in the section on independent comparison, and apply a Holm correction for multiple comparisons, we see power for the interaction is reduced from 97.84\% without applying a correction, to 93.52\% after correcting for multiple comparisons.
+There are three tests for a 2x2 design (two main effects, one interaction), but 6 independent comparisons between the four conditions, and thus the correction for multiple comparisons has a stronger effect on the independent comparisons.
+For example, the power for the dependent \emph{t}-test comparing two within-participant conditions falls from 77.34\% without correcting for multiple comparisons, to 51.87\% when adjusting the alpha level for the 6 possible comparisons between the four conditions.
+These simulations should reveal the cost of exploring across all possible comparisons while controlling error rates.
+It is often advisable to preregister specific tests that are of interest to a researchers.
+If one is really interested in all possible comparisons, but wants to control the probability of incorrectly assuming there is an effect, the reduction in power due to the lower alpha level should be counteracted by increasing the sample size to maintain an adequate level of power for both the ANOVA as the independent comparisons.
+
+\hypertarget{p-value-distributions}{%
+\section{P-value distributions}\label{p-value-distributions}}
+
+Statistical power is the probability of, in the long run, observing a \emph{p}-value smaller than the alpha level.
+One intuitive way to illustrate this concept is to plot the distribution of \emph{p}-values for all simulations.
+The simulation code automatically stores plots for p-value distributions for each simulation, both for the ANOVA results, as for the independent comparisons.
+In Figure \ref{fig:p-plot} we see that from 10000 simulations that are performed, more fall below the alpha level for the tests in the top and bottom \emph{p}-value distributions, indicating greater statistical power.
+For the two tests in the middle \emph{p}-value distributions, we see that \emph{p}-value are uniformly distributed because there is no true effect, and thus we only see Type 1 errors.
+
+\begin{figure}
+\centering
+\includegraphics{0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-latex/p-plot-1.pdf}
+\caption{\label{fig:p-plot}Distribution of p-values for 6 independent comparisons between four conditions of a 2x2 mixed ANOVA}
+\end{figure}
 
 \newpage
 
@@ -373,11 +400,17 @@ In a 2x2x2 design, an ANOVA will give the test results for three main effects, t
 \leavevmode\hypertarget{ref-aberson_applied_2019}{}%
 Aberson, C. L. (2019). \emph{Applied Power Analysis for the Behavioral Sciences: 2nd Edition} (2 edition.). New York: Routledge.
 
+\leavevmode\hypertarget{ref-bretz_multiple_2011}{}%
+Bretz, F., Hothorn, T., \& Westfall, P. H. (2011). \emph{Multiple comparisons using R}. Boca Raton, FL: CRC Press.
+
 \leavevmode\hypertarget{ref-brysbaert_how_nodate}{}%
 Brysbaert, M. (n.d.). How many participants do we have to include in properly powered experiments? A tutorial of power analysis with some simple guidelines. \emph{Journal of Cognition}.
 
 \leavevmode\hypertarget{ref-cohen_statistical_1988}{}%
 Cohen, J. (1988). \emph{Statistical power analysis for the behavioral sciences} (2nd ed.). Hillsdale, N.J: L. Erlbaum Associates.
+
+\leavevmode\hypertarget{ref-cramer_hidden_2014}{}%
+Cramer, A. O., van Ravenzwaaij, D., Matzke, D., Steingroever, H., Wetzels, R., Grasman, R. P., \ldots{} Wagenmakers, E.-J. (2014). Hidden multiplicity in multiway ANOVA: Prevalence, consequences, and remedies. \emph{arXiv Preprint arXiv:1412.3416}.
 
 \leavevmode\hypertarget{ref-delacre_why_2017}{}%
 Delacre, M., Lakens, D., \& Leys, C. (2017). Why Psychologists Should by Default Use Welch's \emph{t}-test Instead of Student's \emph{t}-test. \emph{International Review of Social Psychology}, \emph{30}(1). doi:\href{https://doi.org/10.5334/irsp.82}{10.5334/irsp.82}
