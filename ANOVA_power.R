@@ -1,6 +1,6 @@
 #ANOVA power function; last update: March 22 2019
-ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", nsims = 1000){
- 
+ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", nsims = 1000, seed = NULL){
+  
   #Require necessary packages
   require(mvtnorm, quietly = TRUE)
   require(MASS, quietly = TRUE)
@@ -11,6 +11,7 @@ ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", ns
   require(reshape2, quietly = TRUE)
   
   options(scipen = 999) # 'turn off' scientific notation
+  set.seed(seed)
   
   effect_size_d <- function(x, y, conf.level = 0.95){ 
     sd1 <- sd(x) #standard deviation of measurement 1

@@ -23,7 +23,7 @@ power_oneway_between <- function(design_result, alpha_level=0.05){
   F_critical <- qf(alpha_level, df1, df2, lower.tail=FALSE) # Critical F-Value
   power <- pf(F_critical, df1, df2, lambda, lower.tail = FALSE) # power
   
-  invisible(list(mu = design_result$n,
+  invisible(list(mu = design_result$mu,
                  sigma = design_result$sd,
                  n = design_result$n, 
                  alpha_level = alpha_level,
