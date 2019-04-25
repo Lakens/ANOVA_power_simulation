@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9.6100 64-bit) (preloaded format=pdflatex 2016.12.15)  24 APR 2019 13:05
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9.6100 64-bit) (preloaded format=pdflatex 2016.12.15)  25 APR 2019 20:56
 entering extended mode
 **./0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs.tex
 (0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs.tex
@@ -1493,16 +1493,13 @@ File: utxsyc.fd 2000/12/15 v3.1
 ) (C:\Users\Daniel\AppData\Roaming\MiKTeX\2.9\tex\latex\microtype\mt-eur.cfg
 File: mt-eur.cfg 2006/07/31 v1.1 microtype config. file: AMS Euler Roman (RS)
 )
-LaTeX Font Info:    Try loading font information for T1+txss on input line 119.
+LaTeX Font Info:    Try loading font information for T1+txss on input line 124.
 
 (C:\Users\Daniel\AppData\Roaming\MiKTeX\2.9\tex\latex\txfonts\t1txss.fd
 File: t1txss.fd 2000/12/15 v3.1
 )
 LaTeX Font Info:    Font shape `T1/txss/m/n' will be
-(Font)              scaled to size 4.74998pt on input line 119.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
+(Font)              scaled to size 4.74998pt on input line 124.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -1511,68 +1508,69 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 ]
 <0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-l
-atex/d-plot-1.pdf, id=55, 505.89pt x 289.08pt>
+atex/d-plot-1.pdf, id=54, 505.89pt x 289.08pt>
 File: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
 ure-latex/d-plot-1.pdf Graphic file (type pdf)
 
 <use 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figu
 re-latex/d-plot-1.pdf>
 Package pdftex.def Info: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOV
-A_Designs_files/figure-latex/d-plot-1.pdf used on input line 157.
+A_Designs_files/figure-latex/d-plot-1.pdf used on input line 139.
 (pdftex.def)             Requested size: 241.74373pt x 138.13927pt.
 
 <0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-l
-atex/eta-plot-1.pdf, id=56, 505.89pt x 289.08pt>
+atex/eta-plot-1.pdf, id=55, 505.89pt x 289.08pt>
 File: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
 ure-latex/eta-plot-1.pdf Graphic file (type pdf)
 
 <use 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figu
 re-latex/eta-plot-1.pdf>
 Package pdftex.def Info: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOV
-A_Designs_files/figure-latex/eta-plot-1.pdf used on input line 163.
+A_Designs_files/figure-latex/eta-plot-1.pdf used on input line 145.
 (pdftex.def)             Requested size: 241.74373pt x 138.13927pt.
+
+Underfull \vbox (badness 5533) has occurred while \output is active []
+
 [2 <./0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
 ure-latex/d-plot-1.pdf> <./0.1_Simulation_Based_Power_Analysis_For_Factorial_AN
 OVA_Designs_files/figure-latex/eta-plot-1.pdf>]
 <0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-l
-atex/mean-plot2-1.pdf, id=81, 505.89pt x 289.08pt>
+atex/mean-plot2-1.pdf, id=91, 505.89pt x 289.08pt>
 File: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
 ure-latex/mean-plot2-1.pdf Graphic file (type pdf)
 
 <use 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figu
 re-latex/mean-plot2-1.pdf>
 Package pdftex.def Info: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOV
-A_Designs_files/figure-latex/mean-plot2-1.pdf used on input line 222.
+A_Designs_files/figure-latex/mean-plot2-1.pdf used on input line 219.
 (pdftex.def)             Requested size: 241.74373pt x 138.13927pt.
 [3 <./0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
 ure-latex/mean-plot2-1.pdf>]
 <0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-l
-atex/mean-plot-1.pdf, id=99, 505.89pt x 289.08pt>
+atex/mean-plot-1.pdf, id=110, 505.89pt x 289.08pt>
 File: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
 ure-latex/mean-plot-1.pdf Graphic file (type pdf)
 
 <use 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figu
 re-latex/mean-plot-1.pdf>
 Package pdftex.def Info: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOV
-A_Designs_files/figure-latex/mean-plot-1.pdf used on input line 271.
+A_Designs_files/figure-latex/mean-plot-1.pdf used on input line 270.
 (pdftex.def)             Requested size: 241.74373pt x 138.13927pt.
 [4 <./0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
-ure-latex/mean-plot-1.pdf>] [5]
-LaTeX Font Info:    Try loading font information for T1+txtt on input line 353.
-
-(C:\Users\Daniel\AppData\Roaming\MiKTeX\2.9\tex\latex\txfonts\t1txtt.fd
-File: t1txtt.fd 2000/12/15 v3.1
-) [6]
+ure-latex/mean-plot-1.pdf>] [5] [6]
 <0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figure-l
-atex/p-plot-1.pdf, id=132, 505.89pt x 722.7pt>
+atex/p-plot-1.pdf, id=143, 505.89pt x 722.7pt>
 File: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
 ure-latex/p-plot-1.pdf Graphic file (type pdf)
 
 <use 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/figu
 re-latex/p-plot-1.pdf>
 Package pdftex.def Info: 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOV
-A_Designs_files/figure-latex/p-plot-1.pdf used on input line 387.
+A_Designs_files/figure-latex/p-plot-1.pdf used on input line 381.
 (pdftex.def)             Requested size: 241.74373pt x 345.3482pt.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
 [7 <./0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs_files/fig
 ure-latex/p-plot-1.pdf>]
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 440.
@@ -1588,31 +1586,30 @@ Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 440.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 440.
 Package rerunfilecheck Info: File `0.1_Simulation_Based_Power_Analysis_For_Fact
 orial_ANOVA_Designs.out' has not changed.
-(rerunfilecheck)             Checksum: 58F5C6685D35702C26D95870D0DDAAA6;2087.
+(rerunfilecheck)             Checksum: DE41908F4C820396E92B6E6CDCDFEE4C;1745.
  ) 
 Here is how much of TeX's memory you used:
- 16436 strings out of 493333
- 242060 string characters out of 3139190
- 356652 words of memory out of 3000000
- 19258 multiletter control sequences out of 15000+200000
- 95355 words of font info for 395 fonts, out of 3000000 for 9000
+ 16443 strings out of 493333
+ 241690 string characters out of 3139190
+ 360561 words of memory out of 3000000
+ 19230 multiletter control sequences out of 15000+200000
+ 100021 words of font info for 426 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 45i,10n,40p,1613b,480s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 45i,10n,40p,1573b,480s stack positions out of 5000i,500n,10000p,200000b,50000s
 {C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/base/8r.enc}<C:/Users/Daniel/App
 Data/Roaming/MiKTeX/2.9/fonts/type1/public/txfonts/rtxb.pfb><C:/Users/Daniel/Ap
 pData/Roaming/MiKTeX/2.9/fonts/type1/public/txfonts/rtxmi.pfb><C:/Users/Daniel/
 AppData/Roaming/MiKTeX/2.9/fonts/type1/public/txfonts/rtxr.pfb><C:/Users/Daniel
-/AppData/Roaming/MiKTeX/2.9/fonts/type1/public/txfonts/t1xtt.pfb><C:/Users/Dani
-el/AppData/Roaming/MiKTeX/2.9/fonts/type1/public/txfonts/txex.pfb><C:/Users/Dan
-iel/AppData/Roaming/MiKTeX/2.9/fonts/type1/public/txfonts/txsy.pfb><C:/Program 
-Files/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvr8a.pfb><C:/Program Files/MiKTeX 2
-.9/fonts/type1/urw/times/utmb8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/ur
-w/times/utmr8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmri8a.p
-fb>
+/AppData/Roaming/MiKTeX/2.9/fonts/type1/public/txfonts/txex.pfb><C:/Users/Danie
+l/AppData/Roaming/MiKTeX/2.9/fonts/type1/public/txfonts/txsy.pfb><C:/Program Fi
+les/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvr8a.pfb><C:/Program Files/MiKTeX 2.9
+/fonts/type1/urw/times/utmb8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/urw/
+times/utmr8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmri8a.pfb
+>
 Output written on 0.1_Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Desig
-ns.pdf (8 pages, 300494 bytes).
+ns.pdf (8 pages, 297854 bytes).
 PDF statistics:
- 218 PDF objects out of 1000 (max. 8388607)
+ 224 PDF objects out of 1000 (max. 8388607)
  57 named destinations out of 1000 (max. 500000)
  43106 words of extra memory for PDF output out of 51595 (max. 10000000)
 
