@@ -25,7 +25,6 @@ library(knitr)
 #ANOVA design function; last update: March 22, 2019
 #Update output
 ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
-  
   #Checks to ensure information is entered correctly into function
   #if (n < 3 || n > 1000) {
   #  error <- "Sample per cell (n) must be greater than 2 and less than 1001"
@@ -866,6 +865,9 @@ ui <- fluidPage(
                 choices = list("None" = "none", "Holm-Bonferroni" = "holm",
                                "Bonferroni" = "bonferroni",
                                "False Discovery Rate" = "fdr"), selected = 1),
+    # Everyone sets the default seed to 42 I always pick Jean Valjean, this can be changed to anything
+    # Also the min and max are the largest and smallest values that R will take for setting a seed - WKH
+    numericInput(inputId = 'setSeedValue', label = "Set Simulation Seed", 24601, min = -2147483647, max = 2147483647),
     #Button to initiate the design
     h4("Click the button below to set up the design - a graph will be displayed with the means as you specified them. If this graph is as you intended, you can run the simulation."),
     
@@ -968,7 +970,7 @@ server <- function(input, output) {
   
   
   #Runs simulation and saves result as reactive value
-  observeEvent(input$sim, {values$power_result <- quiet(ANOVA_power(values$design_result, 
+  observeEvent(input$sim, {set.seed(input$setSeedValue);values$power_result <- quiet(ANOVA_power(values$design_result, 
                                                              alpha_level = input$sig, 
                                                              nsims = input$nsims))
   
