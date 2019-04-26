@@ -66,9 +66,6 @@ ui <- fluidPage(
                 choices = list("None" = "none", "Holm-Bonferroni" = "holm",
                                "Bonferroni" = "bonferroni",
                                "False Discovery Rate" = "fdr"), selected = 1),
-    # Everyone sets the default seed to 42 I always pick Jean Valjean, this can be changed to anything
-    # Also the min and max are the largest and smallest values that R will take for setting a seed - WKH
-    numericInput(inputId = 'setSeedValue', label = "Set Simulation Seed", 24601, min = -2147483647, max = 2147483647),
     #Button to initiate the design
     h4("Click the button below to set up the design - a graph will be displayed with the means as you specified them. If this graph is as you intended, you can run the simulation."),
     
@@ -130,7 +127,7 @@ server <- function(input, output) {
   #Fixed sigmatrix build for three way designs (\\word+ in for *)
   #Removed afex from this function; no longer necessary
   ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
-    set.seed(input$setSeedValue)
+    
     if (n < 3 || n > 1000) {
       error <- "Sample per cell (n) must be greater than 2 or less than 1001"
       stop(error)
