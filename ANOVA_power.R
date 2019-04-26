@@ -1,19 +1,73 @@
-#ANOVA power function; last update: March 13th 2019
-#
-ANOVA_power <- function(design_result, alpha, nsims){
+#ANOVA power function; last update: March 22 2019
+ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", nsims = 1000, seed = NULL){
   
   #Require necessary packages
   require(mvtnorm, quietly = TRUE)
+  require(MASS, quietly = TRUE)
   require(afex, quietly = TRUE)
   require(emmeans, quietly = TRUE)
   require(ggplot2, quietly = TRUE)
   require(gridExtra, quietly = TRUE)
   require(reshape2, quietly = TRUE)
   
+  options(scipen = 999) # 'turn off' scientific notation
+  set.seed(seed)
+  
+  effect_size_d <- function(x, y, conf.level = 0.95){ 
+    sd1 <- sd(x) #standard deviation of measurement 1
+    sd2 <- sd(y) #standard deviation of measurement 2
+    n1 <- length(x) #number of pairs
+    n2 <- length(y) #number of pairs
+    df <- n1 + n2 - 2
+    m_diff <- mean(y - x)
+    sd_pooled <- (sqrt((((n1 - 1) * ((sd1^2))) + (n2 - 1) * ((sd2^2))) / ((n1 + n2 - 2)))) #pooled standard deviation
+    #Calculate Hedges' correction. Uses gamma, unless this yields a nan (huge n), then uses approximation
+    j <- (1 - 3/(4 * (n1 + n2 - 2) - 1))
+    t_value <- m_diff / sqrt(sd_pooled^2 / n1 + sd_pooled^2 / n2)
+    p_value = 2*pt(-abs(t_value), 
+                   df = df)
+    
+    d <- m_diff / sd_pooled #Cohen's d
+    d_unb <- d*j #Hedges g, of unbiased d
+    
+    invisible(list(d = d, 
+                   d_unb = d_unb, 
+                   p_value = p_value))
+  }
+  
+  effect_size_d_paired <- function(x, y, conf.level = 0.95){ 
+    sd1 <- sd(x) #standard deviation of measurement 1
+    sd2 <- sd(y) #standard deviation of measurement 2
+    s_diff <- sd(x - y) #standard deviation of the difference scores
+    N <- length(x) #number of pairs
+    df = N - 1
+    s_av <- sqrt((sd1 ^ 2 + sd2 ^ 2) / 2) #averaged standard deviation of both measurements
+    
+    #Cohen's d_av, using s_av as standardizer
+    m_diff <- mean(y - x)
+    d_av <- m_diff / s_av
+    d_av_unb <- (1 - (3 / (4 * (N - 1) - 1))) * d_av
+    
+    #get the t-value for the CI
+    t_value <- m_diff / (s_diff / sqrt(N))
+    p_value = 2 * pt(-abs(t_value),
+                     df = df)
+    
+    #Cohen's d_z, using s_diff as standardizer
+    d_z <- t_value / sqrt(N)
+    d_z_unb <- (1 - (3 / (4 * (N - 1) - 1))) * d_z
+    
+    invisible(list(
+      d_z = d_z,
+      d_z_unb = d_z_unb,
+      p_value = p_value
+    ))
+  }
+  
   round_dig <- 4 #Set digits to which you want to round the output. 
   
-  if(missing(alpha)) {
-    alpha<-0.05
+  if (missing(alpha_level)) {
+    alpha_level <- 0.05
   }
   string <- design_result$string #String used to specify the design
 
@@ -25,20 +79,13 @@ ANOVA_power <- function(design_result, alpha, nsims){
   # For an all within design, this is total N
   # For a 2b*2b design, this is the number of people in each between condition, so in each of 2*2 = 4 groups 
   
-  n<-design_result$n
+  n <- design_result$n
   
   # specify population means for each condition (so 2 values for 2b design, 6 for 2b*3w, etc) 
   mu = design_result$mu # population means - should match up with the design
   
   sd <- design_result$sd #population standard deviation (currently assumes equal variances)
   r <- design_result$r # correlation between within factors (currently only 1 value can be entered)
-  
-  #indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
-  p_adjust <- design_result$p_adjust
-  
-  # how many studies should be simulated? 100.000 is very accurate, 10.000 reasonable accurate, 10.000 somewhat accurate
-  nsims = nsims
-  
   
   ###############
   # 2. Create Dataframe based on Design ----
@@ -50,7 +97,7 @@ ANOVA_power <- function(design_result, alpha, nsims){
   #Specify within/between factors in design: Factors that are within are 1, between 0
   design <- design_result$design
   
-  sigmatrix <- design_result$sig
+  sigmatrix <- design_result$sigmatrix
   
   #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
   df <- design_result$df
@@ -62,14 +109,11 @@ ANOVA_power <- function(design_result, alpha, nsims){
   frml1 <- design_result$frml1 
   frml2 <- design_result$frml2
   
-  aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                         data=df,
+  aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter formula 1 as designed above on the basis of the design 
+                                         data = df, include_aov = FALSE,
                                          anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
   
-  
-  # pairwise comparisons
-  pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust) })
-  
+
   ############################################
   #Specify factors for formula ###############
   design_list <- design_result$design_list
@@ -79,53 +123,78 @@ ANOVA_power <- function(design_result, alpha, nsims){
   ###############
   
   #How many possible planned comparisons are there (to store p and es)
-  possible_pc <- (((prod(as.numeric(strsplit(string, "\\D+")[[1]])))^2)-prod(as.numeric(strsplit(string, "\\D+")[[1]])))/2
+  possible_pc <- (((prod(
+    as.numeric(strsplit(string, "\\D+")[[1]])
+  )) ^ 2) - prod(as.numeric(strsplit(string, "\\D+")[[1]])))/2
   
   #create empty dataframe to store simulation results
-  #number of columns if for ANOVA results and planned comparisons, times 2 (p and es)
-  sim_data <- as.data.frame(matrix(ncol = 2*(2^factors-1)+2*possible_pc, nrow = nsims))
+  #number of columns for ANOVA results and planned comparisons, times 2 (p-values and effect sizes)
+  sim_data <- as.data.frame(matrix(
+    ncol = 2 * (2 ^ factors - 1) + 2 * possible_pc,
+    nrow = nsims
+  ))
+  
+  paired_tests <- combn(unique(df$cond),2)
+  paired_p <- numeric(possible_pc)
+  paired_d <- numeric(possible_pc)
+  within_between <- sigmatrix[lower.tri(sigmatrix)] #based on whether correlation is 0 or not, we can determine if we should run a paired or independent t-test
   
   #Dynamically create names for the data we will store
   names(sim_data) = c(paste("anova_",
                             rownames(aov_result$anova_table), 
-                            sep=""), 
+                            sep = ""), 
                       paste("anova_es_", 
                             rownames(aov_result$anova_table), 
-                            sep=""), 
-                      paste("paired_comparison_", 
-                            pc@grid[["contrast"]], 
-                            sep=""), 
+                            sep = ""), 
+                      paste("p_", 
+                            paste(paired_tests[1,],paired_tests[2,],sep = "_"), 
+                            sep = ""), 
                       paste("d_", 
-                            pc@grid[["contrast"]], 
-                            sep=""))
+                            paste(paired_tests[1,],paired_tests[2,], sep = "_"), 
+                            sep = ""))
   
   
   ###############
   # 7. Start Simulation ----
   ###############
   #withProgress(message = 'Running simulations', value = 0, { #block outside of Shiny
-    for(i in 1:nsims){ #for each simulated experiment
+    for (i in 1:nsims) { #for each simulated experiment
       #incProgress(1/nsims, detail = paste("Now running simulation", i, "out of",nsims,"simulations")) #Block outside of Shiny
       #We simulate a new y variable, melt it in long format, and add it to the df (surpressing messages)
-      df$y<-suppressMessages({melt(as.data.frame(rmvnorm(n=n,
-                                                         mean=mu,
-                                                         sigma=as.matrix(sigmatrix))))$value
+      df$y <- suppressMessages({
+        melt(as.data.frame(rmvnorm(
+          n = n,
+          mean = mu,
+          sigma = as.matrix(sigmatrix)
+        )))$value
       })
       
       # We perform the ANOVA using AFEX
-      aov_result<-suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                            data=df,
-                                            anova_table = list(es = "pes", p_adjust_method = p_adjust))}) #This reports PES not GES
-      # pairwise comparisons
-      pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust)})
+      #Can be set to NICE to speed up, but required data grabbing from output the change. 
+      aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+                                            data = df, include_aov = FALSE, #Need development code to get aov_include function
+                                            anova_table = list(es = "pes", 
+                                                               p_adjust_method = p_adjust))}) #This reports PES not GES
+
+      for (j in 1:possible_pc) {
+        x <- df$y[which(df$cond == paired_tests[1,j])]
+        y <- df$y[which(df$cond == paired_tests[2,j])]
+        #this can be sped up by tweaking the functions that are loaded to only give p and dz
+        ifelse(within_between[j] == 0,
+               t_test_res <- effect_size_d(x, y, conf.level = 1 - alpha_level),
+               t_test_res <- effect_size_d_paired(x, y, conf.level = 1 - alpha_level))
+        paired_p[j] <- t_test_res$p_value
+        paired_d[j] <- ifelse(within_between[j] == 0,
+                                    t_test_res$d,
+                                    t_test_res$d_z)
+        }
+
       # store p-values and effect sizes for calculations and plots.
       sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
                         aov_result$anova_table[[5]], #partial eta squared
-                        as.data.frame(summary(pc))$p.value, #p-values for paired comparisons
-                        ifelse(as.data.frame(summary(pc))$df == n-1, #if df = n-1 (means within factor)
-                               as.data.frame(summary(pc))$t.ratio/sqrt(n)*(1-(3/(4*(n-1)-1))), #Cohen's dz for within # g correction *(1-(3/(4*(n-1)-1)))
-                               (2 * as.data.frame(summary(pc))$t.ratio)/sqrt(2*n)*(1-(3/(4*(2*n-2)-1))))) #Cohen's d for between # g correction *(1-(3/(4*(2*n-2)-1)))
-    }
+                        paired_p, #p-values for paired comparisons
+                        paired_d #effect sizes
+    )}
   #}) #close withProgress Block outside of Shiny
   
   ############################################
@@ -138,103 +207,165 @@ ANOVA_power <- function(design_result, alpha, nsims){
   
   # melt the data into a long format for plots in ggplot2
   
-  plotData <- suppressMessages({melt(sim_data[1:(2^factors-1)], value.name = 'p')})
+  plotData <-
+    suppressMessages({
+      melt(sim_data[1:(2 ^ factors - 1)], value.name = 'p')
+    })
   
-  SalientLineColor<-"#535353"
-  LineColor<-"#D0D0D0"
-  BackgroundColor<-"#F0F0F0"
+  SalientLineColor <- "#535353"
+  LineColor <- "#D0D0D0"
+  BackgroundColor <- "#F0F0F0"
   
   # plot each of the p-value distributions 
-  options(scipen = 999) # 'turn off' scientific notation
+
   plt1 = ggplot(plotData, aes(x = p)) +
-    scale_x_continuous(breaks=seq(0, 1, by = .1),
-                       labels=seq(0, 1, by = .1)) +
-    geom_histogram(colour="#535353", fill="#84D5F0", breaks=seq(0, 1, by = .01)) +
-    geom_vline(xintercept = alpha, colour='red') +
+    scale_x_continuous(breaks = seq(0, 1, by = .1),
+                       labels = seq(0, 1, by = .1)) +
+    geom_histogram(colour = "#535353",
+                   fill = "#84D5F0",
+                   breaks = seq(0, 1, by = .01)) +
+    geom_vline(xintercept = alpha_level, colour = 'red') +
     facet_grid(variable ~ .) +
     labs(x = expression(p)) +
-    theme_bw() + 
-    theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),panel.grid.minor.y = element_blank()) + 
-    theme(panel.background=element_rect(fill=BackgroundColor)) +
-    theme(plot.background=element_rect(fill=BackgroundColor)) +
-    theme(panel.border=element_rect(colour=BackgroundColor)) + 
-    theme(panel.grid.major=element_line(colour=LineColor,size=.75)) + 
-    theme(plot.title=element_text(face="bold",colour=SalientLineColor, vjust=2, size=20)) + 
-    theme(axis.text.x=element_text(size=10,colour=SalientLineColor, face="bold")) +
-    theme(axis.text.y=element_text(size=10,colour=SalientLineColor, face="bold")) +
-    theme(axis.title.y=element_text(size=12,colour=SalientLineColor,face="bold", vjust=2)) +
-    theme(axis.title.x=element_text(size=12,colour=SalientLineColor,face="bold", vjust=0)) + 
-    theme(axis.ticks.x=element_line(colour=SalientLineColor, size=2)) +
-    theme(axis.ticks.y=element_line(colour=BackgroundColor)) +
+    theme_bw() +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.minor.y = element_blank()
+    ) +
+    theme(panel.background = element_rect(fill = BackgroundColor)) +
+    theme(plot.background = element_rect(fill = BackgroundColor)) +
+    theme(panel.border = element_rect(colour = BackgroundColor)) +
+    theme(panel.grid.major = element_line(colour = LineColor, size = .75)) +
+    theme(plot.title = element_text(
+      face = "bold",
+      colour = SalientLineColor,
+      vjust = 2,
+      size = 20
+    )) +
+    theme(axis.text.x = element_text(
+      size = 10,
+      colour = SalientLineColor,
+      face = "bold"
+    )) +
+    theme(axis.text.y = element_text(
+      size = 10,
+      colour = SalientLineColor,
+      face = "bold"
+    )) +
+    theme(axis.title.y = element_text(
+      size = 12,
+      colour = SalientLineColor,
+      face = "bold",
+      vjust = 2
+    )) +
+    theme(axis.title.x = element_text(
+      size = 12,
+      colour = SalientLineColor,
+      face = "bold",
+      vjust = 0
+    )) +
+    theme(axis.ticks.x = element_line(colour = SalientLineColor, size =
+                                        2)) +
+    theme(axis.ticks.y = element_line(colour = BackgroundColor)) +
     theme(axis.line = element_line()) +
-    theme(axis.line.x=element_line(size=1.2,colour=SalientLineColor)) +
-    theme(axis.line.y=element_line(colour=BackgroundColor)) + 
-    theme(plot.margin = unit(c(1,1,1,1), "cm"))
-  plt1
-  
-  
+    theme(axis.line.x = element_line(size = 1.2, colour = SalientLineColor)) +
+    theme(axis.line.y = element_line(colour = BackgroundColor)) +
+    theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
+
   #Plot p-value distributions for simple comparisons
   # melt the data into a ggplot friendly 'long' format
-  p_paired <- sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]
+  p_paired <- sim_data[(2 * (2 ^ factors - 1) + 1):(2 * (2 ^ factors - 1) + possible_pc)]
 
   plotData <- suppressMessages(melt(p_paired, value.name = 'p'))
 
   # plot each of the p-value distributions
   plt2 = ggplot(plotData, aes(x = p)) +
-    scale_x_continuous(breaks=seq(0, 1, by = .1),
-                       labels=seq(0, 1, by = .1)) +
-    geom_histogram(colour="#535353", fill="#84D5F0", breaks=seq(0, 1, by = .01)) +
-    geom_vline(xintercept = alpha, colour='red') +
+    scale_x_continuous(breaks = seq(0, 1, by = .1),
+                       labels = seq(0, 1, by = .1)) +
+    geom_histogram(colour = "#535353",
+                   fill = "#84D5F0",
+                   breaks = seq(0, 1, by = .01)) +
+    geom_vline(xintercept = alpha_level, colour = 'red') +
     facet_grid(variable ~ .) +
     labs(x = expression(p)) +
     theme_bw() +
-    theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),panel.grid.minor.y = element_blank()) +
-    theme(panel.background=element_rect(fill=BackgroundColor)) +
-    theme(plot.background=element_rect(fill=BackgroundColor)) +
-    theme(panel.border=element_rect(colour=BackgroundColor)) +
-    theme(panel.grid.major=element_line(colour=LineColor,size=.75)) +
-    theme(plot.title=element_text(face="bold",colour=SalientLineColor, vjust=2, size=20)) +
-    theme(axis.text.x=element_text(size=10,colour=SalientLineColor, face="bold")) +
-    theme(axis.text.y=element_text(size=10,colour=SalientLineColor, face="bold")) +
-    theme(axis.title.y=element_text(size=12,colour=SalientLineColor,face="bold", vjust=2)) +
-    theme(axis.title.x=element_text(size=12,colour=SalientLineColor,face="bold", vjust=0)) +
-    theme(axis.ticks.x=element_line(colour=SalientLineColor, size=2)) +
-    theme(axis.ticks.y=element_line(colour=BackgroundColor)) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.minor.y = element_blank()
+    ) +
+    theme(panel.background = element_rect(fill = BackgroundColor)) +
+    theme(plot.background = element_rect(fill = BackgroundColor)) +
+    theme(panel.border = element_rect(colour = BackgroundColor)) +
+    theme(panel.grid.major = element_line(colour = LineColor, size = .75)) +
+    theme(plot.title = element_text(
+      face = "bold",
+      colour = SalientLineColor,
+      vjust = 2,
+      size = 20
+    )) +
+    theme(axis.text.x = element_text(
+      size = 10,
+      colour = SalientLineColor,
+      face = "bold"
+    )) +
+    theme(axis.text.y = element_text(
+      size = 10,
+      colour = SalientLineColor,
+      face = "bold"
+    )) +
+    theme(axis.title.y = element_text(
+      size = 12,
+      colour = SalientLineColor,
+      face = "bold",
+      vjust = 2
+    )) +
+    theme(axis.title.x = element_text(
+      size = 12,
+      colour = SalientLineColor,
+      face = "bold",
+      vjust = 0
+    )) +
+    theme(axis.ticks.x = element_line(colour = SalientLineColor, size =
+                                        2)) +
+    theme(axis.ticks.y = element_line(colour = BackgroundColor)) +
     theme(axis.line = element_line()) +
-    theme(axis.line.x=element_line(size=1.2,colour=SalientLineColor)) +
-    theme(axis.line.y=element_line(colour=BackgroundColor)) +
-    theme(plot.margin = unit(c(1,1,1,1), "cm"))
-  plt2
-  
+    theme(axis.line.x = element_line(size = 1.2, colour = SalientLineColor)) +
+    theme(axis.line.y = element_line(colour = BackgroundColor)) +
+    theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
+
   ###############
   # 9. Sumary of power and effect sizes of main effects and contrasts ----
   ###############
   
   #Main effects and interactions from the ANOVA
-  power = as.data.frame(apply(as.matrix(sim_data[(1:(2^factors-1))]), 2, 
-                              function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),round_dig)))
-  es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2*(2^factors-1)))]), 2, 
+  power = as.data.frame(apply(as.matrix(sim_data[(1:(2 ^ factors - 1))]), 2, 
+                              function(x) round(mean(ifelse(x < alpha_level, 1, 0) * 100),round_dig)))
+  
+  es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2 * (2 ^ factors - 1)))]), 2, 
                            function(x) round(median(x),round_dig)))
   
   main_results <- data.frame(power,es)
-  names(main_results) = c("power","effect size")
+  names(main_results) = c("power","effect_size")
+  
 
-  #Data summary for contrasts
-  power_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+1):(2*(2^factors-1)+possible_pc)]), 2, 
-                                     function(x) round(mean(ifelse(x < alpha, 1, 0) * 100),round_dig)))
-  es_paired = as.data.frame(apply(as.matrix(sim_data[(2*(2^factors-1)+possible_pc+1):(2*(2^factors-1)+2*possible_pc)]), 2, 
+  
+  #Data summary for pairwise comparisons
+  power_paired = as.data.frame(apply(as.matrix(sim_data[(2 * (2 ^ factors - 1) + 1):(2 * (2 ^ factors - 1) + possible_pc)]), 2,  
+                                     function(x) round(mean(ifelse(x < alpha_level, 1, 0) * 100),round_dig)))
+  
+  es_paired = as.data.frame(apply(as.matrix(sim_data[(2 * (2 ^ factors - 1) + possible_pc + 1):(2*(2 ^ factors - 1) + 2 * possible_pc)]), 2, 
                                   function(x) round(mean(x),round_dig)))
   
-  
-  pc_results <- data.frame(power_paired,es_paired)
-  names(pc_results) = c("power","effect size")
-  pc_results
+  pc_results <- data.frame(power_paired, es_paired)
+  names(pc_results) = c("power","effect_size")
   
   #######################
   # Return Results ----
   #######################
   
-  # The section below should be blocked in Shiny
+  # The section below should be blocked out when in Shiny
   cat("Power and Effect sizes for ANOVA tests")
   cat("\n")
   print(main_results)
@@ -247,6 +378,10 @@ ANOVA_power <- function(design_result, alpha, nsims){
   invisible(list(sim_data = sim_data,
                  main_results = main_results,
                  pc_results = pc_results,
-                 plot1 = plt1))
+                 plot1 = plt1,
+                 plot2 = plt2,
+                 p_adjust = p_adjust,
+                 nsims = nsims,
+                 alpha_level = alpha_level))
   
 }

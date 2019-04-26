@@ -66,25 +66,25 @@ close(pb)#close progress bar
 sum(p1<alpha1)/nSim
 ```
 
-    ## [1] 0.9522
+    ## [1] 0.9545
 
 ``` r
 sum(p2<alpha2)/nSim
 ```
 
-    ## [1] 0.9291
+    ## [1] 0.9273
 
 ``` r
 sum(p3<alpha2)/nSim
 ```
 
-    ## [1] 0.9274
+    ## [1] 0.9287
 
 ``` r
 sum(p4<alpha2)/nSim
 ```
 
-    ## [1] 0.0491
+    ## [1] 0.0497
 
 Installation
 ------------
@@ -95,7 +95,7 @@ We install the functions:
 # Install the two functions from GitHub by running the code below:
 
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power_ttest.R")
 ```
 
 Reproducing Brysbaert
@@ -134,13 +134,13 @@ ANOVA_power(design_result, nsims = nsims)
 
     ## Power and Effect sizes for ANOVA tests
     ##             power effect size
-    ## anova_speed 95.23       0.103
+    ## anova_speed    95      0.1033
     ## 
     ## Power and Effect sizes for contrasts
-    ##                                             power effect size
-    ## paired_comparison_speed_fast - speed_medium 93.10       -0.57
-    ## paired_comparison_speed_fast - speed_slow   93.20       -0.57
-    ## paired_comparison_speed_medium - speed_slow  5.16        0.00
+    ##                                                   power effect size
+    ## p_speed_fast_speed_fast_speed_medium_speed_medium 92.65      0.4038
+    ## p_speed_fast_speed_fast_speed_slow_speed_slow     92.48      0.4031
+    ## p_speed_medium_speed_medium_speed_slow_speed_slow  5.37      0.0004
 
 Results
 =======
@@ -248,25 +248,25 @@ close(pb)#close progress bar
 sum(p1<alpha1)/nSim
 ```
 
-    ## [1] 0.985
+    ## [1] 0.9842
 
 ``` r
 sum(p2<alpha2)/nSim
 ```
 
-    ## [1] 0.9695
+    ## [1] 0.9698
 
 ``` r
 sum(p3<alpha2)/nSim
 ```
 
-    ## [1] 0.9683
+    ## [1] 0.9703
 
 ``` r
 sum(p4<alpha2)/nSim
 ```
 
-    ## [1] 0.054
+    ## [1] 0.0475
 
 ``` r
 string <- "3w"
@@ -299,10 +299,14 @@ ANOVA_power(design_result, nsims = nsims)
 
     ## Power and Effect sizes for ANOVA tests
     ##             power effect size
-    ## anova_speed  98.4       0.124
+    ## anova_speed  98.4       0.125
     ## 
     ## Power and Effect sizes for contrasts
-    ##                                             power effect size
-    ## paired_comparison_speed_fast - speed_medium 96.92       -0.63
-    ## paired_comparison_speed_fast - speed_slow   97.07       -0.63
-    ## paired_comparison_speed_medium - speed_slow  4.73        0.00
+    ##                                                   power effect size
+    ## p_speed_fast_speed_fast_speed_medium_speed_medium 97.28      0.4544
+    ## p_speed_fast_speed_fast_speed_slow_speed_slow     96.76      0.4527
+    ## p_speed_medium_speed_medium_speed_slow_speed_slow  4.55     -0.0016
+
+Again, this is similar to g\*power for the ANOVA:
+
+![](screenshots/gpower_4.png)

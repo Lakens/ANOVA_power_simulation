@@ -1,0 +1,110 @@
+---
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+nsims <- 100000 #set number of simulations
+library(mvtnorm, quietly = TRUE)
+library(MASS, quietly = TRUE)
+library(afex, quietly = TRUE)
+library(emmeans, quietly = TRUE)
+library(ggplot2, quietly = TRUE)
+library(gridExtra, quietly = TRUE)
+library(reshape2, quietly = TRUE)
+library(pwr, quietly = TRUE)
+
+# Install functions from GitHub by running the code below:
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_design.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_oneway_between.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_twoway_between.R")
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/power_threeway_between.R")
+```
+
+## Cohen's f for Three-way Interactions
+
+The power for interactions depends on Cohen's f, the alpha level, the sample size, and the degrees of freedom. 
+
+```{r}
+# With 2x2x2 designs, the names for paired comparisons can become very long. 
+# So here the sample sizI abbreviate terms: Size, Color, and Cognitive Load, have values:
+# b = big, s = small, g = green, r = red, pres = present, abs = absent.  
+labelnames <- c("Size", "b", "s", "x", "Color", "g", "r", 
+                "Load", "pres", "abs") #
+
+design_result <- ANOVA_design(string = "3b*2b*2b", #describe the design
+                              n = 10, #sample size per group 
+                              mu = c(20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20), #pattern of means
+                              sd = 20, #standard deviation
+                              labelnames = labelnames) #names of labels
+
+# Power based on simulations
+# ANOVA_power(design_result, nsims = nsims)
+
+#Analytical power calculation
+power_analytic <- power_threeway_between(design_result)
+
+power_analytic$power_A
+power_analytic$power_B
+power_analytic$power_C
+power_analytic$power_AB
+power_analytic$power_AC
+power_analytic$power_BC
+power_analytic$power_ABC
+
+
+
+power_analytic$eta_p_2_A
+power_analytic$Cohen_f_A
+
+```
+
+We see that a pattern of means of 0, 0, 0, 0, 0, 0, 0, 20 for a 2x2x2 interaction equals a Cohen's f of 0.25.  
+
+```{r}
+labelnames <- c("Size", "b", "s", "Color", "g", "r")
+
+design_result <- ANOVA_design(string = "2b*2b", #describe the design
+                              n = 10, #sample size per group 
+                              mu = c(0, 0, 0, 10), #pattern of means
+                              sd = 10, #standard deviation
+                              labelnames = labelnames) #names of labels
+
+# Power based on simulations
+# ANOVA_power(design_result, nsims = nsims)
+
+#Analytical power calculation
+power_analytic <- power_twoway_between(design_result)
+
+power_analytic$power_A
+power_analytic$eta_p_2_A
+power_analytic$Cohen_f_A
+
+```
+
+Cohen's f is twice as large for a 2x2 design with the same mean value in one of four cells. In a 2 factor between design. 
+
+```{r}
+labelnames <- c("Size", "b", "s")
+
+design_result <- ANOVA_design(string = "2b", #describe the design
+                              n = 10, #sample size per group 
+                              mu = c(0, 5), #pattern of means
+                              sd = 10, #standard deviation
+                              labelnames = labelnames) #names of labels
+
+# Power based on simulations
+# ANOVA_power(design_result, nsims = nsims)
+
+#Analytical power calculation
+power_analytic <- power_oneway_between(design_result)
+
+power_analytic$power
+power_analytic$eta_p_2
+power_analytic$Cohen_f
+
+```
+

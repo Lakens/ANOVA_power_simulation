@@ -1,0 +1,426 @@
+---
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+require(mvtnorm, quietly = TRUE)
+require(MASS, quietly = TRUE)
+require(afex, quietly = TRUE)
+require(emmeans, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(gridExtra, quietly = TRUE)
+require(reshape2, quietly = TRUE)
+require(pwr, quietly = TRUE)
+
+# Install functions from GitHub by running the code below:
+source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/helper_functions/plot_power_2x2_within.R")
+```
+
+## Power curves
+
+Power is calculated for a specific value of an effect size, alpha level, and sample size. Because you often do not know the true effect size, it often makes more sense to think of the power curve as a function of the size of the effect. Although power curves can be calculated based on simulations for any design, we will use the analytic solution to calculate the power of ANOVA designs because these calculations are much faster. The basic approach is to calculate power for a specific pattern of means, a specific effect size, a given alpha level, and a specific pattern of correlations. This is one example:
+
+```{r}
+#2x2 design
+
+string = "2w*2w"
+mu = c(0,0,0,0.5)
+n <- 20
+sd <- 1
+r <- 0.5
+labelnames = c("A", "a1", "a2", "B", "b1", "b2")
+design_result <- ANOVA_design(string = string,
+                              n = n, 
+                              mu = mu, 
+                              sd = sd, 
+                              r = r, 
+                              labelnames = labelnames)
+
+
+power_res <- power_2x2_within(design_result)
+
+power_res$power_A
+power_res$power_B
+power_res$power_AB
+```
+
+We can make these calculations for a range of sample sizes, to get a power curve. We created a simple function that performs these calculations across a range of sample sizes (from n = 2 to max_, a variable you can specify in the function). 
+
+```{r}
+
+p_a <- plot_power_2x2_within(design_result,
+                      max_n = 50)
+
+grid.arrange(p_a$p1, p_a$p2, p_a$p3, nrow = 1)
+
+```
+
+# Explore increase in effect size for moderated interactions.
+
+The design has means 0, 0, 0, 0, with one cell increasing by 0.1, up to 0, 0, 0, 0.5. The standard deviation is set to 1. The correlation between all variables is 0.5. 
+
+```{r, fig.height = 10, fig.width = 7}
+
+string <- "2w*2w"
+labelnames = c("A", "a1", "a2", "B", "b1", "b2")
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.0), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_a <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.1), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_b <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.2), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_c <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_d <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.4), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_e <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.5), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_f <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+# Create long format dataframe 
+zzz <- rbind(p_a$power_df, p_b$power_df, p_c$power_df, p_d$power_df, p_e$power_df, p_f$power_df)
+zzz <- cbind(zzz,seq(1,length(zzz$design)))
+colnames(zzz)[1] <- "design"
+colnames(zzz)[6] <- "ID"
+zzz <- melt(zzz, id.vars = c("ID", "design", "n_vec"), measure.vars = c("power_A", "power_B", "power_AB"))
+
+# Plot data using facets, split by factors and interaction, and design
+ggplot(data=zzz, aes(x = n_vec, y = value)) +
+  geom_line( size=1.5) +
+  scale_x_continuous(limits = c(0, max(zzz$n_vec))) + 
+  scale_y_continuous(limits = c(0, 100)) +
+  theme_bw() +
+  labs(x="Sample size", y = "Power") +
+  facet_grid(design~variable)
+
+```
+
+# Explore increase in effect size for cross-over interactions.
+
+The design has means 0, 0, 0, 0, with two cells increasing by 0.1, up to 0.5, 0, 0, 0.5. The standard deviation is set to 1. The correlation between all variables is 0.5. 
+
+```{r, fig.height = 10, fig.width = 7}
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.0), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_a <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0.1,0,0,0.1), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_b <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0.2,0,0,0.2), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_c <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0.3,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_d <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0.4,0,0,0.4), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_e <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0.5,0,0,0.5), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_f <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+# Create long format dataframe 
+zzz <- rbind(p_a$power_df, p_b$power_df, p_c$power_df, p_d$power_df, p_e$power_df, p_f$power_df)
+zzz <- cbind(zzz,seq(1,length(zzz$design)))
+colnames(zzz)[1] <- "design"
+colnames(zzz)[6] <- "ID"
+zzz <- melt(zzz, id.vars = c("ID", "design", "n_vec"), measure.vars = c("power_A", "power_B", "power_AB"))
+
+# Plot data using facets, split by factors and interaction, and design
+ggplot(data=zzz, aes(x = n_vec, y = value)) +
+  geom_line( size=1.5) +
+  scale_x_continuous(limits = c(0, max(zzz$n_vec))) + 
+  scale_y_continuous(limits = c(0, 100)) +
+  theme_bw() +
+  labs(x="Sample size", y = "Power") +
+  facet_grid(design~variable)
+
+```
+
+# Explore increase in correlation in moderated interactions.
+
+The design has means 0, 0, 0, 0.3. The standard deviation is set to 1. The correlation between all variables increases from 0.5 to 0.9. 
+
+```{r, fig.height = 10, fig.width = 7}
+
+string <- "2w*2w"
+labelnames = c("A", "a1", "a2", "B", "b1", "b2")
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.0, 
+                              labelnames = labelnames)
+
+p_a <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.1, 
+                              labelnames = labelnames)
+
+p_b <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.3, 
+                              labelnames = labelnames)
+
+p_c <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.5, 
+                              labelnames = labelnames)
+
+p_d <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.7, 
+                              labelnames = labelnames)
+
+p_e <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r = 0.9, 
+                              labelnames = labelnames)
+
+p_f <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+# Create long format dataframe 
+zzz <- rbind(p_a$power_df, p_b$power_df, p_c$power_df, p_d$power_df, p_e$power_df, p_f$power_df)
+zzz <- cbind(zzz,seq(1,length(zzz$design)))
+colnames(zzz)[1] <- "design"
+colnames(zzz)[6] <- "ID"
+zzz <- melt(zzz, id.vars = c("ID", "design", "n_vec"), measure.vars = c("power_A", "power_B", "power_AB"))
+
+# Plot data using facets, split by factors and interaction, and design
+ggplot(data=zzz, aes(x = n_vec, y = value)) +
+  geom_line( size=1.5) +
+  scale_x_continuous(limits = c(0, max(zzz$n_vec))) + 
+  scale_y_continuous(limits = c(0, 100)) +
+  theme_bw() +
+  labs(x="Sample size", y = "Power") +
+  facet_grid(design~variable)
+
+```
+
+
+# Increasing correlation in on factor decreases power in second factor
+
+As Potvin and Schutz (2000) write: "The more important finding with respect to the effect of *r* on power relates to the effect of the correlations associated with one factor on the power of the test of the main effect of the other factor. Specifically, if the correlations among the levels of B are larger than those within the AB matrix (i.e., *r*B - *r*AB > 0.0), there is a reduction in the power for the test of the A effect (and the test on B is similarly affected by the A correlations)."
+
+We see this in the plots below. As the correlation of the A factor increases from 0.4 to 0.9, we see the power for the main effect of factor B decreases.
+
+```{r, fig.height = 10, fig.width = 7}
+
+string <- "2w*2w"
+labelnames = c("A", "a1", "a2", "B", "b1", "b2")
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.4, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.4),
+                              labelnames = labelnames)
+
+p_a <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.5, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.5),
+                              labelnames = labelnames)
+
+p_b <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.6, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.6),
+                              labelnames = labelnames)
+
+p_c <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.7, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.7), 
+                              labelnames = labelnames)
+
+p_d <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.8, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.8), 
+                              labelnames = labelnames)
+
+p_e <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+design_result <- ANOVA_design(string = string,
+                              n = 20, 
+                              mu = c(0,0,0,0.3), 
+                              sd = 1, 
+                              r <- c(
+                                0.9, 0.4, 0.4,
+                                0.4, 0.4,
+                                0.9), 
+                              labelnames = labelnames)
+
+p_f <- plot_power_2x2_within(design_result,
+                      max_n <- 100)
+
+# Create long format dataframe 
+zzz <- rbind(p_a$power_df, p_b$power_df, p_c$power_df, p_d$power_df, p_e$power_df, p_f$power_df)
+zzz <- cbind(zzz,seq(1,length(zzz$design)))
+colnames(zzz)[1] <- "design"
+colnames(zzz)[6] <- "ID"
+zzz <- melt(zzz, id.vars = c("ID", "design", "n_vec"), measure.vars = c("power_A", "power_B", "power_AB"))
+
+# Plot data using facets, split by factors and interaction, and design
+ggplot(data=zzz, aes(x = n_vec, y = value)) +
+  geom_line( size=1.5) +
+  scale_x_continuous(limits = c(0, max(zzz$n_vec))) + 
+  scale_y_continuous(limits = c(0, 100)) +
+  theme_bw() +
+  labs(x="Sample size", y = "Power") +
+  facet_grid(design~variable)
+
+```

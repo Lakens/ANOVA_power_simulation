@@ -1,6 +1,8 @@
 ---
 title: "Simulation Results"
+subtitle: "Shiny App developed by Dani&euml;l Lakens and Aaron Caldwell"
 output: pdf_document
+date: '`r format(Sys.time(), "%B %d, %Y")`'
 params:
   tablePC: NA,
   tableMain: NA,
@@ -9,13 +11,15 @@ params:
   n: NA,
   padjust: NA,
   model: NA,
-  design: NA
+  design: NA,
+  cor_mat: NA,
+  sigmatrix: NA
 ---
 
 
 
 
-Below are the results from the ANOVA simulation app. 
+Below are the results from the ANOVA simulation app. If you encounter any problems please visit our GitHub page (https://github.com/Lakens/ANOVA_power_simulation) to the raise the issue.
 
 **Study Design**
 
@@ -27,10 +31,24 @@ Below are the results from the ANOVA simulation app.
 
 The sample size was **`r params$n`** per cell with the following adjustment for multiple comparisons: **`r params$padjust`**. 
 
+**Correlation Matrix**
+```{r echo = FALSE}
+# The `params` object is available in the document.
+knitr::kable(params$cor_mat)
+```
+
+```{r, results='asis', echo=FALSE}
+cat("\\newpage")
+```
 
 ```{r echo = FALSE}
 # The `params` object is available in the document.
 params$means_plot
+```
+
+
+```{r, results='asis', echo=FALSE}
+cat("\\newpage")
 ```
 
 **ANOVA Power (%) and Effect Sizes (Partial Eta Squared)**
@@ -41,7 +59,7 @@ knitr::kable(params$tableMain)
 params$pvalue_plot
 ```
 
-**Multiple Comparisons Power (%) and Effect Sizes (Cohen's dz)**
+**Multiple Comparisons Power (%) and Effect Sizes (Cohen's d~z~)**
 
 ```{r echo = FALSE}
 knitr::kable(params$tablePC)

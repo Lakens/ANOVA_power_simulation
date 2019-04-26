@@ -132,27 +132,24 @@ The results of the simulation are very similar. Power for the ANOVA *F*-test is 
 We can perform an post-hoc power analysis in G*power. We can calculate Cohen´s f based on the means and sd, using our own custom formula. 
 
 ```{r}
-# Install the function from GitHub by running the code below:
+# Our simulation is based onthe following means and sd:
+# mu <- c(0, 0.4, 0.4)
+# sd <- 1
 
-source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/calc_f_d_eta.R")
+f <- sqrt(sum((mu-mean(mu))^2)/length(mu))/sd #Cohen, 1988, formula 8.2.1 and 8.2.2
+# We can see why f = 0.5*d. 
+# Imagine 2 group, mu = 1 and 2
+# Grand mean is 1.5, we have sqrt(sum(0.5^2 + 0.5^2)/2), or sqrt(0.5/2), = 0.5. 
+# For Cohen's d we use the difference, 2-1 = 1. 
 
-mu <- c(0, 0.4, 0.4)
-res <- calc_f_d_eta(mu = mu, sd = 1, variability = "maximum")
-res$f
-res$d
-res$ES
 ```
 
-The Cohen´s f is 0.1885618. Because the correlation is set to 0.5, we can enter the f (using the default 'as in G*Power 3.0' in the option window) and enter a sample size of 75, number of groups as 1, number of measurements as 3, correlation as 0.5. This yields: 
+The Cohen´s f is `r f`. We can enter the f (using the default 'as in G*Power 3.0' in the option window) and enter a sample size of 75, number of groups as 1, number of measurements as 3, correlation as 0.5. This yields: 
 
 ![](screenshots/gpower_3.png)
 
 
 ## Reproducing Brysbaert Variation 1 Changing Correlation
-
-We can reproduce the same results as Brysbaeert finds with his code: 
-
-We first repeat the simulation by Brysbaert:
 
 ```{r}
 # give sample size
@@ -163,7 +160,7 @@ d1 = .4 #difference between the extremes
 d2 = .4 #third condition goes with the highest extreme
 
 # give the correlation between the conditions
-r = .6
+r = .6 #increased correlation
 
 # give number of simulations
 nSim = nsims

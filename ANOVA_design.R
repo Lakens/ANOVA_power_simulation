@@ -1,20 +1,26 @@
-#ANOVA design function; last update: March 13th, 2019
-#Limit maximum sample size per cell
-#Fixed sigmatrix build for three way designs (\\word+ in for *)
-#Removed afex from this function; no longer necessary
-ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
+#ANOVA design function; last update: March 22, 2019
+#Update output
+ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames){
   
-  if (n < 3 || n > 1000) {
-    error <- "Sample per cell (n) must be greater than 2 or less than 1001"
-    stop(error)
+  #Checks to ensure information is entered correctly into function
+  #if (n < 3 || n > 1000) {
+  #  error <- "Sample per cell (n) must be greater than 2 and less than 1001"
+  #  stop(error)
+  #}
+  
+  if (length(labelnames) != length(as.numeric(strsplit(string, "\\D+")[[1]])) + sum(as.numeric(strsplit(string, "\\D+")[[1]]))) {
+    stop("Design (string) does not match the length of the labelnames")
   }
   
+  
+  
   #Require packages needed to run the function; return error if not loaded
-  require(mvtnorm, quietly = TRUE)
-  require(emmeans, quietly = TRUE)
+  require(MASS, quietly = TRUE)
+  #require(emmeans, quietly = TRUE)
   require(ggplot2, quietly = TRUE)
   require(gridExtra, quietly = TRUE)
   require(reshape2, quietly = TRUE)
+  require(RColorBrewer, quietly = TRUE)
   
   ###############
   # 1. Specify Design and Simulation----
@@ -51,16 +57,17 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   if(factors == 1){factornames <- c(factornames1)}
   if(factors == 2){factornames <- c(factornames1,factornames2)}
   if(factors == 3){factornames <- c(factornames1,factornames2,factornames3)}  
+  
   #Specify within/between factors in design: Factors that are within are 1, between 0
   design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
   design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
   
   mu2 <- mu
   sd2 <- sd
-  sigmatrix_2 <- matrix(r, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
+  sigmatrix_2 <- matrix(0, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
   
   #The loop below is to avoid issues with creating the matrix associated with having a sd < r
-  while (sd2 < r) {
+  while (sd2 < min(r)) {
     sd2 <- sd2*10
     mu2 <- mu2*10
   }
@@ -69,9 +76,10 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   
   #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
-  df <- as.data.frame(rmvnorm(n=n,
-                              mean=mu2,
-                              sigma=sigmatrix_2))
+  df <- as.data.frame(mvrnorm(n=n,
+                              mu=mu2,
+                              Sigma=sigmatrix_2,
+                              empirical = FALSE))
   df$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
   #Melt dataframe
   df <- melt(df, 
@@ -113,6 +121,18 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   #Overwrite subject columns in df
   df$subject <- subject
+  #For the correlation matrix, we want the names of each possible comparison of means
+  #Need to identify which columns from df to pull the factor names from
+  if (factors == 1) {
+    cond_col <- c(4)
+  } else if (factors == 2) {
+    cond_col <- c(4, 5)
+  } else {
+    cond_col <- c(4, 5, 6)
+  }
+  
+  df$cond <- as.character(interaction(df[, cond_col], sep = "_")) #create a new condition variable combine 2 columns (interaction is a cool function!)
+  paired_tests <- combn(unique(df$cond),2)
   
   ###############
   # 3. Specify factors for formula ----
@@ -164,11 +184,6 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   #from: https://github.com/debruine/faux/blob/master/R/rnorm_multi.R
   # correlation matrix
   generate_cor_matrix  <- function(vars = 3, cors = 0, mu = 0, sd = 1) {
-    # error handling
-    if ( !is.numeric(n) || n %% 1 > 0 || n < 3 ) {
-      stop("n must be an integer > 2")
-    }
-    
     if (length(mu) == 1) {
       mu <- rep(mu, vars)
     } else if (length(mu) != vars) {
@@ -242,23 +257,20 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   }  
   cor_mat <- generate_cor_matrix(vars = vars, cors = cors)
   
-  if (length(sd) == 1) {
-    sd <- rep(sd, vars)
-  } else if (length(sd) != vars) {
-    stop("the length of sd must be 1 or vars");
+  sd_for_sigma <- sd #added to prevent changing sd which is now passed on
+  if (length(sd_for_sigma) == 1) {
+    sd_for_sigma <- rep(sd_for_sigma, vars)
+  } else if (length(sd_for_sigma) != vars) {
+    stop("the length of sd_for_sigma must be 1 or vars");
   }
   
-  sigma <- (sd %*% t(sd)) * cor_mat #Our earlier code had a bug, with SD on the diagonal. Not correct! Thanks Lisa.
-  
-  #check if code below works with more than 1 factor!
-  row.names(sigma) <- design_list
-  colnames(sigma) <- design_list
+  sigma <- (sd_for_sigma %*% t(sd_for_sigma)) * cor_mat #Our earlier code had a bug, with SD on the diagonal. Not correct! Thanks Lisa.
   
   #General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
   #Then for each factor in the design, if 1, set number to wildcard
   for(i1 in 1:length(design_list)){
     design_list_split <- unlist(strsplit(design_list[i1],"_"))
-    current_factor <- design_list_split[c(2,4,6)[1:length(design)]] #this creates a strong of 2, 2,4 or 2,4,6 depending on the length of the design for below
+    current_factor <- design_list_split[c(2,4,6)[1:length(design)]] #this creates a string of 2, 2,4 or 2,4,6 depending on the length of the design for below
     for(i2 in 1:length(design)){
       #We set each number that is within to a wildcard, so that all within subject factors are matched
       
@@ -287,8 +299,10 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   #Now multiply the matrix we just created (that says what is within, and what is between,  with the original covariance matrix)
   #So factors manipulated within are correlated, those manipulated between are not.
-  
+  cor_mat <- sigmatrix*cor_mat
   sigmatrix <- sigma*sigmatrix
+  row.names(sigmatrix) <- design_list
+  colnames(sigmatrix) <- design_list
   
   ###############
   # 6. Create plot of means to vizualize the design ----
@@ -305,23 +319,57 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     ))))
   }
   
-  if(factors == 1){names(df_means)<-c("mu","SD",factornames[1])}
-  if(factors == 2){names(df_means)<-c("mu","SD",factornames[1],factornames[2])}
-  if(factors == 3){names(df_means)<-c("mu","SD",factornames[1],factornames[2],factornames[3])}
+  if(factors == 1){
+    names(df_means) <- c("mu","SD",factornames[1])
+    df_means[,factornames[1]] <- ordered(df_means[,factornames[1]], levels = labelnameslist[[1]])
+  }
+  if(factors == 2){
+    names(df_means)<-c("mu","SD",factornames[1],factornames[2])
+    df_means[,factornames[1]] <- ordered(df_means[,factornames[1]], levels = labelnameslist[[1]])                   
+    df_means[,factornames[2]] <- ordered(df_means[,factornames[2]], levels = labelnameslist[[2]])                   
+  }
   
-  if(factors == 1){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1]))}
-  if(factors == 2){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2]))}
-  if(factors == 3){meansplot = ggplot(df_means, aes_string(y = mu, x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
+  if(factors == 3){
+    names(df_means)<-c("mu","SD",factornames[1],factornames[2],factornames[3])
+    df_means[,factornames[1]] <- ordered(df_means[,factornames[1]], levels = labelnameslist[[1]])
+    df_means[,factornames[2]] <- ordered(df_means[,factornames[2]], levels = labelnameslist[[2]])
+    df_means[,factornames[3]] <- ordered(df_means[,factornames[3]], levels = labelnameslist[[3]])
+  }
+  
+  if(factors == 1){meansplot = ggplot(df_means, aes_string(y = "mu", x = factornames[1]))}
+  if(factors == 2){meansplot = ggplot(df_means, aes_string(y = "mu", x = factornames[1], colour = factornames[2]))}
+  if(factors == 3){meansplot = ggplot(df_means, aes_string(y = "mu", x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
+  
+  #Set custom color palette if factor 2 has a length greater than 8
+  if (factors >= 2 && length(labelnameslist[[2]]) >= 9) {
+    
+    colourCount = length(unique(labelnameslist[[2]]))
+    getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
+    
+    meansplot2 = meansplot +
+      geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
+      geom_errorbar(aes(ymin = mu-SD, ymax = mu+SD), 
+                    position = position_dodge(width=0.9), size=.6, width=.3) +
+      coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
+      theme_bw() + ggtitle("Means for each condition in the design") + 
+     scale_colour_manual(values = getPalette(colourCount)) #scale_colour_brewer(palette = "Dark2")
+    
+  } else {
+    
+    meansplot2 = meansplot +
+      geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
+      geom_errorbar(aes(ymin = mu-SD, ymax = mu+SD), 
+                    position = position_dodge(width=0.9), size=.6, width=.3) +
+      coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
+      theme_bw() + ggtitle("Means for each condition in the design") + 
+      scale_colour_brewer(palette = "Dark2")
+  }
+  
+  
   
 
-  meansplot = meansplot +
-    geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
-    geom_errorbar(aes(ymin = mu-SD, ymax = mu+SD), 
-                  position = position_dodge(width=0.9), size=.6, width=.3) +
-    coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
-    theme_bw() + ggtitle("Means for each condition in the design")
   
-  print(meansplot)  #should be blocked in Shiny context
+  print(meansplot2)  #should be blocked in Shiny context
   
   # Return results in list()
   invisible(list(df = df,
@@ -330,13 +378,15 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
                  factors = factors, 
                  frml1 = frml1, 
                  frml2 = frml2, 
-                 mu = mu, 
+                 mu = mu,
+                 sd = sd,
+                 r = r,
                  n = n, 
-                 p_adjust = p_adjust, 
+                 cor_mat = cor_mat,
                  sigmatrix = sigmatrix,
                  string = string,
-                 labelnames = labelnames,
+                 labelnames = labelnameslist,
                  factornames = factornames,
-                 meansplot = meansplot))
+                 meansplot = meansplot2))
 }
 
