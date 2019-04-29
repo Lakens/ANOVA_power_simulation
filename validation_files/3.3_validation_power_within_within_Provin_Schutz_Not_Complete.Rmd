@@ -74,7 +74,7 @@ design_result <- ANOVA_design(string = string,
                               r = r, 
                               labelnames = labelnames)
 
-simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = 1000)
+simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = 100)
 ```
 
 Result simulation after 100000 simulations

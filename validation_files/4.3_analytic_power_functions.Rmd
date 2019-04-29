@@ -54,7 +54,7 @@ power_result <- ANOVA_power(design_result, alpha_level = 0.05, nsims = nsims)
 
 ```
 
-We can also caculate power analytically with our own function.
+We can also calculate power analytically with our own function.
 
 ```{r}
 

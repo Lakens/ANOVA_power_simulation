@@ -26,7 +26,7 @@ source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/A
 source("https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/ANOVA_power.R")
 ```
 
-## Two by two ANOVA, within-between design
+## Two by two ANOVA, within-within design
 
 We can simulate a 2x2 ANOVA, both factors manipulated within participants, with a specific sample size and effect size, to achieve a desired statistical power.
 
@@ -171,7 +171,7 @@ simulation_result <- ANOVA_power(design_result, alpha = 0.05, nsims = nsims)
 
 ```
 
-The simulations yield closely mathing results.
+The simulations yield closely matching results.
 
 
 # Examine variation of means and correlation
