@@ -1,0 +1,310 @@
+---
+title: 'Appendix 1: R Functions'
+subtitle: "Manuscript: Simulation-Based Power-Analysis for Factorial ANOVA Designs"
+author: "Dani&euml;l Lakens & Aaron R. Caldwell"
+
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r load_packages, include=FALSE}
+#Set to low number when test-compiling, set to 100.000 for final manuscript.
+nsims <- 10000
+
+#Set manuscript seed
+
+manuscript_seed = 2019
+
+library("papaja")
+require(MASS, quietly = TRUE)
+require(ggplot2, quietly = TRUE)
+require(gridExtra, quietly = TRUE)
+require(reshape2, quietly = TRUE)
+require(RColorBrewer, quietly = TRUE)
+
+if (!require(ANOVApower)){devtools::install_github("Lakens/ANOVApower")}
+library(ANOVApower)
+
+```
+
+
+
+The goal of ANOVApower is to easily simulate ANOVA designs and calculate the observed power. 
+In the manuscript we referenced numerous simulations, and within this appendix we have reproduced these simulations using the functions in the ANOVApower R package.
+
+## Installation
+
+First, install the released version of ANOVApower from [GitHub](https://github.com/Lakens/ANOVApower) with:
+
+``` r
+devtools::install_github("Lakens/ANOVApower")
+
+library(ANOVApower)
+```
+
+## ANOVA_design function
+
+The ANOVA_design function can create designs up three factors, for both within, between, and mixed designs. It requires the following input: string, n, mu, sd, r, and labelnames. 
+
+1. string: string that specifies the design (see below).
+2. n: the sample size for each between subject condition.
+3. mu: a vector with the means for each condition.
+4. sd: the population standard deviation. Assumes homogeneity of variances (only one standard deviation can be provided).
+5. r: the correlation for within designs (or 0 for between designs).
+6. labelnames: This is a vector of words that indicate factor names and level names (see below).
+7. A final optional setting is to specify if you want to output a plot or not (plot = TRUE or FALSE)
+
+## ANOVA_power function
+
+The ANOVA_power function is used to perform the simulation. 
+A design must be specified from the ANOVA_design function.
+It requires the following input: design_result, alpha_level, p_adjust, nsims, seed, and verbose.
+
+1. design_result: output from the ANOVA_design function
+2. alpha_level: the alpha level used to determine statistical significance
+3. p_adjust: correction for multiple comparisons; set to none is none required or desired
+4. nsims: number of simulations to perform
+5. seed:	set for reproducible results
+6. verbose: Set to FALSE to not print results (default = TRUE)
+
+## Settings from the manuscript
+
+In order to reproduce the simulations from the manuscript we need to set the number of repetitions in each simulation and the seed number.
+
+``` r
+nsims <- 100000
+
+
+manuscript_seed = 2019
+```
+
+#Simple 2 group between-subjects design
+
+The initial study from the manuscript described a study wherein participants interact with an artificial voice assistant who sounds either cheerful or sad, and enjoyment is measured on scale (-5 to +5). 
+In the ANOVA_design function this a two-level between-participant design. 
+
+`string = "2b"`
+
+In this study, expected mean in the cheerful condition is 1 and 0 in the sad condition with a standard deviation of 2.
+```r 
+mu = c(1,0)
+
+sd = 2
+```
+We also assumed we will recruit 80 participants in each group.
+
+`n = 80` 
+
+For ease of interpretation the factors and levels our named in our example, factor = "Condition" with levels = "cheerful" and "sad".
+
+`labelnames = c("Condition", "cheerful", "sad")`
+
+We now can put this all together to into the ANOVA_design function.
+
+```{r design-1}
+design_result <- ANOVA_design(string = "2b", n = 80, mu = c(1, 0), sd = 2, 
+                              labelnames = c("Condition", "cheerful", "sad"))
+```
+
+With the design defined, we can run the simulation with the significance level at 0.05 (`alpha_level = 0.05`) and we will run the previously defined number of simulations (`nsims = nsims`) and seed number (`seed = manuscript_seed`).
+
+```{r result-1}
+power_result <- ANOVA_power(design_result, 
+                            alpha_level = 0.05, 
+                            nsims = nsims, 
+                            seed = manuscript_seed,
+                            verbose = TRUE)
+```
+
+The results of a simulation study will vary each time the simulation is performed, but, in this case the results are reproducible by specifying a `seed`.
+When 100000 simulations are performed with a seed set to 2019, we see the statistical power (`Power and Effect sizes for ANOVA tests`) is `r power_result$main_results$power`% and the average parital $\eta^2$ (eta-squared) is `r power_result$main_results$effect_size`. 
+In this scenario, the ANOVA results are exactly the same as the power from a simple t-test (`Power and Effect sizes for contrasts`), but the effect size, Cohen's d, is `r power_result$pc_results$effect_size`. 
+
+#Extending to 3 conditions
+
+In the next example, we explored what would happen if we extended the design to 3 between-participant conditions.
+
+`string = "3b"`
+
+This was accomplished by adding "neutral" condition.
+
+`labelnames = c("condition", "cheerful", "neutral", "sad")`
+
+In one scenario, the expected means were 1 (cheerful), 0.5 (neutral), and 0 (sad). 
+
+`mu = c(1, 0.5, 0)`
+
+This full design can be implemented as the following in the `ANOVA_design` function.
+
+```{r}
+design_result_1 <- ANOVA_design(string = "3b", n = 80, mu = c(1, 0.5, 0), sd = 2, 
+                                labelnames = c("condition", "cheerful", "neutral", "sad"))
+```
+
+Now we can simulate this design with the `ANOVA_power` function.
+
+```{r}
+power_result_1 <- ANOVA_power(design_result_1, 
+                              alpha_level = 0.05, 
+                              nsims = nsims, 
+                              seed = manuscript_seed, 
+                              verbose = TRUE)
+```
+
+In the second scenario, we assume that the enjoyment is the same (mean = 1) in the cheerful and neutral condition.
+
+`mu = c(1, 1, 0)`
+
+
+```{r}
+design_result_2 <- ANOVA_design(string = "3b", n = 80, mu = c(1, 1, 0), sd = 2, 
+                                labelnames = c("condition", "cheerful", "neutral", "sad"))
+```
+
+Again, we simulate this new design.
+
+```{r}
+power_result_2 <- ANOVA_power(design_result_2, 
+                              alpha_level = 0.05, 
+                              nsims = nsims, 
+                              seed = manuscript_seed, 
+                              verbose = TRUE)
+```
+
+As we can see the ANOVA-level power in scenario #1 was `r power_result_1$main_results$power[1]` % compared to `r power_result_2$main_results$power[1]` % in scenario #2. 
+Further, the effect size, parital $\eta^2$, increased from `r power_result_1$main_results$effect_size[1]` to `r power_result_2$main_results$effect_size[1]`.
+As we can see, changing the design from `2b` to `3b` has an effect on power dependent upon the expected pattern of the means.
+
+#Chaning to a within-subjects design
+
+Now we modify the design by changing it to a within-subjects (i.e., repeated measures) design. 
+Therefore, the first modification we must make in the `ANOVA_design` function is to the design definition. 
+
+`string = "3w"`
+
+We must also specify the correlation between dependent measures (below).
+
+```r 
+r = 0.5
+```
+
+Now we have the information to define the ANOVA design.
+
+```{r }
+design_result_within_1 <- ANOVA_design(string = "3w", n = 80, mu = c(1, 0.5, 0), sd = 2, r = 0.5, 
+                                       labelnames = c("condition", "cheerful", "neutral", "sad"))
+```
+
+Now, visually speaking, nothing in the design appears to have changed.
+However, let's look at the correlation matrix from the `3b` design. Notice (below) that there is no correlation between measurements
+
+```{r}
+design_result_1$cor_mat
+```
+
+Let's look at the correlation matrix for the `3w` design.
+
+```{r}
+design_result_within_1$cor_mat
+```
+
+The within-subjects design has been established; now we run the simulation.
+
+```{r}
+power_result_within_1 <- ANOVA_power(design_result_within_1, 
+                                     alpha_level = 0.05, 
+                                     nsims = nsims, 
+                                     seed = manuscript_seed, 
+                                     verbose = TRUE)
+```
+
+Power has now increased to `r power_result_within_1$main_results$power`% from the `3b` design (`r power_result_1$main_results$power`%). 
+The total number of participants is lower in the within-subjects design (N=240 to N=80), but there are now three observations per participant (80 x 3 = 240). 
+
+#Power for Interactions
+
+In addition to simple one-way effects, in the manuscript we demonstrate the power analysis for 2x2 between-subjects design.
+In this scenario there two factors "condition" and "voice".
+Again, participants are exposed to a "sad" or "cheerful" condition.
+However, the voice is either human-like ("human") or robotic ("robot").
+
+`r labelnames = c("condition", "cheerful", "sad", "voice", "human", "robot")`
+
+The design has changed so we must change the design definition.
+
+`r string = "2b*2b" `
+
+We must also define a new vector of means for the given design. 
+In this case we expect a cross-over interaction wherein the mean response to cheerful-human will be the same as sad-robot (mean = 1) and cheerful-robot is the same as sad-human (mean = 0). Further, the standard deviation in each condition is equal to 2.
+
+```r 
+mu = c(1, 0, 0, 1) 
+sd = 2
+```
+Now that the basics are laid out we can set up the design.
+```{r }
+
+design_result_cross_40 <- ANOVA_design(string = "2b*2b", n = 40, mu = c(1, 0, 0, 1), sd = 2, 
+                                       labelnames = c("condition", "cheerful", "sad", 
+                                                      "voice", "human", "robot"), 
+                                       plot = FALSE)
+
+design_result_cross_80 <- ANOVA_design(string = "2b*2b", n = 80, mu = c(1, 0, 0, 1), sd = 2, 
+                                       labelnames = c("condition", "cheerful", "sad", 
+                                                      "voice", "human", "robot"))
+```
+Only one means plot is produced because the vector of means and standard deviation are the same.
+
+Power for a sample size of 40.
+
+```{r}
+power_result_cross_40 <- ANOVA_power(design_result_cross_40, 
+                                     alpha_level = 0.05, 
+                                     nsims = nsims, 
+                                     seed = manuscript_seed, 
+                                     verbose = TRUE)
+```
+
+
+Power for a sample size of 80.
+
+```{r}
+power_result_cross_80 <- ANOVA_power(design_result_cross_80, 
+                                     alpha_level = 0.05, 
+                                     nsims = nsims,
+                                     seed = manuscript_seed, 
+                                     verbose = TRUE)
+```
+
+The simulations show we have `r power_result_cross_80$main_results$power[3]`% power when 80 participants are collected per condition (N = 320).
+If the sample size per cell is reduced from 80 to 40, power to detect the interaction is `r power_result_cross_40$main_results$power[3]`%.
+
+#Adjusting for Multiple Comparisons
+
+As mentioned in the manuscript, the number of pairwise comparisons, if left unadjusted, can increase the Type I error rate.
+So in the manuscript, we revisited the 40 person per group study from the cross-over interaction example.
+So the design below is the exact same as `design_result_cross_40`.
+
+
+```{r }
+design_result_holm_correction <- ANOVA_design(string = "2b*2b", n = 40, mu = c(1, 0, 0, 1), sd = 2, 
+                                              labelnames = c("condition", "cheerful", "sad", 
+                                                             "voice", "human", "robot"))
+```
+
+Now, when we run the simulation we can adjust for multiple comparisons using the `p_adjust` argument.
+In this case we use the Holm-Bonferroni correction. 
+This feature is derived from `stats` package (base R), and number of different adjustments for multiple comparions can be applied in the simulation  (see `?p.adjust` for options).
+
+```{r}
+power_result_holm_correction <- ANOVA_power(design_result_holm_correction, 
+                                            alpha_level = 0.05, 
+                                            p_adjust = "holm", 
+                                            nsims = nsims, 
+                                            seed = manuscript_seed, 
+                                            verbose = TRUE)
+```
+
+As we can see from this simulation, power for the first pairwise comparison (cheerful-human vs cheerful-robot) decreases from `r power_result_cross_40$pc_results$power[1]`% when the Holm-Bonferroni correction is applied to `r power_result_holm_correction$pc_results$power[1]`%.
+
