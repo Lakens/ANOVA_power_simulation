@@ -6,7 +6,8 @@ date: '`r format(Sys.time(), "%B %d, %Y")`'
 params:
   tablePC: NA,
   tableMain: NA,
-  pvalue_plot: NA,
+  pvalue_plot1: NA,
+  pvalue_plot2: NA,
   means_plot: NA,
   n: NA,
   padjust: NA,
@@ -14,6 +15,9 @@ params:
   design: NA,
   cor_mat: NA,
   sigmatrix: NA
+  seed_number: NA
+  nsims: NA
+  alpha_level: NA
 ---
 
 
@@ -33,16 +37,20 @@ The sample size was **`r params$n`** per cell with the following adjustment for 
 
 **Correlation Matrix**
 ```{r echo = FALSE}
-# The `params` object is available in the document.
 knitr::kable(params$cor_mat)
+```
+
+**variance-Covariance Matrix**
+```{r echo = FALSE}
+knitr::kable(params$sigmatrix)
 ```
 
 ```{r, results='asis', echo=FALSE}
 cat("\\newpage")
 ```
 
+
 ```{r echo = FALSE}
-# The `params` object is available in the document.
 params$means_plot
 ```
 
@@ -51,18 +59,24 @@ params$means_plot
 cat("\\newpage")
 ```
 
+The seed number for this simulation was set at `r paste(params$seed_number)`. 
+A total number of `r paste(params$nsims)` with an alpha level of `r paste(params$alpha_level)`.
+Please re-use this input to replicate the results below.
+
 **ANOVA Power (%) and Effect Sizes (Partial Eta Squared)**
 
 ```{r echo = FALSE}
 knitr::kable(params$tableMain)
 
-params$pvalue_plot
+params$pvalue_plot1
 ```
 
 **Multiple Comparisons Power (%) and Effect Sizes (Cohen's d~z~)**
 
 ```{r echo = FALSE}
 knitr::kable(params$tablePC)
+
+params$pvalue_plot2
 ```
 
 

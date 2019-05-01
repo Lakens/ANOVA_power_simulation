@@ -16,35 +16,20 @@ library(gridExtra)
 library(reshape2)
 library(rmarkdown)
 library(knitr)
+library(MASS)
 
 #TINYTEX will need to be installed on the server
 #install.packages("tinytex")
 #tinytex::install_tinytex(force = TRUE) 
 #library(tinytex)
 
-#ANOVA design function; last update: March 22, 2019
+#ANOVA design function; last update: May 1 2019
 #Update output
-ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
-  
-  #Checks to ensure information is entered correctly into function
-  #if (n < 3 || n > 1000) {
-  #  error <- "Sample per cell (n) must be greater than 2 and less than 1001"
-  #  stop(error)
-  #}
+ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames, plot = TRUE){
   
   if (length(labelnames) != length(as.numeric(strsplit(string, "\\D+")[[1]])) + sum(as.numeric(strsplit(string, "\\D+")[[1]]))) {
     stop("Design (string) does not match the length of the labelnames")
   }
-  
-  
-  
-  #Require packages needed to run the function; return error if not loaded
-  require(mvtnorm, quietly = TRUE)
-  #require(emmeans, quietly = TRUE)
-  require(ggplot2, quietly = TRUE)
-  require(gridExtra, quietly = TRUE)
-  require(reshape2, quietly = TRUE)
-  require(RColorBrewer, quietly = TRUE)
   
   ###############
   # 1. Specify Design and Simulation----
@@ -59,7 +44,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
   
   ###############
-  # 2. Create Dataframe based on Design ----
+  # 2. Create Factors and Design ----
   ###############
   
   #Count number of factors in design
@@ -80,118 +65,17 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   if(factors == 1){factornames <- c(factornames1)}
   if(factors == 2){factornames <- c(factornames1,factornames2)}
-  if(factors == 3){factornames <- c(factornames1,factornames2,factornames3)}  
+  if(factors == 3){factornames <- c(factornames1,factornames2,factornames3)}
   
   #Specify within/between factors in design: Factors that are within are 1, between 0
-  design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed=TRUE)[[1]]
+  design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed = TRUE)[[1]]
   design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
   
-  mu2 <- mu
-  sd2 <- sd
-  sigmatrix_2 <- matrix(0, length(mu),length(mu)) #create temp matrix filled with value of correlation, nrow and ncol set to length in mu
-  
-  #The loop below is to avoid issues with creating the matrix associated with having a sd < r
-  while (sd2 < min(r)) {
-    sd2 <- sd2*10
-    mu2 <- mu2*10
-  }
-  
-  diag(sigmatrix_2) <- sd2 # replace the diagonal with the sd
-  
-  
-  #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
-  df <- as.data.frame(rmvnorm(n=n,
-                              mean=mu2,
-                              sigma=sigmatrix_2))
-  df$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
-  #Melt dataframe
-  df <- melt(df, 
-             id.vars = "subject", 
-             variable.name = "cond",
-             value.name = "y")
-  
-  # Let's break this down - it's a bit tricky. First, we want to create a list of a1 a2 b1 b2 that will indicate the factors. 
-  # We are looping this over the number of factors.
-  # This: as.numeric(strsplit(string, "\\D+")[[1]]) - takes the string used to specify the design and turn it in a list. 
-  # we take the letters from the alfabet: paste(letters[[j]] and add numbers 1 to however many factors there as: 1:as.numeric(strsplit(string, "\\D+")[[1]])[j], sep="")
-  # We this get e.g. ,a1 a2 - we repeat these each: n*(2^(factors-1)*2)/(2^j) and them times:  (2^j/2) to get a list for each factor
-  # We then bind these together with the existing dataframe.
-  for(j in 1:factors){
-    df <- cbind(df, as.factor(unlist(rep(as.list(paste(factornames[[j]], 
-                                                       labelnameslist[[j]], 
-                                                       sep="_")), 
-                                         each = n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
-                                         times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
-    ))))
-  }
-  #Rename the factor variables that were just created
-  names(df)[4:(3+factors)] <- factornames[1:factors]
-  
-  #Create subject colum (depends on design)
-  subject <- 1:n #Set subject to 1 to the number of subjects collected
-  
-  for(j2 in length(design):1){ #for each factor in the design, from last to first
-    #if w: repeat current string as often as the levels in the current factor (e.g., 3)
-    #id b: repeat current string + max of current subject
-    if(design[j2] == 1){subject <- rep(subject,as.numeric(strsplit(string, "\\D+")[[1]])[j2])}
-    subject_length <- length(subject) #store current length - to append to string of this length below
-    if(design[j2] == 0){
-      for(j3 in 2:as.numeric(strsplit(string, "\\D+")[[1]])[j2]){
-        subject <- append(subject,subject[1:subject_length]+max(subject))
-      }
-    }
-  }
-  
-  #Overwrite subject columns in df
-  df$subject <- subject
-  #For the correlation matrix, we want the names of each possible comparison of means
-  #Need to identify which columns from df to pull the factor names from
-  if (factors == 1) {
-    cond_col <- c(4)
-  } else if (factors == 2) {
-    cond_col <- c(4, 5)
-  } else {
-    cond_col <- c(4, 5, 6)
-  }
-  
-  df$cond <- as.character(interaction(df[, cond_col], sep = "_")) #create a new condition variable combine 2 columns (interaction is a cool function!)
-  paired_tests <- combn(unique(df$cond),2)
+  #Specify design list (all possible combinations of levels)
+  design_list <- apply(expand.grid(labelnameslist), 1, paste, collapse = "_")
   
   ###############
-  # 3. Specify factors for formula ----
-  ###############
-  if(factors == 1 & sum(design) == 1){frml1 <- as.formula(paste("y ~ ",factornames[1]," + Error(subject/",factornames[1],")",sep=""))}
-  if(factors == 1 & sum(design) == 0){frml1 <- as.formula(paste("y ~ ",factornames[1]," + Error(1 | subject)",sep=""))}
-  
-  if(factors == 2){
-    if(sum(design) == 2){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2]," + Error(subject/",factornames[1],"*",factornames[2],")"))}
-    if(sum(design) == 0){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"  + Error(1 | subject)"))}
-    if(all(design == c(1, 0)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2]," + Error(subject/",factornames[1],")"))}
-    if(all(design == c(0, 1)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2]," + Error(subject/",factornames[2],")"))}
-  }
-  
-  if(factors == 3){
-    if(sum(design) == 3){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[1],"*",factornames[2],"*",factornames[3],")"))}
-    if(sum(design) == 0){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(1 | subject)"))}
-    if(all(design == c(1, 0, 0)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[1],")"))}
-    if(all(design == c(0, 1, 0)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[2],")"))}
-    if(all(design == c(0, 0, 1)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[3],")"))}
-    if(all(design == c(1, 1, 0)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[1],"*",factornames[2],")"))}
-    if(all(design == c(0, 1, 1)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[2],"*",factornames[3],")"))}
-    if(all(design == c(1, 0, 1)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[1],"*",factornames[3],")"))}
-  }
-  
-  #Specify second formula used for plotting
-  if(factors == 1){frml2 <- as.formula(paste("~",factornames[1]))}
-  if(factors == 2){frml2 <- as.formula(paste("~",factornames[1],"+",factornames[2]))}
-  if(factors == 3){frml2 <- as.formula(paste("~",factornames[1],"+",factornames[2],"+",factornames[3]))}
-  
-  ############################################
-  #Specify factors for formula ###############
-  design_list <- unique(apply((df)[4:(3+factors)], 1, paste, collapse="_"))
-  
-  ###############
-  # 4. Create Covariance Matrix ----
+  # 3. Create Correlation and Covariance Matrix ----
   ###############
   
   #Create empty matrix
@@ -205,7 +89,6 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   
   #Code by Lisa De Bruine. Allows multiple inputs for r - only use single value now.
   #from: https://github.com/debruine/faux/blob/master/R/rnorm_multi.R
-  # correlation matrix
   generate_cor_matrix  <- function(vars = 3, cors = 0, mu = 0, sd = 1) {
     if (length(mu) == 1) {
       mu <- rep(mu, vars)
@@ -228,7 +111,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
       }
     }
     
-    if (class(cors) == "matrix") { 
+    if (class(cors) == "matrix") {
       if (!is.numeric(cors)) {
         stop("cors matrix not numeric")
       } else if (dim(cors)[1] != vars || dim(cors)[2] != vars) {
@@ -277,7 +160,7 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
     }
     
     return(cor_mat)
-  }  
+  }
   cor_mat <- generate_cor_matrix(vars = vars, cors = cors)
   
   sd_for_sigma <- sd #added to prevent changing sd which is now passed on
@@ -293,31 +176,12 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   #Then for each factor in the design, if 1, set number to wildcard
   for(i1 in 1:length(design_list)){
     design_list_split <- unlist(strsplit(design_list[i1],"_"))
-    current_factor <- design_list_split[c(2,4,6)[1:length(design)]] #this creates a strong of 2, 2,4 or 2,4,6 depending on the length of the design for below
+    #current_factor <- design_list_split[c(2,4,6)[1:length(design)]] #this creates a string of 2, 2,4 or 2,4,6 depending on the length of the design for below
     for(i2 in 1:length(design)){
       #We set each number that is within to a wildcard, so that all within subject factors are matched
-      
-      if(design[i2]==1){current_factor[i2] <- "\\w+"}
-      
+      if(design[i2]==1){design_list_split[i2] <- "\\w+"}
     }
-    ifelse(factors == 1, 
-           current_factor <- paste0(c(design_list_split[1]),
-                                    "_",
-                                    current_factor, 
-                                    collapse="_"),
-           ifelse(factors == 2, 
-                  current_factor <- paste0(c(design_list_split[c(1,3)]), 
-                                           "_", 
-                                           current_factor, 
-                                           collapse="_"),
-                  current_factor <- paste0(c(design_list_split[c(1,3,5)]),
-                                           "_",
-                                           current_factor, 
-                                           collapse="_")))
-    
-    
-    
-    sigmatrix[i1,]<-as.numeric(grepl(current_factor, design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
+    sigmatrix[i1,]<-as.numeric(grepl(paste0(design_list_split, collapse="_"), design_list[i1])) # compare factors that match with current factor, given wildcard, save list to sigmatrix
   }
   
   #Now multiply the matrix we just created (that says what is within, and what is between,  with the original covariance matrix)
@@ -326,118 +190,201 @@ ANOVA_design <- function(string, n, mu, sd, r, p_adjust, labelnames){
   sigmatrix <- sigma*sigmatrix
   row.names(sigmatrix) <- design_list
   colnames(sigmatrix) <- design_list
+  row.names(cor_mat) <- design_list
+  colnames(cor_mat) <- design_list
   
   ###############
-  # 6. Create plot of means to vizualize the design ----
+  # 4. Create Dataframe based on Design ----
   ###############
   
-  #Changed to SD so that way the authors can visually check to make sure the SD matches that of the intended input -- ARC
+  #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
+  dataframe <- as.data.frame(mvrnorm(n=n,
+                                     mu=mu,
+                                     Sigma=sigmatrix,
+                                     empirical = FALSE))
+  dataframe$subject<-as.factor(c(1:n)) #create temp subject variable just for merging
+  #Melt dataframe
+  dataframe <- melt(dataframe,
+                    id.vars = "subject",
+                    variable.name = "cond",
+                    value.name = "y")
   
-  df_means <- data.frame(mu, SD = sd)
+  # Let's break this down - it's a bit tricky. First, we want to create a list of labelnames that will indicate the factors.
+  # We are looping this over the number of factors.
+  # This: as.numeric(strsplit(string, "\\D+")[[1]]) - takes the string used to specify the design and turn it in a list.
+  # we take the labelnames and factornames and combine them
+  # We repeat these each: n*(2^(factors-1)*2)/(2^j) and them times:  (2^j/2) to get a list for each factor
+  # We then bind these together with the existing dataframe.
   for(j in 1:factors){
-    df_means <- cbind(df_means, as.factor(unlist(rep(as.list(paste(labelnameslist[[j]], 
-                                                                   sep="")), 
-                                                     each = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
-                                                     times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+    dataframe <- cbind(dataframe, as.factor(unlist(rep(as.list(paste(factornames[[j]],
+                                                                     labelnameslist[[j]],
+                                                                     sep="_")),
+                                                       each = n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
+                                                       times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+    ))))
+  }
+  #Rename the factor variables that were just created
+  names(dataframe)[4:(3+factors)] <- factornames[1:factors]
+  
+  #Create subject column
+  subject <- 1:n #Set subject to 1 to the number of subjects collected
+  
+  for(j2 in length(design):1){ #for each factor in the design, from last to first
+    #if w: repeat current string as often as the levels in the current factor (e.g., 3)
+    #id b: repeat current string + max of current subject
+    if(design[j2] == 1){subject <- rep(subject,as.numeric(strsplit(string, "\\D+")[[1]])[j2])}
+    subject_length <- length(subject) #store current length - to append to string of this length below
+    if(design[j2] == 0){
+      for(j3 in 2:as.numeric(strsplit(string, "\\D+")[[1]])[j2]){
+        subject <- append(subject,subject[1:subject_length]+max(subject))
+      }
+    }
+  }
+  
+  #Overwrite subject columns in dataframe
+  dataframe$subject <- subject
+  #For the correlation matrix, we want the names of each possible comparison of means
+  #Need to identify which columns from dataframe to pull the factor names from
+  if (factors == 1) {
+    cond_col <- c(4)
+  } else if (factors == 2) {
+    cond_col <- c(4, 5)
+  } else {
+    cond_col <- c(4, 5, 6)
+  }
+  
+  dataframe$cond <- as.character(interaction(dataframe[, cond_col], sep = "_")) #create a new condition variable combine 2 columns (interaction is a cool function!)
+  
+  ###############
+  # 5. Specify factors for formula ----
+  ###############
+  if(factors == 1 & sum(design) == 1){frml1 <- as.formula(paste("y ~ ",factornames[1]," + Error(subject/",factornames[1],")",sep=""))}
+  if(factors == 1 & sum(design) == 0){frml1 <- as.formula(paste("y ~ ",factornames[1]," + Error(1 | subject)",sep=""))}
+  
+  if(factors == 2){
+    if(sum(design) == 2){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2]," + Error(subject/",factornames[1],"*",factornames[2],")"))}
+    if(sum(design) == 0){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"  + Error(1 | subject)"))}
+    if(all(design == c(1, 0)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2]," + Error(subject/",factornames[1],")"))}
+    if(all(design == c(0, 1)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2]," + Error(subject/",factornames[2],")"))}
+  }
+  
+  if(factors == 3){
+    if(sum(design) == 3){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[1],"*",factornames[2],"*",factornames[3],")"))}
+    if(sum(design) == 0){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(1 | subject)"))}
+    if(all(design == c(1, 0, 0)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[1],")"))}
+    if(all(design == c(0, 1, 0)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[2],")"))}
+    if(all(design == c(0, 0, 1)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[3],")"))}
+    if(all(design == c(1, 1, 0)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[1],"*",factornames[2],")"))}
+    if(all(design == c(0, 1, 1)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[2],"*",factornames[3],")"))}
+    if(all(design == c(1, 0, 1)) == TRUE){frml1 <- as.formula(paste("y ~ ",factornames[1],"*",factornames[2],"*",factornames[3]," + Error(subject/",factornames[1],"*",factornames[3],")"))}
+  }
+  
+  #Specify second formula used for plotting
+  if(factors == 1){frml2 <- as.formula(paste("~",factornames[1]))}
+  if(factors == 2){frml2 <- as.formula(paste("~",factornames[1],"+",factornames[2]))}
+  if(factors == 3){frml2 <- as.formula(paste("~",factornames[1],"+",factornames[2],"+",factornames[3]))}
+  
+  ###############
+  # 6. Create plot of means to visualize the design ----
+  ###############
+  
+  dataframe_means <- data.frame(mu, sd)
+  for(j in 1:factors){
+    dataframe_means <- cbind(dataframe_means, as.factor(unlist(rep(as.list(paste(labelnameslist[[j]],
+                                                                                 sep="")),
+                                                                   each = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
+                                                                   times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
     ))))
   }
   
   if(factors == 1){
-    names(df_means) <- c("mu","SD",factornames[1])
-    df_means[,factornames[1]] <- ordered(df_means[,factornames[1]], levels = labelnameslist[[1]])
+    names(dataframe_means) <- c("mu","SD",factornames[1])
+    dataframe_means[,factornames[1]] <- ordered(dataframe_means[,factornames[1]], levels = labelnameslist[[1]])
   }
   if(factors == 2){
-    names(df_means)<-c("mu","SD",factornames[1],factornames[2])
-    df_means[,factornames[1]] <- ordered(df_means[,factornames[1]], levels = labelnameslist[[1]])                   
-    df_means[,factornames[2]] <- ordered(df_means[,factornames[2]], levels = labelnameslist[[2]])                   
+    names(dataframe_means)<-c("mu","SD",factornames[1],factornames[2])
+    dataframe_means[,factornames[1]] <- ordered(dataframe_means[,factornames[1]], levels = labelnameslist[[1]])
+    dataframe_means[,factornames[2]] <- ordered(dataframe_means[,factornames[2]], levels = labelnameslist[[2]])
   }
   
-  if(factors == 3){
-    names(df_means)<-c("mu","SD",factornames[1],factornames[2],factornames[3])
-    df_means[,factornames[1]] <- ordered(df_means[,factornames[1]], levels = labelnameslist[[1]])
-    df_means[,factornames[2]] <- ordered(df_means[,factornames[2]], levels = labelnameslist[[2]])
-    df_means[,factornames[3]] <- ordered(df_means[,factornames[3]], levels = labelnameslist[[3]])
+  if(factors == 3) {
+    names(dataframe_means) <- c("mu","SD",factornames[1],factornames[2],factornames[3])
+    dataframe_means[,factornames[1]] <- ordered(dataframe_means[,factornames[1]], levels = labelnameslist[[1]])
+    dataframe_means[,factornames[2]] <- ordered(dataframe_means[,factornames[2]], levels = labelnameslist[[2]])
+    dataframe_means[,factornames[3]] <- ordered(dataframe_means[,factornames[3]], levels = labelnameslist[[3]])
   }
   
-  if(factors == 1){meansplot = ggplot(df_means, aes_string(y = "mu", x = factornames[1]))}
-  if(factors == 2){meansplot = ggplot(df_means, aes_string(y = "mu", x = factornames[1], colour = factornames[2]))}
-  if(factors == 3){meansplot = ggplot(df_means, aes_string(y = "mu", x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
+  if(factors == 1){meansplot = ggplot(dataframe_means, aes_string(y = "mu", x = factornames[1]))}
+  if(factors == 2){meansplot = ggplot(dataframe_means, aes_string(y = "mu", x = factornames[1], colour = factornames[2]))}
+  if(factors == 3){meansplot = ggplot(dataframe_means, aes_string(y = "mu", x = factornames[1], colour = factornames[2])) + facet_wrap(  paste("~",factornames[3],sep=""))}
   
   #Set custom color palette if factor 2 has a length greater than 8
   if (factors >= 2 && length(labelnameslist[[2]]) >= 9) {
     
-    colourCount = length(unique(labelnameslist[[2]]))
-    getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
-    
     meansplot2 = meansplot +
       geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
-      geom_errorbar(aes(ymin = mu-SD, ymax = mu+SD), 
+      geom_errorbar(aes(ymin = mu-sd, ymax = mu+sd),
                     position = position_dodge(width=0.9), size=.6, width=.3) +
       coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
-      theme_bw() + ggtitle("Means for each condition in the design") + 
-      scale_colour_manual(values = getPalette(colourCount)) #scale_colour_brewer(palette = "Dark2")
+      theme_bw(base_size = 16) + ggtitle("Means for each condition in the design") +
+      scale_colour_brewer(palette = "Dark2")
     
   } else {
     
     meansplot2 = meansplot +
       geom_point(position = position_dodge(width=0.9), shape = 10, size=5, stat="identity") + #Personal preference for sd -- ARC
-      geom_errorbar(aes(ymin = mu-SD, ymax = mu+SD), 
+      geom_errorbar(aes(ymin = mu-sd, ymax = mu+sd),
                     position = position_dodge(width=0.9), size=.6, width=.3) +
       coord_cartesian(ylim=c(min(mu)-sd, max(mu)+sd)) +
-      theme_bw() + ggtitle("Means for each condition in the design") + 
+      theme_bw() + ggtitle("Means for each condition in the design") +
       scale_colour_brewer(palette = "Dark2")
   }
-  
-  
-  
-  
-  
-  print(meansplot2)  #should be blocked in Shiny context
+  if(plot == TRUE){
+    print(meansplot2)  #should be blocked in Shiny context
+  }
   
   # Return results in list()
-  invisible(list(df = df,
+  invisible(list(dataframe = dataframe,
                  design = design,
-                 design_list = design_list, 
-                 factors = factors, 
-                 frml1 = frml1, 
-                 frml2 = frml2, 
+                 design_list = design_list,
+                 factors = factors,
+                 frml1 = frml1,
+                 frml2 = frml2,
                  mu = mu,
                  sd = sd,
                  r = r,
-                 n = n, 
-                 p_adjust = p_adjust,
+                 n = n,
                  cor_mat = cor_mat,
                  sigmatrix = sigmatrix,
                  string = string,
-                 labelnames = labelnames,
+                 labelnames = labelnameslist,
                  factornames = factornames,
                  meansplot = meansplot2))
 }
 
 #Suppress printed output from ANOVA_power
-quiet <- function(x) { 
-  sink(tempfile()) 
-  on.exit(sink()) 
-  invisible(force(x)) 
-} 
+#quiet <- function(x) { 
+#  sink(tempfile()) 
+#  on.exit(sink()) 
+#  invisible(force(x)) 
+#} 
 
-#ANOVA power function; last update: March 16 2019 
-#FROM ANOVA_power_ttest
-#ANOVA power function; last update: March 22 2019
-#Using include_aov to speed up function with large sample sizes
-ANOVA_power <- function(design_result, alpha_level, nsims){
+#ANOVA power function; last update: May 1 2019
+ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", nsims = 1000, seed = NULL, verbose = TRUE){
   
-  #Require necessary packages
-  require(mvtnorm, quietly = TRUE)
-  require(afex, quietly = TRUE)
-  require(emmeans, quietly = TRUE)
-  require(ggplot2, quietly = TRUE)
-  require(gridExtra, quietly = TRUE)
-  require(reshape2, quietly = TRUE)
+  # #Require necessary packages
+  # requireNamespace(mvtnorm, quietly = TRUE)
+  # requireNamespace(MASS, quietly = TRUE)
+  # requireNamespace(afex, quietly = TRUE)
+  # requireNamespace(emmeans, quietly = TRUE)
+  # requireNamespace(ggplot2, quietly = TRUE)
+  # requireNamespace(gridExtra, quietly = TRUE)
+  # requireNamespace(reshape2, quietly = TRUE)
   
   options(scipen = 999) # 'turn off' scientific notation
+  set.seed(seed)
   
-  effect_size_d <- function(x, y, conf.level = 0.95){ 
+  effect_size_d <- function(x, y, conf.level = 0.95){
     sd1 <- sd(x) #standard deviation of measurement 1
     sd2 <- sd(y) #standard deviation of measurement 2
     n1 <- length(x) #number of pairs
@@ -448,18 +395,18 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
     #Calculate Hedges' correction. Uses gamma, unless this yields a nan (huge n), then uses approximation
     j <- (1 - 3/(4 * (n1 + n2 - 2) - 1))
     t_value <- m_diff / sqrt(sd_pooled^2 / n1 + sd_pooled^2 / n2)
-    p_value = 2*pt(-abs(t_value), 
+    p_value = 2*pt(-abs(t_value),
                    df = df)
     
     d <- m_diff / sd_pooled #Cohen's d
     d_unb <- d*j #Hedges g, of unbiased d
     
-    invisible(list(d = d, 
-                   d_unb = d_unb, 
+    invisible(list(d = d,
+                   d_unb = d_unb,
                    p_value = p_value))
   }
   
-  effect_size_d_paired <- function(x, y, conf.level = 0.95){ 
+  effect_size_d_paired <- function(x, y, conf.level = 0.95){
     sd1 <- sd(x) #standard deviation of measurement 1
     sd2 <- sd(y) #standard deviation of measurement 2
     s_diff <- sd(x - y) #standard deviation of the difference scores
@@ -488,7 +435,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
     ))
   }
   
-  round_dig <- 4 #Set digits to which you want to round the output. 
+  round_dig <- 4 #Set digits to which you want to round the output.
   
   if (missing(alpha_level)) {
     alpha_level <- 0.05
@@ -499,21 +446,17 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   
   # Specify the parameters you expect in your data (sd, r for within measures)
   
-  #number of subjects you will collect (for each between factor) 
+  #number of subjects you will collect (for each between factor)
   # For an all within design, this is total N
-  # For a 2b*2b design, this is the number of people in each between condition, so in each of 2*2 = 4 groups 
+  # For a 2b*2b design, this is the number of people in each between condition, so in each of 2*2 = 4 groups
   
   n <- design_result$n
   
-  # specify population means for each condition (so 2 values for 2b design, 6 for 2b*3w, etc) 
+  # specify population means for each condition (so 2 values for 2b design, 6 for 2b*3w, etc)
   mu = design_result$mu # population means - should match up with the design
   
   sd <- design_result$sd #population standard deviation (currently assumes equal variances)
   r <- design_result$r # correlation between within factors (currently only 1 value can be entered)
-  
-  #indicate which adjustment for multiple comparisons you want to use (e.g., "holm")
-  p_adjust <- design_result$p_adjust
-  
   
   ###############
   # 2. Create Dataframe based on Design ----
@@ -528,21 +471,19 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   sigmatrix <- design_result$sigmatrix
   
   #Create the data frame. This will be re-used in the simulation (y variable is overwritten) but created only once to save time in the simulation
-  df <- design_result$df
+  dataframe <- design_result$dataframe
   
   ###############
   # 3. Specify factors for formula ----
   ###############
   
-  frml1 <- design_result$frml1 
+  frml1 <- design_result$frml1
   frml2 <- design_result$frml2
   
-  aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                          data = df, include_aov = FALSE,
+  aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter formula 1 as designed above on the basis of the design
+                                          data = dataframe, include_aov = FALSE,
                                           anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
   
-  # pairwise comparisons
-  #pc <- suppressMessages({pairs(emmeans(aov_result, frml2), adjust = p_adjust) })
   
   ############################################
   #Specify factors for formula ###############
@@ -552,48 +493,35 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   # 5. Set up dataframe for simulation results
   ###############
   
-  
-  
   #How many possible planned comparisons are there (to store p and es)
   possible_pc <- (((prod(
     as.numeric(strsplit(string, "\\D+")[[1]])
   )) ^ 2) - prod(as.numeric(strsplit(string, "\\D+")[[1]])))/2
   
   #create empty dataframe to store simulation results
-  #number of columns if for ANOVA results and planned comparisons, times 2 (p and es)
+  #number of columns for ANOVA results and planned comparisons, times 2 (p-values and effect sizes)
   sim_data <- as.data.frame(matrix(
     ncol = 2 * (2 ^ factors - 1) + 2 * possible_pc,
     nrow = nsims
   ))
   
-  #set up paired tests
-  # Moved to DESIGN
-  # #Need to identify which columns from df to pull the factor names from
-  # if (design_result$factors == 1) {
-  #   cond_col <- c(4)
-  # } else if (design_result$factors == 2) {
-  #   cond_col <- c(4, 5)
-  # } else {
-  #   cond_col <- c(4, 5, 6)
-  # }
-  # 
-  # df$cond <- as.character(interaction(df[, cond_col], sep = "_")) #create a new condition variable combine 2 columns (interaction is a cool function!)
-  paired_tests <- combn(unique(df$cond),2)
+  paired_tests <- combn(unique(dataframe$cond),2)
   paired_p <- numeric(possible_pc)
   paired_d <- numeric(possible_pc)
-  within_between <- sigmatrix[upper.tri(sigmatrix)] #based on whether correlation is 0 or not, we can determine if we should run a paired or independent t-test
+  within_between <- sigmatrix[lower.tri(sigmatrix)] #based on whether correlation is 0 or not, we can determine if we should run a paired or independent t-test
+  
   #Dynamically create names for the data we will store
   names(sim_data) = c(paste("anova_",
-                            rownames(aov_result$anova_table), 
-                            sep = ""), 
-                      paste("anova_es_", 
-                            rownames(aov_result$anova_table), 
-                            sep = ""), 
-                      paste("p_", 
-                            paste(paired_tests[1,],paired_tests[2,],sep = "_"), 
-                            sep = ""), 
-                      paste("d_", 
-                            paste(paired_tests[1,],paired_tests[2,], sep = "_"), 
+                            rownames(aov_result$anova_table),
+                            sep = ""),
+                      paste("anova_es_",
+                            rownames(aov_result$anova_table),
+                            sep = ""),
+                      paste("p_",
+                            paste(paired_tests[1,],paired_tests[2,],sep = "_"),
+                            sep = ""),
+                      paste("d_",
+                            paste(paired_tests[1,],paired_tests[2,], sep = "_"),
                             sep = ""))
   
   
@@ -603,25 +531,25 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   withProgress(message = 'Running simulations', value = 0, { #block outside of Shiny
   for (i in 1:nsims) { #for each simulated experiment
     incProgress(1/nsims, detail = paste("Now running simulation", i, "out of",nsims,"simulations")) #Block outside of Shiny
-    #We simulate a new y variable, melt it in long format, and add it to the df (surpressing messages)
-    df$y <- suppressMessages({
-      melt(as.data.frame(rmvnorm(
+    #We simulate a new y variable, melt it in long format, and add it to the dataframe (surpressing messages)
+    dataframe$y <- suppressMessages({
+      melt(as.data.frame(mvrnorm(
         n = n,
-        mean = mu,
-        sigma = as.matrix(sigmatrix)
+        mu = mu,
+        Sigma = as.matrix(sigmatrix)
       )))$value
     })
     
     # We perform the ANOVA using AFEX
-    #Can be set to NICE to speed up, but required data grabbing from output the change. 
-    aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                            data = df, include_aov = FALSE, #Need development code to get aov_include function
-                                            anova_table = list(es = "pes", 
+    #Can be set to NICE to speed up, but required data grabbing from output the change.
+    aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design
+                                            data = dataframe, include_aov = FALSE, #Need development code to get aov_include function
+                                            anova_table = list(es = "pes",
                                                                p_adjust_method = p_adjust))}) #This reports PES not GES
     
     for (j in 1:possible_pc) {
-      x <- df$y[which(df$cond == paired_tests[1,j])]
-      y <- df$y[which(df$cond == paired_tests[2,j])]
+      x <- dataframe$y[which(dataframe$cond == paired_tests[1,j])]
+      y <- dataframe$y[which(dataframe$cond == paired_tests[2,j])]
       #this can be sped up by tweaking the functions that are loaded to only give p and dz
       ifelse(within_between[j] == 0,
              t_test_res <- effect_size_d(x, y, conf.level = 1 - alpha_level),
@@ -635,9 +563,9 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
     # store p-values and effect sizes for calculations and plots.
     sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
                       aov_result$anova_table[[5]], #partial eta squared
-                      paired_p, #p-values for paired comparisons
-                      paired_d) #effect sizes
-  }
+                      p.adjust(paired_p, method = p_adjust), #p-values for paired comparisons, added correction for multiple comparisons
+                      paired_d #effect sizes
+    )}
   }) #close withProgress Block outside of Shiny
   
   ############################################
@@ -650,178 +578,104 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   
   # melt the data into a long format for plots in ggplot2
   
-  plotData <-
-    suppressMessages({
-      melt(sim_data[1:(2 ^ factors - 1)], value.name = 'p')
-    })
+  plotData <- suppressMessages(melt(sim_data[1:(2 ^ factors - 1)], value.name = 'p'))
   
   SalientLineColor <- "#535353"
-  LineColor <- "#D0D0D0"
-  BackgroundColor <- "#F0F0F0"
+  LineColor <- "Black"
+  BackgroundColor <- "White"
   
-  # plot each of the p-value distributions 
+  # plot each of the p-value distributions
+  #create variable p to use in ggplot and prevent package check error.
+  p <- plotData$p
+  # Helper function for string wrapping.
+  swr = function(string, nwrap=10) {
+    paste(strwrap(string, width=10), collapse="\n")
+  }
+  swr = Vectorize(swr)
+  
+  # Create line breaks in variable
+  plotData$variable = swr(chartr("_:", "  ", plotData$variable))
   
   plt1 = ggplot(plotData, aes(x = p)) +
     scale_x_continuous(breaks = seq(0, 1, by = .1),
                        labels = seq(0, 1, by = .1)) +
-    geom_histogram(colour = "#535353",
-                   fill = "#84D5F0",
+    geom_histogram(colour = "black",
+                   fill = "white",
                    breaks = seq(0, 1, by = .01)) +
     geom_vline(xintercept = alpha_level, colour = 'red') +
     facet_grid(variable ~ .) +
-    labs(x = expression(p)) +
-    theme_bw() +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor.x = element_blank(),
-      panel.grid.minor.y = element_blank()
-    ) +
-    theme(panel.background = element_rect(fill = BackgroundColor)) +
-    theme(plot.background = element_rect(fill = BackgroundColor)) +
-    theme(panel.border = element_rect(colour = BackgroundColor)) +
-    theme(panel.grid.major = element_line(colour = LineColor, size = .75)) +
-    theme(plot.title = element_text(
-      face = "bold",
-      colour = SalientLineColor,
-      vjust = 2,
-      size = 20
-    )) +
-    theme(axis.text.x = element_text(
-      size = 10,
-      colour = SalientLineColor,
-      face = "bold"
-    )) +
-    theme(axis.text.y = element_text(
-      size = 10,
-      colour = SalientLineColor,
-      face = "bold"
-    )) +
-    theme(axis.title.y = element_text(
-      size = 12,
-      colour = SalientLineColor,
-      face = "bold",
-      vjust = 2
-    )) +
-    theme(axis.title.x = element_text(
-      size = 12,
-      colour = SalientLineColor,
-      face = "bold",
-      vjust = 0
-    )) +
-    theme(axis.ticks.x = element_line(colour = SalientLineColor, size =
-                                        2)) +
-    theme(axis.ticks.y = element_line(colour = BackgroundColor)) +
-    theme(axis.line = element_line()) +
-    theme(axis.line.x = element_line(size = 1.2, colour = SalientLineColor)) +
-    theme(axis.line.y = element_line(colour = BackgroundColor)) +
-    theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
-  
+    labs(x = "p") +
+    theme_bw()
   #Plot p-value distributions for simple comparisons
   # melt the data into a ggplot friendly 'long' format
   p_paired <- sim_data[(2 * (2 ^ factors - 1) + 1):(2 * (2 ^ factors - 1) + possible_pc)]
   
   plotData <- suppressMessages(melt(p_paired, value.name = 'p'))
+  #create variable p to use in ggplot and prevent package check error.
+  p <- plotData$p
+  # Create line breaks in variable
+  plotData$variable = swr(chartr("_:", "  ", plotData$variable))
   
   # plot each of the p-value distributions
   plt2 = ggplot(plotData, aes(x = p)) +
     scale_x_continuous(breaks = seq(0, 1, by = .1),
                        labels = seq(0, 1, by = .1)) +
-    geom_histogram(colour = "#535353",
-                   fill = "#84D5F0",
+    geom_histogram(colour = "black",
+                   fill = "white",
                    breaks = seq(0, 1, by = .01)) +
     geom_vline(xintercept = alpha_level, colour = 'red') +
     facet_grid(variable ~ .) +
     labs(x = expression(p)) +
-    theme_bw() +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor.x = element_blank(),
-      panel.grid.minor.y = element_blank()
-    ) +
-    theme(panel.background = element_rect(fill = BackgroundColor)) +
-    theme(plot.background = element_rect(fill = BackgroundColor)) +
-    theme(panel.border = element_rect(colour = BackgroundColor)) +
-    theme(panel.grid.major = element_line(colour = LineColor, size = .75)) +
-    theme(plot.title = element_text(
-      face = "bold",
-      colour = SalientLineColor,
-      vjust = 2,
-      size = 20
-    )) +
-    theme(axis.text.x = element_text(
-      size = 10,
-      colour = SalientLineColor,
-      face = "bold"
-    )) +
-    theme(axis.text.y = element_text(
-      size = 10,
-      colour = SalientLineColor,
-      face = "bold"
-    )) +
-    theme(axis.title.y = element_text(
-      size = 12,
-      colour = SalientLineColor,
-      face = "bold",
-      vjust = 2
-    )) +
-    theme(axis.title.x = element_text(
-      size = 12,
-      colour = SalientLineColor,
-      face = "bold",
-      vjust = 0
-    )) +
-    theme(axis.ticks.x = element_line(colour = SalientLineColor, size =
-                                        2)) +
-    theme(axis.ticks.y = element_line(colour = BackgroundColor)) +
-    theme(axis.line = element_line()) +
-    theme(axis.line.x = element_line(size = 1.2, colour = SalientLineColor)) +
-    theme(axis.line.y = element_line(colour = BackgroundColor)) +
-    theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
-  
+    theme_bw()
   ###############
   # 9. Sumary of power and effect sizes of main effects and contrasts ----
   ###############
   
   #Main effects and interactions from the ANOVA
-  power = as.data.frame(apply(as.matrix(sim_data[(1:(2 ^ factors - 1))]), 2, 
+  power = as.data.frame(apply(as.matrix(sim_data[(1:(2 ^ factors - 1))]), 2,
                               function(x) round(mean(ifelse(x < alpha_level, 1, 0) * 100),round_dig)))
-  es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2 * (2 ^ factors - 1)))]), 2, 
+  
+  es = as.data.frame(apply(as.matrix(sim_data[((2^factors):(2 * (2 ^ factors - 1)))]), 2,
                            function(x) round(median(x),round_dig)))
   
   main_results <- data.frame(power,es)
-  names(main_results) = c("power","effect size")
+  names(main_results) = c("power","effect_size")
   
-  #Data summary for contrasts
-  power_paired = as.data.frame(apply(as.matrix(sim_data[(2 * (2 ^ factors - 1) + 1):(2 * (2 ^ factors - 1) + possible_pc)]), 2,  
+  
+  
+  #Data summary for pairwise comparisons
+  power_paired = as.data.frame(apply(as.matrix(sim_data[(2 * (2 ^ factors - 1) + 1):(2 * (2 ^ factors - 1) + possible_pc)]), 2,
                                      function(x) round(mean(ifelse(x < alpha_level, 1, 0) * 100),round_dig)))
-  es_paired = as.data.frame(apply(as.matrix(sim_data[(2 * (2 ^ factors - 1) + possible_pc + 1):(2*(2 ^ factors - 1) + 2 * possible_pc)]), 2, 
+  
+  es_paired = as.data.frame(apply(as.matrix(sim_data[(2 * (2 ^ factors - 1) + possible_pc + 1):(2*(2 ^ factors - 1) + 2 * possible_pc)]), 2,
                                   function(x) round(mean(x),round_dig)))
   
-  
-  pc_results <- data.frame(power_paired,es_paired)
-  names(pc_results) = c("power","effect size")
-  pc_results
+  pc_results <- data.frame(power_paired, es_paired)
+  names(pc_results) = c("power","effect_size")
   
   #######################
   # Return Results ----
   #######################
-  
-  # The section below should be blocked out when in Shiny
-  #cat("Power and Effect sizes for ANOVA tests")
-  #cat("\n")
-  #print(main_results)
-  #cat("\n")
-  #cat("Power and Effect sizes for contrasts")
-  #cat("\n")
-  #print(pc_results)
+  if(verbose == TRUE){
+    # The section below should be blocked out when in Shiny
+    cat("Power and Effect sizes for ANOVA tests")
+    cat("\n")
+    print(main_results)
+    cat("\n")
+    cat("Power and Effect sizes for contrasts")
+    cat("\n")
+    print(pc_results)
+  }
   
   # Return results in list()
   invisible(list(sim_data = sim_data,
                  main_results = main_results,
                  pc_results = pc_results,
                  plot1 = plt1,
-                 plot2 = plt2))
-  
+                 plot2 = plt2,
+                 p_adjust = p_adjust,
+                 nsims = nsims,
+                 alpha_level = alpha_level))
 }
 
 # Define User Interface for simulations
@@ -866,6 +720,9 @@ ui <- fluidPage(
                 choices = list("None" = "none", "Holm-Bonferroni" = "holm",
                                "Bonferroni" = "bonferroni",
                                "False Discovery Rate" = "fdr"), selected = 1),
+    # Everyone sets the default seed to 42 I always pick Jean Valjean, this can be changed to anything
+    # Also the min and max are the largest and smallest values that R will take for setting a seed - WKH
+    numericInput(inputId = 'setSeedValue', label = "Set Simulation Seed", 24601, min = -2147483647, max = 2147483647),
     #Button to initiate the design
     h4("Click the button below to set up the design - a graph will be displayed with the means as you specified them. If this graph is as you intended, you can run the simulation."),
     
@@ -884,10 +741,10 @@ ui <- fluidPage(
                                  min = 100, max = 10000, value = 100, step = 100),
                      h4("Click either button below to start the simulation"),
                      actionButton("sim", "Print Results of Simulation")
-                     ),
+    ),
     
     conditionalPanel("input.sim >=1",
-    downloadButton("report", "Download Report")
+                     downloadButton("report", "Download Report")
     )
     
     )),
@@ -919,18 +776,18 @@ ui <- fluidPage(
 # Define server logic 
 
 server <- function(input, output) {
-
+  
   #Create set of reactive values
   values <- reactiveValues(design_result = 0, power_result = 0)
   
   #Produce ANOVA design
   observeEvent(input$designBut, {values$design_result <- ANOVA_design(string = as.character(input$design),
-                                                                       n = as.numeric(input$sample_size), 
-                                                                       mu = as.numeric(unlist(strsplit(input$mu, ","))), 
-                                                                       labelnames = as.vector(unlist(strsplit(gsub("[[:space:]]", "",input$labelnames), ","))), 
-                                                                       sd = as.numeric(input$sd), 
-                                                                       r = as.numeric(input$r), 
-                                                                       p_adjust = as.character(input$p_adjust))
+                                                                      n = as.numeric(input$sample_size), 
+                                                                      mu = as.numeric(unlist(strsplit(input$mu, ","))), 
+                                                                      labelnames = as.vector(unlist(strsplit(gsub("[[:space:]]", "",input$labelnames), ","))), 
+                                                                      sd = as.numeric(input$sd), 
+                                                                      r = as.numeric(input$r), 
+                                                                      plot = FALSE)
   })
   
   
@@ -968,9 +825,12 @@ server <- function(input, output) {
   
   
   #Runs simulation and saves result as reactive value
-  observeEvent(input$sim, {values$power_result <- quiet(ANOVA_power(values$design_result, 
-                                                             alpha_level = input$sig, 
-                                                             nsims = input$nsims))
+  observeEvent(input$sim, {values$power_result <- ANOVA_power(values$design_result, 
+                                                              alpha_level = input$sig,
+                                                              nsims = input$nsims,
+                                                              verbose = FALSE,
+                                                              p_adjust = as.character(input$p_adjust),
+                                                              seed = input$setSeedValue)
   
   
   })
@@ -1001,14 +861,18 @@ server <- function(input, output) {
       # Set up parameters to pass to Rmd document
       params <- list(tablePC = values$power_result$pc_result,
                      tableMain = values$power_result$main_results,
-                     pvalue_plot = values$power_result$plot1,
+                     pvalue_plot1 = values$power_result$plot1,
+                     pvalue_plot2 = values$power_result$plot2,
                      means_plot = values$design_result$meansplot,
                      n = values$design_result$n,
-                     padjust = values$design_result$p_adjust,
+                     padjust = values$power_result$p_adjust,
                      model = deparse(values$design_result$frml1),
                      design = values$design_result$string,
                      cor_mat = values$design_result$cor_mat,
-                     sigmatrix = values$design_result$sigmatrix)
+                     sigmatrix = values$design_result$sigmatrix,
+                     seed_number = input$setSeedValue,
+                     nsims = values$power_result$nsims,
+                     alpha_level = values$power_result$alpha_level)
       
       # Knit the document, passing in the `params` list, and eval it in a
       # child of the global environment (this isolates the code in the document
