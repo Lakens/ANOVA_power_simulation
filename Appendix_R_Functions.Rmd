@@ -46,8 +46,8 @@ The ANOVA_design function can create designs up three factors, for both within, 
 3. mu: a vector with the means for each condition.
 4. sd: the population standard deviation. Assumes homogeneity of variances (only one standard deviation can be provided).
 5. r: the correlation for within designs (or 0 for between designs).
-6. labelnames: This is a vector of words that indicate factor names and level names (see below).
-7. A final optional setting is to specify if you want to output a plot or not (plot = TRUE or FALSE)
+6. labelnames: This is a n optional vector of words that indicate factor names and level names (see below).
+7. A final optional setting is to specify whether you want to output a plot or not (plot = TRUE or FALSE)
 
 ## ANOVA_power function
 
@@ -88,7 +88,7 @@ We also assumed we will recruit 80 participants in each group.
 
 `n = 80` 
 
-For ease of interpretation the factors and levels our named in our example, factor = "Condition" with levels = "cheerful" and "sad".
+For ease of interpretation the factors and levels our named in our example, factor = "Condition" with levels = "cheerful" and "sad". It is also possible to not specify the labelnames, in which case they are automatically generated (and would be c("a", "a1", "a2")).
 
 `labelnames = c("Condition", "cheerful", "sad")`
 

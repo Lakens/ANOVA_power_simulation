@@ -388,21 +388,6 @@ The reason for this is that the effect size is only half as large, with Cohen's 
  (compared to `r power_twoway_between(design_result_cross_80)$Cohen_f_AB` in the cross-over interaction).
 By steadily increasing the sample size in the simulation, we see that to achieve the same power as for the two-group comparison, a total sample size of 635 is required, almost four times as large as the sample size for the two-group comparison (160).
 
-```{r sim-interaction-3, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-#I am not exactly sure how this simulation is being used -- Aaron
-design_result <- ANOVA_design(string = "2b*2b", n = 40, mu = c(2, 0, 0, 0), sd = 2, labelnames = c("condition", "cheerful", "sad", "voice", "human", "robot"))
-#Analytic solution
-power_twoway_between(design_result)$power_A
-power_twoway_between(design_result)$power_B
-power_twoway_between(design_result)$power_AB
-power_twoway_between(design_result)$Cohen_f_AB
-power_twoway_between(design_result)$eta_p_2_AB
-design_result <- ANOVA_design(string = "2b*2b*2b", n = 20, mu = c(4, 0, 0, 0, 0, 0, 0, 0), sd = 2, labelnames = c("condition", "cheerful", "sad", "voice", "human", "robot", "factor_c", "c1", "c2"))
-power_threeway_between(design_result)$power_ABC
-power_threeway_between(design_result)$Cohen_f_ABC
-
-```
-
 The power in the 2x2 ordinal interaction where only one cell mean differs from the other three cell means is identical to the power we would have if the single mean was twice as far from the remaining means (for a pattern of means of 2, 0, 0, 0). 
 Similarly, if we would examine a 2x2x2 interaction where only one cell differs from the other means, Cohen's f would be 0.25 when the pattern of means is 4, 0, 0, 0, 0, 0, 0, 0 across the eight cells. 
 The take-home message is that a 'medium' effect size translates into a much more extreme pattern of means in an ordinal interaction than in a disordinal (crossover) interaction, or in a 2x2x2 interaction compared to a 2x2 interaction (see also @perugini_practical_2018).
