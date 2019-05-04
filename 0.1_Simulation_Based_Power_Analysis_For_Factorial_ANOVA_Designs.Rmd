@@ -41,7 +41,7 @@ output            : papaja::apa6_pdf
 ---
 ```{r load_packages, include=FALSE}
 #Set to low number when test-compiling, set to 100.000 for final manuscript.
-nsims <- 100
+nsims <- 10000
 
 #Set manuscript seed
 
