@@ -40,7 +40,7 @@ The sample size was **`r params$n`** per cell with the following adjustment for 
 knitr::kable(params$cor_mat)
 ```
 
-**variance-Covariance Matrix**
+**Variance-Covariance Matrix**
 ```{r echo = FALSE}
 knitr::kable(params$sigmatrix)
 ```
@@ -60,7 +60,7 @@ cat("\\newpage")
 ```
 
 The seed number for this simulation was set at `r paste(params$seed_number)`. 
-A total number of `r paste(params$nsims)` with an alpha level of `r paste(params$alpha_level)`.
+A total number of `r paste(params$nsims)` simulations with an alpha level of `r paste(params$alpha_level)`.
 Please re-use this input to replicate the results below.
 
 **ANOVA Power (%) and Effect Sizes (Partial Eta Squared)**

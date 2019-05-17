@@ -1,5 +1,5 @@
-#March 29 2019
-#added gsub to labelnames call to remove whitespace in vector
+#May 17 2019 update: add updated functions
+
 
 ###############
 # Load libraries 
@@ -23,11 +23,44 @@ library(MASS)
 #tinytex::install_tinytex(force = TRUE) 
 #library(tinytex)
 
-#ANOVA design function; last update: May 1 2019
-#Update output
-ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames, plot = TRUE){
+#ANOVA design function; last update: May 17 2019
+#Update output; covariance output updated
+ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames = NULL, plot = FALSE){
   
-  if (length(labelnames) != length(as.numeric(strsplit(string, "\\D+")[[1]])) + sum(as.numeric(strsplit(string, "\\D+")[[1]]))) {
+  #Check String for an acceptable digits and factor (w or b)
+  if (grepl("^(\\d{1,2}(w|b)\\*){0,2}\\d{1,2}(w|b)$", string, ignore.case = FALSE, perl = TRUE) == FALSE) {
+    stop("Problem in the string argument: must input number of levels as integer (2-99) and factor-type (between or within) as lower case b (between) or w (within)")
+  }
+  
+  #Ensure sd is greater than 0
+  if (any(sd <= 0)) {
+    stop("Standard deviation (sd) is less than or equal to zero; input a value greater than zero")
+  }
+  
+  #Ensure, if single correlation is input, that it is between 0 and 1
+  if (any(r < 0) | any(r >=1) ) {
+    stop("Correlation must be greater than 0 and less than 1")
+  }
+  
+  #Ensure proper n input
+  if (length(n) != 1 ) {
+    stop("Only balanced designs allowed: n can only be one value")
+  }
+  
+  #If labelnames are not provided, they are generated.
+  #Store factor levels (used many times in the script, calculate once)
+  factor_levels <- as.numeric(strsplit(string, "\\D+")[[1]])
+  
+  if (is.null(labelnames)) {
+    for(i1 in 1:length(factor_levels)){
+      labelnames <- append(labelnames,paste(paste(letters[i1]), sep = ""))
+      for(i2 in 1:factor_levels[i1]){
+        labelnames <- append(labelnames,paste(paste(letters[i1]), paste(i2), sep = ""))
+      }
+    }
+  }
+  
+  if (length(labelnames) != length(factor_levels) + sum(factor_levels)) {
     stop("Design (string) does not match the length of the labelnames")
   }
   
@@ -35,29 +68,37 @@ ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames, plot = TRUE){
   # 1. Specify Design and Simulation----
   ###############
   # String used to specify the design
-  # Add numers for each factor with 2 levels, e.g., 2 for a factor with 2 levels
-  # Add a w after the number for within factors, and a b for between factors
-  # Seperate factors with a * (asteriks)
+  # Add numbers for each factor with 2 levels, e.g., 2 for a factor with 2 levels
+  # Add a 'w' after the number for within factors, and a 'b' for between factors
+  # Separate factors with a * (asterisk)
   # Thus "2b*3w) is a design with 2 between levels, and 3 within levels
   
-  #Check if design an means match up - if not, throw an error and stop
-  if(prod(as.numeric(strsplit(string, "\\D+")[[1]])) != length(mu)){stop("the length of the vector with means does not match the study design")}
+  #Check if design and means match up - if not, throw an error and stop
+  if(prod(factor_levels) != length(mu)){stop("the length of the vector with means does not match the study design")}
+  
+  #Check if the design and sd match (either 1 or length of design)
+  #if(length(sd) != 1 && prod(factor_levels) != length(sd)){stop("The SD must be a length of 1 or match the length of the study design")}
+  
+  #Check if the factors are of an acceptable number of levels
+  if(any(factor_levels <= 0) == TRUE | any(factor_levels > 99) ) {
+    stop("Each factor can only have between 2 and 99 levels")
+  }
   
   ###############
   # 2. Create Factors and Design ----
   ###############
   
   #Count number of factors in design
-  factors <- length(as.numeric(strsplit(string, "\\D+")[[1]]))
+  factors <- length(factor_levels)
   
   #Get factor names and labelnameslist
-  labelnames1 <- labelnames[(1 + 1):(1+as.numeric(strsplit(string, "\\D+")[[1]])[1])]
-  if(factors > 1){labelnames2 <- labelnames[(as.numeric(strsplit(string, "\\D+")[[1]])[1] + 3):((as.numeric(strsplit(string, "\\D+")[[1]])[1] + 3) + as.numeric(strsplit(string, "\\D+")[[1]])[2] - 1)]}
-  if(factors > 2){labelnames3 <- labelnames[(as.numeric(strsplit(string, "\\D+")[[1]])[2] + as.numeric(strsplit(string, "\\D+")[[1]])[1] + 4):((as.numeric(strsplit(string, "\\D+")[[1]])[2] + as.numeric(strsplit(string, "\\D+")[[1]])[1] + 4) + as.numeric(strsplit(string, "\\D+")[[1]])[3] - 1)]}
+  labelnames1 <- labelnames[(1 + 1):(1+factor_levels[1])]
+  if(factors > 1){labelnames2 <- labelnames[(factor_levels[1] + 3):((factor_levels[1] + 3) + factor_levels[2] - 1)]}
+  if(factors > 2){labelnames3 <- labelnames[(factor_levels[2] + factor_levels[1] + 4):((factor_levels[2] + factor_levels[1] + 4) + factor_levels[3] - 1)]}
   
   factornames1 <- labelnames[1]
-  if(factors > 1){factornames2 <- labelnames[as.numeric(strsplit(string, "\\D+")[[1]])[1] + 2]}
-  if(factors > 2){factornames3 <- labelnames[as.numeric(strsplit(string, "\\D+")[[1]])[2] + as.numeric(strsplit(string, "\\D+")[[1]])[1] + 3]}
+  if(factors > 1){factornames2 <- labelnames[factor_levels[1] + 2]}
+  if(factors > 2){factornames3 <- labelnames[factor_levels[2] + factor_levels[1] + 3]}
   
   if(factors == 1){labelnameslist <- list(labelnames1)}
   if(factors == 2){labelnameslist <- list(labelnames1,labelnames2)}
@@ -71,8 +112,16 @@ ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames, plot = TRUE){
   design <- strsplit(gsub("[^A-Za-z]","",string),"",fixed = TRUE)[[1]]
   design <- as.numeric(design == "w") #if within design, set value to 1, otherwise to 0
   
-  #Specify design list (all possible combinations of levels)
-  design_list <- apply(expand.grid(labelnameslist), 1, paste, collapse = "_")
+  #Specify design list (similar as below)
+  xxx <- data.frame(matrix(NA, nrow = prod(factor_levels), ncol = 0))
+  for(j in 1:factors){
+    xxx <- cbind(xxx, as.factor(unlist(rep(as.list(paste(labelnameslist[[j]],
+                                                         sep="_")),
+                                           each = prod(factor_levels)/prod(factor_levels[1:j]),
+                                           times = prod(factor_levels)/prod(factor_levels[j:factors])
+    ))))
+  }
+  design_list <- as.character(interaction(xxx[, 1:factors], sep = "_")) #create a new condition variable combine 2 columns (interaction is a cool function!)
   
   ###############
   # 3. Create Correlation and Covariance Matrix ----
@@ -174,14 +223,16 @@ ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames, plot = TRUE){
   
   #General approach: For each factor in the list of the design, save the first item (e.g., a1b1)
   #Then for each factor in the design, if 1, set number to wildcard
+  i1<-1
+  i2<-1
   for(i1 in 1:length(design_list)){
     design_list_split <- unlist(strsplit(design_list[i1],"_"))
     #current_factor <- design_list_split[c(2,4,6)[1:length(design)]] #this creates a string of 2, 2,4 or 2,4,6 depending on the length of the design for below
     for(i2 in 1:length(design)){
-      #We set each number that is within to a wildcard, so that all within subject factors are matched
+      #We set each number that is within to a wildcard, so that all within participant factors are matched
       if(design[i2]==1){design_list_split[i2] <- "\\w+"}
     }
-    sigmatrix[i1,]<-as.numeric(grepl(paste0(design_list_split, collapse="_"), design_list[i1])) # compare factors that match with current factor, given wildcard, save list to sigmatrix
+    sigmatrix[i1,]<-as.numeric(grepl(paste0(design_list_split, collapse="_"), design_list)) # compare factors that match with current factor, given wildcard, save list to sigmatrix
   }
   
   #Now multiply the matrix we just created (that says what is within, and what is between,  with the original covariance matrix)
@@ -211,7 +262,7 @@ ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames, plot = TRUE){
   
   # Let's break this down - it's a bit tricky. First, we want to create a list of labelnames that will indicate the factors.
   # We are looping this over the number of factors.
-  # This: as.numeric(strsplit(string, "\\D+")[[1]]) - takes the string used to specify the design and turn it in a list.
+  # This: factor_levels - takes the string used to specify the design and turn it in a list.
   # we take the labelnames and factornames and combine them
   # We repeat these each: n*(2^(factors-1)*2)/(2^j) and them times:  (2^j/2) to get a list for each factor
   # We then bind these together with the existing dataframe.
@@ -219,8 +270,8 @@ ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames, plot = TRUE){
     dataframe <- cbind(dataframe, as.factor(unlist(rep(as.list(paste(factornames[[j]],
                                                                      labelnameslist[[j]],
                                                                      sep="_")),
-                                                       each = n*prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
-                                                       times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+                                                       each = n*prod(factor_levels)/prod(factor_levels[1:j]),
+                                                       times = prod(factor_levels)/prod(factor_levels[j:factors])
     ))))
   }
   #Rename the factor variables that were just created
@@ -232,10 +283,10 @@ ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames, plot = TRUE){
   for(j2 in length(design):1){ #for each factor in the design, from last to first
     #if w: repeat current string as often as the levels in the current factor (e.g., 3)
     #id b: repeat current string + max of current subject
-    if(design[j2] == 1){subject <- rep(subject,as.numeric(strsplit(string, "\\D+")[[1]])[j2])}
+    if(design[j2] == 1){subject <- rep(subject,factor_levels[j2])}
     subject_length <- length(subject) #store current length - to append to string of this length below
     if(design[j2] == 0){
-      for(j3 in 2:as.numeric(strsplit(string, "\\D+")[[1]])[j2]){
+      for(j3 in 2:factor_levels[j2]){
         subject <- append(subject,subject[1:subject_length]+max(subject))
       }
     }
@@ -292,8 +343,8 @@ ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames, plot = TRUE){
   for(j in 1:factors){
     dataframe_means <- cbind(dataframe_means, as.factor(unlist(rep(as.list(paste(labelnameslist[[j]],
                                                                                  sep="")),
-                                                                   each = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[1:j]),
-                                                                   times = prod(as.numeric(strsplit(string, "\\D+")[[1]]))/prod(as.numeric(strsplit(string, "\\D+")[[1]])[j:factors])
+                                                                   each = prod(factor_levels)/prod(factor_levels[1:j]),
+                                                                   times = prod(factor_levels)/prod(factor_levels[j:factors])
     ))))
   }
   
@@ -362,15 +413,17 @@ ANOVA_design <- function(string, n, mu, sd, r = 0, labelnames, plot = TRUE){
                  meansplot = meansplot2))
 }
 
-#Suppress printed output from ANOVA_power
-#quiet <- function(x) { 
-#  sink(tempfile()) 
-#  on.exit(sink()) 
-#  invisible(force(x)) 
-#} 
-
-#ANOVA power function; last update: May 1 2019
-ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", nsims = 1000, seed = NULL, verbose = TRUE){
+#ANOVA power function; last update: May 17 2019
+ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", nsims = 1000, seed = NULL){
+  
+  if (is.element(p_adjust, c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none")) == FALSE ) {
+    stop("p_adjust must be of an acceptable adjustment method: see ?p.adjust")
+  }
+  
+  if (nsims < 10) {
+    stop("The number of repetitions in simulation must be at least 10; suggested at least 1000 for accurate results")
+  }
+  
   
   # #Require necessary packages
   # requireNamespace(mvtnorm, quietly = TRUE)
@@ -440,6 +493,11 @@ ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", ns
   if (missing(alpha_level)) {
     alpha_level <- 0.05
   }
+  
+  if (alpha_level >= 1 | alpha_level <= 0  ) {
+    stop("alpha_level must be less than 1 and greater than zero")
+  }
+  
   string <- design_result$string #String used to specify the design
   
   factornames <- design_result$factornames #Get factor names
@@ -654,18 +712,18 @@ ANOVA_power <- function(design_result, alpha_level = 0.05, p_adjust = "none", ns
   names(pc_results) = c("power","effect_size")
   
   #######################
-  # Return Results ----
+  # Return Results ---- DEPRECATED
   #######################
-  if(verbose == TRUE){
-    # The section below should be blocked out when in Shiny
-    cat("Power and Effect sizes for ANOVA tests")
-    cat("\n")
-    print(main_results)
-    cat("\n")
-    cat("Power and Effect sizes for contrasts")
-    cat("\n")
-    print(pc_results)
-  }
+  #if(verbose == TRUE){
+  #  # The section below should be blocked out when in Shiny
+  #  cat("Power and Effect sizes for ANOVA tests")
+  #  cat("\n")
+  #  print(main_results)
+  #  cat("\n")
+  #  cat("Power and Effect sizes for contrasts")
+  #  cat("\n")
+  #  print(pc_results)
+  #}
   
   # Return results in list()
   invisible(list(sim_data = sim_data,
@@ -685,17 +743,19 @@ ui <- fluidPage(
   #Panel to define ANOVA design
   column(4, wellPanel(  
     
-    h4("This is an alpha version of an app to calculate power for ANOVA designs through simulation. It is made by ", a("Aaron Caldwell", href = "https://twitter.com/ExPhysStudent"), "and ", a("Daniel Lakens", href = "https://twitter.com/Lakens"),"and we appreciate hearing any feedback you have as we develop this app."),
+    h4("This is an app to calculate power for ANOVA designs through simulation (", a("R Package", href = "https://github.com/Lakens/ANOVApower"),
+       ").  It is made by ", 
+       a("Aaron Caldwell", href = "https://twitter.com/ExPhysStudent"), "and ", 
+       a("Daniel Lakens", href = "https://twitter.com/Lakens"),"and we appreciate hearing any feedback you have as we develop this app."),
     
-    h4("Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a 'w' after the number for within factors, and a 'b' for between factors. Seperate factors with a * (asteriks). Thus '2b*3w' is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels."),
+    h4("Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a 'w' after the number for within factors, and a 'b' for between factors. Seperate factors with a * (asterisks). Thus '2b*3w' is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels."),
     
     textInput(inputId = "design", label = "Design Input",
               value = "2b*2w"),
     
-    h4("Specify one word for each factor (e.g., AGE and SPEED) and the level of each factor (e.g., old and yound for a factor age with 2 levels). 
-       NOTE: There cannot spaces between factor or level labels"),
+    h4("Specify one word for each factor (e.g., AGE and SPEED) and the level of each factor (e.g., old and yound for a factor age with 2 levels)."),
     
-    textInput("labelnames", label = "Factor Labels",
+    textInput("labelnames", label = "Factor & level labels",
               value = "AGE,old,young,SPEED,fast,slow"),
     
     sliderInput("sample_size",
@@ -705,31 +765,35 @@ ui <- fluidPage(
     textInput(inputId = "sd", label = "Standard Deviation",
               value = 1.03),
     
-    h4("Specify the correlation for within subjects factors. Note: the standard deviation cannot be numerically smaller than the correlation"),
+    h4("Specify the correlation for within subjects factors."),
     
     sliderInput("r",
                 label = "Correlation",
                 min = 0, max = 1, value = 0.87),
     
-    h4("Note that for each cell in the design, a mean must be provided. Thus, for a '2b*3w' design, 6 means need to be entered. Means need to be entered in the correct order. ANOVA_design outputs a plot so you can check if you entered means correctly. The general principle is that the code generates factors, indicated by letters of the alphabet, (i.e., a, b, and c). Levels are indicated by numbers (e.g., a1, a2, a3, etc). Means are entered in the following order for a 3 factors design: a1, b1, c1, a1, b1, c2, a1, b2, c1, a1, b2, c2, a2, b1, c1, a2, b1, c2, a2, b2, c1, a2, b2, c2."),
+    h4("Note that for each cell in the design, a mean must be provided. Thus, for a '2b*3w' design, 6 means need to be entered. Means need to be entered in the correct order. The app provides a plot so you can check if you entered means correctly. The general principle has designated factors (i.e., AGE and SPEED) and levels (e.g., old, young)."),
     
     textInput("mu", label = "Vector of Means", 
               value = "1.03, 1.21, 0.98, 1.01"),
     
-    selectInput("p_adjust", h3("Adjustment method for multiple comparisons"), 
+    #Button to initiate the design
+    h4("Click the button below to set up the design - Check the output to see if the design is as you intended, then you can run the simulation."),
+    
+    actionButton("designBut","Set-Up Design"),
+    
+    #Conditional; once design is clicked. Then settings for power simulation can be defined
+    conditionalPanel("input.designBut >= 1",   
+    selectInput("p_adjust", label = "Adjustment for multiple comparisons", 
                 choices = list("None" = "none", "Holm-Bonferroni" = "holm",
                                "Bonferroni" = "bonferroni",
                                "False Discovery Rate" = "fdr"), selected = 1),
     # Everyone sets the default seed to 42 I always pick Jean Valjean, this can be changed to anything
     # Also the min and max are the largest and smallest values that R will take for setting a seed - WKH
     numericInput(inputId = 'setSeedValue', label = "Set Simulation Seed", 24601, min = -2147483647, max = 2147483647),
-    #Button to initiate the design
-    h4("Click the button below to set up the design - a graph will be displayed with the means as you specified them. If this graph is as you intended, you can run the simulation."),
     
-    actionButton("designBut","Set-Up Design"),
+  
     
-    #Conditional; once design is clicked. Then settings for power simulation can be defined
-    conditionalPanel("input.designBut >= 1",
+
                      
                      
                      sliderInput("sig",
@@ -767,7 +831,9 @@ ui <- fluidPage(
          
          tableOutput('tableMain'),
          
-         tableOutput('tablePC') 
+         tableOutput('tablePC'),
+         
+         verbatimTextOutput("p_adjust")
   )
 )
 
@@ -801,12 +867,8 @@ server <- function(input, output) {
           "Model formula: ", deparse(values$design_result$frml1), 
           " 
           ",
-          "Sample size per cell n = ", values$design_result$n, 
-          " 
-          ",
-          "Adjustment for multiple comparisons: ", values$design_result$p_adjust)
-    
-  })
+          "Sample size per cell n = ", values$design_result$n)
+    })
   
   #Output of correlation and standard deviation matrix
   output$corMat <- renderTable(colnames = FALSE, 
@@ -828,7 +890,6 @@ server <- function(input, output) {
   observeEvent(input$sim, {values$power_result <- ANOVA_power(values$design_result, 
                                                               alpha_level = input$sig,
                                                               nsims = input$nsims,
-                                                              verbose = FALSE,
                                                               p_adjust = as.character(input$p_adjust),
                                                               seed = input$setSeedValue)
   
@@ -846,6 +907,12 @@ server <- function(input, output) {
     req(input$sim)
     values$power_result$pc_result},
     rownames = TRUE)
+  
+  output$p_adjust <- renderText({
+    req(input$sim)
+    
+    paste("Adjustment for multiple comparisons", values$power_result$p_adjust)
+  })
   
   #Create downloadable report in markdown TINYTEX NEEDS TO BE INSTALLED 
   output$report <- downloadHandler(

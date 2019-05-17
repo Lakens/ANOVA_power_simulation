@@ -3,7 +3,8 @@ title: 'Appendix 2: Shiny Application'
 subtitle: "Manuscript: Simulation-Based Power-Analysis for Factorial ANOVA Designs"
 author: "Dani&euml;l Lakens & Aaron R. Caldwell"
 output:
-  pdf_document: default
+  pdf_document:
+    pandoc_args: ["--extract-media", "."]
   html_document: default
 ---
 
@@ -46,60 +47,58 @@ The initial study from the manuscript described a study wherein participants int
 
 First, we need to set the "Design Input" to a two-level between-participant design ("2b").
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DesignInput_2bSim.PNG)
 
 Next, we need to specifiy factor and level labels.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/FactorLabels_2bSim.PNG)
 
 The "standard Deviation" and "Sample Size per Cell" can now be set to 2.0 and 80 respectively.
 Since there are no between subjects factors, we can ignore the correlation.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SizeSDCorr_2bSim.PNG)
 
 We now enter the vector of means corresponding to the current design.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/Means_2bSim.PNG)
 
 Now, we can click the "Set-Up Design" button.
 
 And we can check the output to ensure the design is entered correctly.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DesignOutput_2bSim.PNG)
 
 The output is correct, so we can check the simulation settings then click "Print Results of Simulation"
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SimResult_2bSim.PNG)
 
 We can also download a Markdown report of the simulation results by clicking the "Download Report" button.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DownloadReport.PNG)
 
-You can find the Markdown report from this "2b" simulation at INSERT LINK.
+You can find the Markdown report from this "2b" simulation [here](https://github.com/Lakens/ANOVA_power_simulation/blob/master/Appendix/Report_2bSim.pdf).
 
 ## Extending to 3 conditions
 
 In the next example, we explored what would happen if we extended the design to 3 between-participant conditions.
-
-![]()
-
 This was accomplished by adding a "neutral" condition.
+Make sure the labels and mean correspond when specifying the design. 
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DesignInput1_3b1Sim.PNG)
 
-In one scenario, the expected means were 1 (cheerful), 0.5 (neutral), and 0 (sad). 
+In this scenario, the expected means were 1 (cheerful), 0.5 (neutral), and 0 (sad). 
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DesignInput2_3b1Sim.PNG)
 
-Make sure the labels and mean correspond when specifying the design. We again check the design output to ensure the design is correct.
+We again check the design output to ensure the design is correct.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DesignOutput_3b1Sim.PNG)
 
 Now we can simulate this design by clicking the "Print Results of Simulation" button. The results should match the image below.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SimResult_2bSim.PNG)
 
-Again, we can download a Markdown report of the results which can be found here INSERT LINK OSF.
+Again, we can download a Markdown report of the results which can be found [here](https://github.com/Lakens/ANOVA_power_simulation/blob/master/Appendix/Report_3b1Sim.pdf).
 
 # Changing to a within-subjects design
 
@@ -108,21 +107,21 @@ Therefore, the first modification we must make is to the design definition. The 
 
 Now we have the information to define the design in Shiny App (see below).
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DesignInput_3wSim.PNG)
 
 This provides the following output in the Shiny app, and we can verify that the design is entered correctly.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DesignOutput_3wSim.PNG)
 
 The within-subjects design has been specified; now we run the simulation with the following information input in the Shiny app.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SimInput_3w.PNG)
 
 This provides the following output.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SimResult_3wSim.PNG)
 
-A Markdown report of the results can be found here INSERT LINK OSF.
+A Markdown report of the results can be found [here](https://github.com/Lakens/ANOVA_power_simulation/blob/master/Appendix/Report_3wSim.pdf).
 
 # Power for Interactions: Scenario #1
 
@@ -133,28 +132,28 @@ However, the voice is either human-like ("human") or robotic ("robot").
 Note how we first specify the factor name for the first factor, then the names for all levels of the factor, and then specify the second factor label, and the labels for each level. 
 For the first interaction simulation, we will also set the sample size to 40 observations per cell.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DesignInput_Inter1Sim.PNG)
 
 This creates the following design output in the Shiny app.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DesignOutput_Inter1Sim.PNG)
 
 We now can specify the simulation settings.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SimInput_3w.PNG)
 
-Which provides the following results, and a report can be downloaded as well (INSERT OSF link).
+Which provides the following results, and a Markdown report can be downloaded from [here](https://github.com/Lakens/ANOVA_power_simulation/blob/master/Appendix/Report_3wSim.pdf).
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SimResult_Inter1Sim.PNG)
 
 # Power for Interactions: Scenario #2
 
 This simulation is almost identical to the previous simulation.
 The only difference is the sample size is increased to 80.
 
-The results of the simulation (n = 80) is included below and a Markdown report can also be downloaded (INSERT OSF LINK)
+The results of the simulation (n = 80) is included below and a Markdown report can also be downloaded [here](https://github.com/Lakens/ANOVA_power_simulation/blob/master/Appendix/Report_Inter2.pdf)
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SimResult_Inter2Sim.PNG)
 
 # Power for Multiple Comparisons
 
@@ -163,10 +162,10 @@ So in the manuscript, we revisited the 40 person per group study from the cross-
 The design below is the exactly same as the first scenario presented for interactions (see above). 
 The only difference in this simulation is that we specify a Holm-Bonferroni correction for multiple comparisons.
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SimInput_Multi.PNG)
 
 As we can see from this simulation, power for the first pairwise comparison (cheerful-human vs cheerful-robot) is lower now that the Holm-Bonferroni (holm) correction is applied. 
 
-![]()
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SimResult_MultiSim.PNG)
 
-The results of this simulation can also be found in a Markdown report (INSERT OSF Link).
+The results of this simulation can also be found in a Markdown report [here](https://github.com/Lakens/ANOVA_power_simulation/blob/master/Appendix/Report_Multi.pdf).
