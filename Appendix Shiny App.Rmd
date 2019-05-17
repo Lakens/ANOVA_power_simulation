@@ -1,0 +1,172 @@
+---
+title: 'Appendix 2: Shiny Application'
+subtitle: "Manuscript: Simulation-Based Power-Analysis for Factorial ANOVA Designs"
+author: "Dani&euml;l Lakens & Aaron R. Caldwell"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+The goal of ANOVApower is to easily simulate ANOVA designs and calculate the observed power. 
+However, we recognize that many people do not have experience using the R programming langauge.
+Therefore, we developed a "Shiny" application (http://shiny.ieis.tue.nl/anova_power/) which provides a web-based graphical user interface for the R functions.
+In the manuscript we referenced numerous simulations, and within this appendix we have reproduced these simulations using the ANOVApower Shiny App.
+
+
+## Design Input
+
+The Shiny App can create designs up three factors, for both within, between, and mixed designs. It requires the following input: design string, factor labels, sample size per cell, standard deviation, correlation for within-subjects factors, a vector of means, adjustment for multiple comparisons, and set the seed number.
+
+For the design string element, Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a 'w' after the number for within-subjects factors, and a 'b' for between-subjects factors. Seperate factors with asterisks. Thus '2b*3w' is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels.
+
+![Initial Input](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DataEntry.PNG)
+
+![Initial Input, cont.](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DataEntry2.PNG)
+
+## Simulation Input
+
+A few more items need to be input for the simulation to run: the alpha level and number of simulations.
+
+![Simulation Input](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/ANOVApowerInput.PNG)
+
+## Settings from the manuscript
+
+In order to reproduce the simulations from the manuscript we need to set the seed number to 2019 for **each** simulation.
+
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/2019_set_seed.PNG)
+
+The simulation reptitions should be set to 100000, but the Shiny app has a maximum of 10000.
+So, for the sake of this example we will set the number of simulations to 10000.
+
+![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/Num_Simulations.PNG)
+
+#Simple 2 group between-subjects design
+
+The initial study from the manuscript described a study wherein participants interact with an artificial voice assistant who sounds either cheerful or sad, and enjoyment is measured on scale (-5 to +5). 
+
+First, we need to set the "Design Input" to a two-level between-participant design ("2b").
+
+![]()
+
+Next, we need to specifiy factor and level labels.
+
+![]()
+
+The "standard Deviation" and "Sample Size per Cell" can now be set to 2.0 and 80 respectively.
+Since there are no between subjects factors, we can ignore the correlation.
+
+![]()
+
+We now enter the vector of means corresponding to the current design.
+
+![]()
+
+Now, we can click the "Set-Up Design" button.
+
+And we can check the output to ensure the design is entered correctly.
+
+![]()
+
+The output is correct, so we can check the simulation settings then click "Print Results of Simulation"
+
+![]()
+
+We can also download a Markdown report of the simulation results by clicking the "Download Report" button.
+
+![]()
+
+You can find the Markdown report from this "2b" simulation at INSERT LINK.
+
+## Extending to 3 conditions
+
+In the next example, we explored what would happen if we extended the design to 3 between-participant conditions.
+
+![]()
+
+This was accomplished by adding a "neutral" condition.
+
+![]()
+
+In one scenario, the expected means were 1 (cheerful), 0.5 (neutral), and 0 (sad). 
+
+![]()
+
+Make sure the labels and mean correspond when specifying the design. We again check the design output to ensure the design is correct.
+
+![]()
+
+Now we can simulate this design by clicking the "Print Results of Simulation" button. The results should match the image below.
+
+![]()
+
+Again, we can download a Markdown report of the results which can be found here INSERT LINK OSF.
+
+# Changing to a within-subjects design
+
+Now we modify the design by changing it to a within-subjects (i.e., repeated measures) design. 
+Therefore, the first modification we must make is to the design definition. The number indicated the number of levels for each factor (in this case, a single factor with 3 levels) and the letter specifies if the factor is manipulated within or between participants (in this case within). We must also specify the correlation between dependent measures. Here, we assume the correlations between all three pairs of variables is 0.5 (it is also possible to specify different correlations for each pair by entering a vector of correlations).
+
+Now we have the information to define the design in Shiny App (see below).
+
+![]()
+
+This provides the following output in the Shiny app, and we can verify that the design is entered correctly.
+
+![]()
+
+The within-subjects design has been specified; now we run the simulation with the following information input in the Shiny app.
+
+![]()
+
+This provides the following output.
+
+![]()
+
+A Markdown report of the results can be found here INSERT LINK OSF.
+
+# Power for Interactions: Scenario #1
+
+In addition to simple one-way effects, in the manuscript we demonstrate the power analysis for 2x2 between-subjects design.
+In this scenario there two factors "condition" and "voice".
+Again, participants are exposed to a "sad" or "cheerful" condition.
+However, the voice is either human-like ("human") or robotic ("robot"). 
+Note how we first specify the factor name for the first factor, then the names for all levels of the factor, and then specify the second factor label, and the labels for each level. 
+For the first interaction simulation, we will also set the sample size to 40 observations per cell.
+
+![]()
+
+This creates the following design output in the Shiny app.
+
+![]()
+
+We now can specify the simulation settings.
+
+![]()
+
+Which provides the following results, and a report can be downloaded as well (INSERT OSF link).
+
+![]()
+
+# Power for Interactions: Scenario #2
+
+This simulation is almost identical to the previous simulation.
+The only difference is the sample size is increased to 80.
+
+The results of the simulation (n = 80) is included below and a Markdown report can also be downloaded (INSERT OSF LINK)
+
+![]()
+
+# Power for Multiple Comparisons
+
+As mentioned in the manuscript, the number of pairwise comparisons, if left unadjusted, can increase the Type I error rate.
+So in the manuscript, we revisited the 40 person per group study from the cross-over interaction example.
+The design below is the exactly same as the first scenario presented for interactions (see above). 
+The only difference in this simulation is that we specify a Holm-Bonferroni correction for multiple comparisons.
+
+![]()
+
+As we can see from this simulation, power for the first pairwise comparison (cheerful-human vs cheerful-robot) is lower now that the Holm-Bonferroni (holm) correction is applied. 
+
+![]()
+
+The results of this simulation can also be found in a Markdown report (INSERT OSF Link).
