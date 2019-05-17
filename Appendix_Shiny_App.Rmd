@@ -3,8 +3,6 @@ title: 'Appendix 2: Shiny Application'
 subtitle: "Manuscript: Simulation-Based Power-Analysis for Factorial ANOVA Designs"
 author: "Dani&euml;l Lakens & Aaron R. Caldwell"
 output:
-  pdf_document:
-    pandoc_args: ["--extract-media", "."]
   html_document: default
 ---
 
