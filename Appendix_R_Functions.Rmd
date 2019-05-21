@@ -199,7 +199,8 @@ design_result_within_1 <- ANOVA_design(string = "3w",
                                        mu = c(1, 0.5, 0), 
                                        sd = 2, 
                                        r = 0.5, 
-                                       labelnames = c("condition", "cheerful", "neutral", "sad"))
+                                       labelnames = c("condition", "cheerful",
+                                                      "neutral", "sad"))
 ```
 
 Now, visually speaking, nothing about the pattern of means seems to have changed. 
@@ -305,8 +306,10 @@ design_result_holm_correction <- ANOVA_design(string = "2b*2b",
                                               n = 40, 
                                               mu = c(1, 0, 0, 1), 
                                               sd = 2, 
-                                              labelnames = c("condition", "cheerful", "sad", 
-                                                             "voice", "human", "robot"))
+                                              labelnames = c("condition", 
+                                                             "cheerful", "sad", 
+                                                             "voice", 
+                                                             "human", "robot"))
 ```
 
 Now, when we run the simulation we can adjust for multiple comparisons using the `p_adjust` argument.
