@@ -1,7 +1,7 @@
-#ANOVA power function; last update: March 23 2019
+#ANOVA power function; last update: April 19 2019
 #MANOVA output included
-ANOVA_power <- function(design_result, alpha_level, nsims){
- 
+ANOVA_power <- function(design_result, alpha_level = .05, p_adjust = "none", nsims){
+  
   #Require necessary packages
   require(mvtnorm, quietly = TRUE)
   require(afex, quietly = TRUE)
@@ -65,7 +65,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   
   #Check to ensure there is a within subject factor -- if none --> no MANOVA
   run_manova <- grepl("w", design_result$string)
-
+  
   #Only utilized if MANOVA output included (see run_manova)
   Anova.mlm.table <- function(x, ...)
   {
@@ -107,7 +107,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
     alpha_level <- 0.05
   }
   string <- design_result$string #String used to specify the design
-
+  
   factornames <- design_result$factornames #Get factor names
   
   # Specify the parameters you expect in your data (sd, r for within measures)
@@ -152,14 +152,14 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   frml2 <- design_result$frml2
   
   aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
-                                         data = df, include_aov = FALSE,
-                                         anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
+                                          data = df, include_aov = FALSE,
+                                          anova_table = list(es = "pes", p_adjust_method = p_adjust)) }) #This reports PES not GES
   
   #Run MANOVA if within subject factor is included; otherwise ignored
   if (run_manova == TRUE) {
-  manova_result <- Anova.mlm.table(aov_result$Anova)
+    manova_result <- Anova.mlm.table(aov_result$Anova)
   }
-
+  
   
   ############################################
   #Specify factors for formula ###############
@@ -169,7 +169,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   # 5. Set up dataframe for simulation results
   ###############
   
- 
+  
   
   #How many possible planned comparisons are there (to store p and es)
   possible_pc <- (((prod(
@@ -178,20 +178,20 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   
   
   if (run_manova == TRUE) {
-  #create empty dataframe to store simulation results
-  #number of columns if for ANOVA results and planned comparisons, times 2 (p and es)
-  #more columns added if MANOVA output included 2^factors
-  sim_data <- as.data.frame(matrix(
-    ncol = 2 * (2 ^ factors - 1) + (2 ^ factors) + 2 * possible_pc,
-    nrow = nsims
-  )) } else {
-
-  sim_data <- as.data.frame(matrix(
-    ncol = 2 * (2 ^ factors - 1) + 2 * possible_pc,
-    nrow = nsims
-  ))
-  
-  }
+    #create empty dataframe to store simulation results
+    #number of columns if for ANOVA results and planned comparisons, times 2 (p and es)
+    #more columns added if MANOVA output included 2^factors
+    sim_data <- as.data.frame(matrix(
+      ncol = 2 * (2 ^ factors - 1) + (2 ^ factors) + 2 * possible_pc,
+      nrow = nsims
+    )) } else {
+      
+      sim_data <- as.data.frame(matrix(
+        ncol = 2 * (2 ^ factors - 1) + 2 * possible_pc,
+        nrow = nsims
+      ))
+      
+    }
   
   #set up paired tests
   # Moved to DESIGN
@@ -213,21 +213,21 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   #Dynamically create names for the data we will store
   #Again create rownames based on whether or not a MANOVA should be included
   if (run_manova == TRUE) {
-  names(sim_data) = c(paste("anova_",
-                            rownames(aov_result$anova_table), 
-                            sep = ""), 
-                      paste("anova_es_", 
-                            rownames(aov_result$anova_table), 
-                            sep = ""), 
-                      paste("p_", 
-                            paste(paired_tests[1,],paired_tests[2,],sep = "_"), 
-                            sep = ""), 
-                      paste("d_", 
-                            paste(paired_tests[1,],paired_tests[2,], sep = "_"), 
-                            sep = ""),
-                      paste("manova_",
-                            rownames(manova_result), 
-                            sep = ""))
+    names(sim_data) = c(paste("anova_",
+                              rownames(aov_result$anova_table), 
+                              sep = ""), 
+                        paste("anova_es_", 
+                              rownames(aov_result$anova_table), 
+                              sep = ""), 
+                        paste("p_", 
+                              paste(paired_tests[1,],paired_tests[2,],sep = "_"), 
+                              sep = ""), 
+                        paste("d_", 
+                              paste(paired_tests[1,],paired_tests[2,], sep = "_"), 
+                              sep = ""),
+                        paste("manova_",
+                              rownames(manova_result), 
+                              sep = ""))
   } else {
     names(sim_data) = c(paste("anova_",
                               rownames(aov_result$anova_table), 
@@ -248,57 +248,57 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   # 7. Start Simulation ----
   ###############
   #withProgress(message = 'Running simulations', value = 0, { #block outside of Shiny
-    for (i in 1:nsims) { #for each simulated experiment
-      #incProgress(1/nsims, detail = paste("Now running simulation", i, "out of",nsims,"simulations")) #Block outside of Shiny
-      #We simulate a new y variable, melt it in long format, and add it to the df (surpressing messages)
-      df$y <- suppressMessages({
-        melt(as.data.frame(rmvnorm(
-          n = n,
-          mean = mu,
-          sigma = as.matrix(sigmatrix)
-        )))$value
-      })
-      
-      # We perform the ANOVA using AFEX
-      #Can be set to NICE to speed up, but required data grabbing from output the change. 
-      aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
+  for (i in 1:nsims) { #for each simulated experiment
+    #incProgress(1/nsims, detail = paste("Now running simulation", i, "out of",nsims,"simulations")) #Block outside of Shiny
+    #We simulate a new y variable, melt it in long format, and add it to the df (surpressing messages)
+    df$y <- suppressMessages({
+      melt(as.data.frame(rmvnorm(
+        n = n,
+        mean = mu,
+        sigma = as.matrix(sigmatrix)
+      )))$value
+    })
+    
+    # We perform the ANOVA using AFEX
+    #Can be set to NICE to speed up, but required data grabbing from output the change. 
+    aov_result <- suppressMessages({aov_car(frml1, #here we use frml1 to enter fromula 1 as designed above on the basis of the design 
                                             data = df, include_aov = FALSE, #Need development code to get aov_include function
                                             anova_table = list(es = "pes", 
                                                                p_adjust_method = p_adjust))}) #This reports PES not GES
-      
-      # Store MANOVA result if there are within subject factors
-      if (run_manova == TRUE) {
+    
+    # Store MANOVA result if there are within subject factors
+    if (run_manova == TRUE) {
       manova_result <- Anova.mlm.table(aov_result$Anova) 
-      }
-      
-      for (j in 1:possible_pc) {
-        x <- df$y[which(df$cond == paired_tests[1,j])]
-        y <- df$y[which(df$cond == paired_tests[2,j])]
-        #this can be sped up by tweaking the functions that are loaded to only give p and dz
-        ifelse(within_between[j] == 0,
-               t_test_res <- effect_size_d(x, y, conf.level = 1 - alpha_level),
-               t_test_res <- effect_size_d_paired(x, y, conf.level = 1 - alpha_level))
-        paired_p[j] <- t_test_res$p_value
-        paired_d[j] <- ifelse(within_between[j] == 0,
-                                    t_test_res$d,
-                                    t_test_res$d_z)
-        }
-
-      # store p-values and effect sizes for calculations and plots.
-      #If needed to create different row names if MANOVA is included
-      if (run_manova == TRUE) {
+    }
+    
+    for (j in 1:possible_pc) {
+      x <- df$y[which(df$cond == paired_tests[1,j])]
+      y <- df$y[which(df$cond == paired_tests[2,j])]
+      #this can be sped up by tweaking the functions that are loaded to only give p and dz
+      ifelse(within_between[j] == 0,
+             t_test_res <- effect_size_d(x, y, conf.level = 1 - alpha_level),
+             t_test_res <- effect_size_d_paired(x, y, conf.level = 1 - alpha_level))
+      paired_p[j] <- t_test_res$p_value
+      paired_d[j] <- ifelse(within_between[j] == 0,
+                            t_test_res$d,
+                            t_test_res$d_z)
+    }
+    
+    # store p-values and effect sizes for calculations and plots.
+    #If needed to create different row names if MANOVA is included
+    if (run_manova == TRUE) {
       sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
                         aov_result$anova_table[[5]], #partial eta squared
                         paired_p, #p-values for paired comparisons
                         paired_d, #effect sizes
                         manova_result[[6]]) #p-values for MANOVA
-      } else {
-        sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
-                          aov_result$anova_table[[5]], #partial eta squared
-                          paired_p, #p-values for paired comparisons
-                          paired_d) #effect sizes
-      }
+    } else {
+      sim_data[i,] <- c(aov_result$anova_table[[6]], #p-value for ANOVA
+                        aov_result$anova_table[[5]], #partial eta squared
+                        paired_p, #p-values for paired comparisons
+                        paired_d) #effect sizes
     }
+  }
   #}) #close withProgress Block outside of Shiny
   
   ############################################
@@ -321,7 +321,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   BackgroundColor <- "#F0F0F0"
   
   # plot each of the p-value distributions 
-
+  
   plt1 = ggplot(plotData, aes(x = p)) +
     scale_x_continuous(breaks = seq(0, 1, by = .1),
                        labels = seq(0, 1, by = .1)) +
@@ -376,13 +376,13 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
     theme(axis.line.x = element_line(size = 1.2, colour = SalientLineColor)) +
     theme(axis.line.y = element_line(colour = BackgroundColor)) +
     theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
-
+  
   #Plot p-value distributions for simple comparisons
   # melt the data into a ggplot friendly 'long' format
   p_paired <- sim_data[(2 * (2 ^ factors - 1) + 1):(2 * (2 ^ factors - 1) + possible_pc)]
-
+  
   plotData <- suppressMessages(melt(p_paired, value.name = 'p'))
-
+  
   # plot each of the p-value distributions
   plt2 = ggplot(plotData, aes(x = p)) +
     scale_x_continuous(breaks = seq(0, 1, by = .1),
@@ -438,7 +438,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
     theme(axis.line.x = element_line(size = 1.2, colour = SalientLineColor)) +
     theme(axis.line.y = element_line(colour = BackgroundColor)) +
     theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
-
+  
   ###############
   # 9. Sumary of power and effect sizes of main effects and contrasts ----
   ###############
@@ -453,7 +453,7 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   main_results <- data.frame(power,es)
   names(main_results) = c("power","effect size")
   
-
+  
   
   #Data summary for pairwise comparisons
   power_paired = as.data.frame(apply(as.matrix(sim_data[(2 * (2 ^ factors - 1) + 1):(2 * (2 ^ factors - 1) + possible_pc)]), 2,  
@@ -468,12 +468,12 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   
   #Simulation results from MANOVA
   if (run_manova == TRUE) {
-  power_MANOVA = as.data.frame(apply(as.matrix(sim_data[((2*(2 ^ factors - 1) + 2 * possible_pc + 1):(2 ^ factors + (2*(2 ^ factors - 1) + 2 * possible_pc)))]), 2, 
-                                     function(x) round(mean(ifelse(x < alpha_level, 1, 0) * 100),round_dig)))
-  
-  manova_result <- data.frame(power_MANOVA)
-  names(manova_result) = c("power")
-}
+    power_MANOVA = as.data.frame(apply(as.matrix(sim_data[((2*(2 ^ factors - 1) + 2 * possible_pc + 1):(2 ^ factors + (2*(2 ^ factors - 1) + 2 * possible_pc)))]), 2, 
+                                       function(x) round(mean(ifelse(x < alpha_level, 1, 0) * 100),round_dig)))
+    
+    manova_result <- data.frame(power_MANOVA)
+    names(manova_result) = c("power")
+  }
   
   #######################
   # Return Results ----
@@ -488,13 +488,13 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
   cat("\n")
   print(pc_results)
   if (run_manova == TRUE) {
-  cat("\n")
-  cat("Within-Subject Factors Included: Check MANOVA Results")
+    cat("\n")
+    cat("Within-Subject Factors Included: Check MANOVA Results")
   }
   
   #Create empty value if no MANOVA results are included
   if (run_manova == FALSE) {
-  manova_result = NULL
+    manova_result = NULL
   }
   
   # Return results in list()
@@ -503,6 +503,9 @@ ANOVA_power <- function(design_result, alpha_level, nsims){
                  pc_results = pc_results,
                  manova_result = manova_result,
                  plot1 = plt1,
-                 plot2 = plt2))
+                 plot2 = plt2,
+                 p_adjust = p_adjust,
+                 nsims = nsims,
+                 alpha_level = alpha_level))
   
 }
