@@ -10,7 +10,7 @@ output:
 
 ```{r load_packages, include=FALSE}
 #Set to low number when test-compiling, set to 100.000 for final manuscript.
-nsims <- 100000
+nsims <- 10
 
 #Set manuscript seed
 
@@ -39,9 +39,9 @@ library(ANOVApower)
 
 ## ANOVA_design function
 
-The ANOVA_design function can create designs up three factors, for both within, between, and mixed designs. It requires the following input: string, n, mu, sd, r, and labelnames. 
+The ANOVA_design function can create designs up three factors, for both within, between, and mixed designs. It requires the following input: design, n, mu, sd, r, and labelnames. 
 
-1. string: string that specifies the design (see below).
+1. design: design that specifies the design (see below).
 2. n: the sample size for each between subject condition.
 3. mu: a vector with the means for each condition.
 4. sd: the population standard deviation. Assumes homogeneity of variances (only one standard deviation can be provided).
@@ -75,7 +75,7 @@ manuscript_seed = 2019
 The initial study from the manuscript described a study wherein participants interact with an artificial voice assistant who sounds either cheerful or sad, and enjoyment is measured on scale (-5 to +5). 
 In the ANOVA_design function this a two-level between-participant design. 
 
-`string = "2b"`
+`design = "2b"`
 
 In this study, expected mean in the cheerful condition is 1 and in the sad condition is 1 with a standard deviation of 2. We specify the means as a vector (i.e., c(x,y) ). The standard deviation is assumed to be the same for all conditions (the homegeneity of variances assumption).
 
@@ -95,7 +95,7 @@ For ease of interpretation the factors and levels our named in our example, fact
 We now can put this all together to into the ANOVA_design function.
 
 ```{r design-1}
-design_result <- ANOVA_design(string = "2b", 
+design_result <- ANOVA_design(design = "2b", 
                               n = 80, 
                               mu = c(1, 0), 
                               sd = 2, 
@@ -124,7 +124,7 @@ In this scenario, the ANOVA results are exactly the same as the power from a sim
 
 In the next example, we explored what would happen if we extended the design to 3 between-participant conditions.
 
-`string = "3b"`
+`design = "3b"`
 
 This was accomplished by adding "neutral" condition.
 
@@ -137,7 +137,7 @@ In one scenario, the expected means were 1 (cheerful), 0.5 (neutral), and 0 (sad
 Make sure the labels and mean correspond when specifying the design. This full design can be implemented as the following in the `ANOVA_design` function.
 
 ```{r}
-design_result_1 <- ANOVA_design(string = "3b", 
+design_result_1 <- ANOVA_design(design = "3b", 
                                 n = 80, 
                                 mu = c(1, 0.5, 0), 
                                 sd = 2, 
@@ -159,7 +159,7 @@ In the second scenario, we assume that the enjoyment is the same (mean = 1) in t
 `mu = c(1, 1, 0)`
 
 ```{r}
-design_result_2 <- ANOVA_design(string = "3b", 
+design_result_2 <- ANOVA_design(design = "3b", 
                                 n = 80, 
                                 mu = c(1, 1, 0), 
                                 sd = 2, 
@@ -185,7 +185,7 @@ As we can see, changing the design from `2b` to `3b` has an effect on power depe
 Now we modify the design by changing it to a within-subjects (i.e., repeated measures) design. 
 Therefore, the first modification we must make in the `ANOVA_design` function is to the design definition. The number indicated the number of levels for each factor (in this case, a single factor with 3 levels) and the letter specifies if the factor is manipulated within or between participants (in this case within).
 
-`string = "3w"`
+`design = "3w"`
 
 We must also specify the correlation between dependent measures. Here, we assume the correlations between all three pairs of variables is 0.5 (it is also possible to specify different correlations for each pair by entering a vector of correlations).
 
@@ -194,7 +194,7 @@ We must also specify the correlation between dependent measures. Here, we assume
 Now we have the information to define the ANOVA design.
 
 ```{r }
-design_result_within_1 <- ANOVA_design(string = "3w", 
+design_result_within_1 <- ANOVA_design(design = "3w", 
                                        n = 80, 
                                        mu = c(1, 0.5, 0), 
                                        sd = 2, 
@@ -240,7 +240,7 @@ However, the voice is either human-like ("human") or robotic ("robot"). NOte how
 
 The design now has multiple factors, and is best described as a 'two between by two between' design. This is entered as `2b*2b`. Different factors are separated by a `*` (not by a `x` or any other symbol). 
 
-`r string = "2b*2b" `
+`r design = "2b*2b" `
 
 We must also define a new vector of means for the given design. 
 Because we have a 2*2 design, we need to enter 4 means.
@@ -254,7 +254,7 @@ sd = 2
 Now that the basics are laid out we can set up the design. We performed the simulation twice (to show the same power for a cross-over interaction as for the simple effect in the `2b` design requires half as many participants in each cell), once with 40 participants per condition, once with 80 participants per condition.
 
 ```{r}
-design_result_cross_40 <- ANOVA_design(string = "2b*2b", 
+design_result_cross_40 <- ANOVA_design(design = "2b*2b", 
                                        n = 40, 
                                        mu = c(1, 0, 0, 1), 
                                        sd = 2, 
@@ -262,7 +262,7 @@ design_result_cross_40 <- ANOVA_design(string = "2b*2b",
                                                       "voice", "human", "robot"), 
                                        plot = FALSE)
 
-design_result_cross_80 <- ANOVA_design(string = "2b*2b", 
+design_result_cross_80 <- ANOVA_design(design = "2b*2b", 
                                        n = 80, 
                                        mu = c(1, 0, 0, 1), 
                                        sd = 2, 
@@ -302,7 +302,7 @@ So in the manuscript, we revisited the 40 person per group study from the cross-
 The design below is the exactly same as `design_result_cross_40`.
 
 ```{r}
-design_result_holm_correction <- ANOVA_design(string = "2b*2b", 
+design_result_holm_correction <- ANOVA_design(design = "2b*2b", 
                                               n = 40, 
                                               mu = c(1, 0, 0, 1), 
                                               sd = 2, 

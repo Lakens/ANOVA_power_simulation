@@ -84,15 +84,15 @@ Finally, G*Power provides the option to calculate f from the means, sd and n for
 
 ![](screenshots/gpower_13.png)
 
-# Twoway Between Subject Interaction
+# Two-way Between Subject Interaction
 
 ```{r}
 string <- "2b*2b"
 n <- 20
-mu <- c(20, 20, 20, 25) #All means are equal - so there is no real difference.
+mu <- c(20, 20, 20, 25) 
 # Enter means in the order that matches the labels below.
 sd <- 5
-labelnames <- c("Factor_A", "a1", "a2", "Factor_B", "b1", "b2") #
+labelnames <- c("A", "a1", "a2", "B", "b1", "b2") #
 # the label names should be in the order of the means specified above.
 
 design_result <- ANOVA_design(string = string,
@@ -133,8 +133,6 @@ anova2x2(m1.1=20,
          n2.2=20, 
          alpha=.05, 
          all="OFF")
-
-
 ```
 
 # 3x3 Between Subject ANOVA
@@ -160,7 +158,7 @@ power_result <- ANOVA_power(design_result, alpha_level = 0.05, nsims = nsims)
 
 ```{r}
 
-power_res <- power_twoway_between(design_result) #using default alphe level of .05
+power_res <- power_twoway_between(design_result) #using default alpha level of .05
 
 power_res$power_A
 power_res$power_B

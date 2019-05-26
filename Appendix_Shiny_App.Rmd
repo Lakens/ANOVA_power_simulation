@@ -11,12 +11,11 @@ However, we recognize that many people do not have experience using the R progra
 Therefore, we developed a "Shiny" application (http://shiny.ieis.tue.nl/anova_power/) which provides a web-based graphical user interface for the R functions.
 In the manuscript we referenced numerous simulations, and within this appendix we have reproduced these simulations using the ANOVApower Shiny App.
 
-
 ## Design Input
 
 The Shiny App can create designs up three factors, for both within, between, and mixed designs. It requires the following input: design string, factor labels, sample size per cell, standard deviation, correlation for within-subjects factors, a vector of means, adjustment for multiple comparisons, and set the seed number.
 
-For the design string element, Add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a 'w' after the number for within-subjects factors, and a 'b' for between-subjects factors. Seperate factors with asterisks. Thus '2b*3w' is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels.
+For the design string element, add numbers for each factor that specify the number of levels in the factors (e.g., 2 for a factor with 2 levels). Add a 'w' after the number for within-subjects factors, and a 'b' for between-subjects factors. Separate factors with asterisks. Thus '2b*3w' is a design with two factors, the first of which has 2 between levels, and the second of which has 3 within levels.
 
 ![Initial Input](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/DataEntry.PNG)
 
@@ -34,12 +33,12 @@ In order to reproduce the simulations from the manuscript we need to set the see
 
 ![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/2019_set_seed.PNG)
 
-The simulation reptitions should be set to 100000, but the Shiny app has a maximum of 10000.
+The simulation repetitions should be set to 100000, but the Shiny app has a maximum of 10000.
 So, for the sake of this example we will set the number of simulations to 10000.
 
 ![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/Num_Simulations.PNG)
 
-#Simple 2 group between-subjects design
+## Simple 2 group between-subjects design
 
 The initial study from the manuscript described a study wherein participants interact with an artificial voice assistant who sounds either cheerful or sad, and enjoyment is measured on scale (-5 to +5). 
 
@@ -51,7 +50,7 @@ Next, we need to specifiy factor and level labels.
 
 ![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/FactorLabels_2bSim.PNG)
 
-The "standard Deviation" and "Sample Size per Cell" can now be set to 2.0 and 80 respectively.
+The "Standard Deviation" and "Sample Size per Cell" can now be set to 2.0 and 80 respectively.
 Since there are no between subjects factors, we can ignore the correlation.
 
 ![](https://raw.githubusercontent.com/Lakens/ANOVA_power_simulation/master/Appendix/SizeSDCorr_2bSim.PNG)
