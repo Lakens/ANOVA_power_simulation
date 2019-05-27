@@ -1,6 +1,7 @@
-.Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 .httr-oauth
 Other/**
+.Rproj.user
+sim_data
