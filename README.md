@@ -7,3 +7,6 @@ together with Aaron Caldwell. The new GitHub repository is at:
 Superpower can be found at: <https://aaroncaldwell.us/SuperpowerBook/>.
 ANOVApower will not be updated. All future development will happen at
 the SUperpower site.
+
+The manuscript introducing Superpower can now be found at:
+<https://github.com/Lakens/Simulation_Based_Power_Analysis_For_Factorial_ANOVA_Designs>
